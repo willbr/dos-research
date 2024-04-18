@@ -1,0 +1,22 @@
+     1                                  
+     2                                      ; The incredible keyboard reading program
+     3                                  
+     4                                      org 0x0100
+     5                                  
+     6                                  start:
+     7                                      
+     8 00000000 B400                        mov ah, 0x00        ; keyboard read
+     9 00000002 CD16                        int 0x16            ; call the bios to read it
+    10                                  
+    11 00000004 3C1B                        cmp al,0x1b         ; is it ESC?
+    12 00000006 7409                        je exit_to_command_line
+    13                                  
+    14 00000008 B40E                        mov ah, 0x0e
+    15 0000000A BB0F00                      mov bx, 0x000f
+    16 0000000D CD10                        int 0x10            ; call the bios for displaying one letter
+    17                                  
+    18 0000000F EBEF                        jmp start
+    19                                  
+    20                                  exit_to_command_line:
+    21 00000011 CD20                        int 0x20
+    22                                      

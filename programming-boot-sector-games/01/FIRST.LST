@@ -1,0 +1,25 @@
+     1                                  
+     2                                     ; The incredible Hello, World program
+     3                                  
+     4                                     org 0x0100        ; Start pont of program for a COM file
+     5                                  start:
+     6 00000000 BB[1700]                   mov bx, string    ; Load register BX with address of 'string'
+     7                                  repeat:
+     8 00000003 8A07                       mov  al, [bx]     ; Load a byte in AL from adress pointed by BX
+     9 00000005 84C0                       test al, al       ; Test AL for zero
+    10 00000007 740C                       je   end          ; Jump if equal to 'end' label
+    11 00000009 53                         push bx           ; Save BX to the stack
+    12 0000000A B40E                       mov  ah, 0x0e     ; load ah with the code for terminal output
+    13 0000000C BB0F00                     mov  bx, 0x000f   ; 
+    14 0000000F CD10                       int  0x10         ; Call the BIOS for displaying one letter
+    15 00000011 5B                         pop  bx           ; restore bx
+    16 00000012 43                         inc  bx           ; move the pointer to the next letter
+    17 00000013 EBEE                       jmp  repeat
+    18                                  
+    19                                  end:
+    20 00000015 CD20                       int 0x20          ; end to command-line
+    21                                  
+    22                                  string:
+    23 00000017 48656C6C6F2C20776F-        db "Hello, world", 0
+    23 00000020 726C6400           
+    24                                  
