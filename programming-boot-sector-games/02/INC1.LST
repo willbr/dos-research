@@ -1,0 +1,52 @@
+     1                                     org 0x0100
+     2                                  start:
+     3 00000000 B030                       mov al, 0x30
+     4                                  count1:
+     5 00000002 E81100                     call display_letter
+     6 00000005 FEC0                       inc al
+     7 00000007 3C39                       cmp al, 0x39
+     8 00000009 75F7                       jne count1
+     9                                  count2:
+    10 0000000B E80800                     call display_letter
+    11 0000000E FEC8                       dec al
+    12 00000010 3C30                       cmp al,0x30
+    13 00000012 75F7                       jne count2
+    14                                  
+    15                                     ; library1.asm
+    16                                  
+    17 00000014 CD20                       int 0x20
+    18                                  
+    19                                   display_letter:
+    20 00000016 50                         push ax
+    21 00000017 53                         push bx
+    22 00000018 51                         push cx
+    23 00000019 52                         push dx
+    24 0000001A 56                         push si
+    25 0000001B 57                         push di
+    26 0000001C B40E                       mov ah,0x0e      ; terminal output
+    27 0000001E BB0F00                     mov bx, 0x000f   ; graphics mode
+    28 00000021 CD10                       int 0x10         ; call the BIOS for displaying one letter
+    29 00000023 5F                         pop di
+    30 00000024 5E                         pop si
+    31 00000025 5A                         pop dx
+    32 00000026 59                         pop cx
+    33 00000027 5B                         pop bx
+    34 00000028 58                         pop ax
+    35 00000029 C3                         ret
+    36                                  
+    37                                  
+    38                                      ; read keyboard into AL
+    39                                   read_keyboard:
+    40 0000002A 53                           push bx
+    41 0000002B 51                           push cx
+    42 0000002C 52                           push dx
+    43 0000002D 56                           push si
+    44 0000002E 57                           push di
+    45 0000002F B400                         mov ah,0x00       
+    46 00000031 CD16                         int 0x16          ; BIOS for reading keyboard
+    47 00000033 5F                           pop di
+    48 00000034 5E                           pop si
+    49 00000035 5A                           pop dx
+    50 00000036 59                           pop cx
+    51 00000037 5B                           pop bx
+    52 00000038 C3                           ret

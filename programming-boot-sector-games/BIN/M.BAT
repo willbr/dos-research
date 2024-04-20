@@ -1,4 +1,4 @@
-@echo on
+@echo off
 if "%1"=="" goto error
 nasm -f bin %1.asm -l %1.lst -o %1.com
 goto end

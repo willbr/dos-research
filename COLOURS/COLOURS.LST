@@ -1,0 +1,62 @@
+     1                                  
+     2                                  org 100h ; Standard origin for .COM files
+     3                                  
+     4                                  section .text
+     5                                  start:
+     6                                      ; Set video mode to 03 (80x25 text mode, color)
+     7 00000000 B80300                      mov ax, 0003h
+     8 00000003 CD10                        int 10h
+     9                                  
+    10                                      ; Print colored "Hello, World!" where 1Eh is the color attribute (yellow on blue)
+    11 00000005 B409                        mov ah, 09h
+    12 00000007 B31E                        mov bl, 1Eh  ; attribute byte (yellow on blue background)
+    13 00000009 B90100                      mov cx, 1    ; number of times to print the character
+    14                                  
+    15                                      ; Print each character with color and move cursor
+    16 0000000C B048                        mov al, 'H'
+    17 0000000E E84500                      call print_colored
+    18 00000011 B065                        mov al, 'e'
+    19 00000013 E84000                      call print_colored
+    20 00000016 B06C                        mov al, 'l'
+    21 00000018 E83B00                      call print_colored
+    22 0000001B B06C                        mov al, 'l'
+    23 0000001D E83600                      call print_colored
+    24 00000020 B06F                        mov al, 'o'
+    25 00000022 E83100                      call print_colored
+    26 00000025 B02C                        mov al, ','
+    27 00000027 E82C00                      call print_colored
+    28 0000002A B020                        mov al, ' '
+    29 0000002C E82700                      call print_colored
+    30 0000002F B057                        mov al, 'W'
+    31 00000031 E82200                      call print_colored
+    32 00000034 B06F                        mov al, 'o'
+    33 00000036 E81D00                      call print_colored
+    34 00000039 B072                        mov al, 'r'
+    35 0000003B E81800                      call print_colored
+    36 0000003E B06C                        mov al, 'l'
+    37 00000040 E81300                      call print_colored
+    38 00000043 B064                        mov al, 'd'
+    39 00000045 E80E00                      call print_colored
+    40 00000048 B021                        mov al, '!'
+    41 0000004A E80900                      call print_colored
+    42                                  
+    43                                      ; Wait for any key press
+    44 0000004D B400                        mov ah, 00h
+    45 0000004F CD16                        int 16h
+    46                                  
+    47                                      ; Return to DOS
+    48 00000051 B8004C                      mov ax, 4C00h
+    49 00000054 CD21                        int 21h
+    50                                  
+    51                                  ; Subroutine to print a character in color and move the cursor
+    52                                  print_colored:
+    53 00000056 CD10                        int 10h         ; print character in color
+    54 00000058 FEC2                        inc dl          ; move cursor right
+    55 0000005A B402                        mov ah, 02h     ; set cursor position function
+    56 0000005C CD10                        int 10h         ; apply cursor move
+    57 0000005E C3                          ret
+    58                                  
+    59                                  section .bss
+    60 00000000 ????                        cursor_pos resb 2
+    61                                  
+    62                                  section .data
