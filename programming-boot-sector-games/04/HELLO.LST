@@ -1,0 +1,23 @@
+     1                                  org 0x0100
+     2                                  
+     3 00000000 B80200                  mov ax, 0x0002
+     4 00000003 CD10                    int 0x10
+     5                                  
+     6 00000005 B800B8                  mov ax, 0xb800
+     7 00000008 8ED8                    mov ds, ax
+     8 0000000A 8EC0                    mov es, ax
+     9 0000000C FC                      cld
+    10                                  
+    11 0000000D 31FF                    xor di, di
+    12 0000000F B8481A                  mov ax, 0x1a48
+    13 00000012 AB                      stosw
+    14 00000013 B8451B                  mov ax, 0x1b45
+    15 00000016 AB                      stosw
+    16 00000017 B84C1C                  mov ax, 0x1c4c
+    17 0000001A AB                      stosw
+    18 0000001B B84C1D                  mov ax, 0x1d4c
+    19 0000001E AB                      stosw
+    20 0000001F B84F1E                  mov ax, 0x1e4f
+    21 00000022 AB                      stosw
+    22 00000023 CD20                    int 0x20
+    23                                  
