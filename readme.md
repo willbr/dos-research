@@ -129,4 +129,18 @@ loop d8
 cbw
 jcxz
 loop
+
+lds
+les
 ```
+
+
+# Strings
+
+```asm
+cld       ; clear direction flag
+sed       ;
+stosb     ; store byte ; *(es+di) = al; di += 1
+stosw     ; store word ; *(es+di) = ax; di += 2
+```
+
