@@ -119,7 +119,21 @@ jo  d8
 jno d8
 
 jcxz d8
+
 loop d8
+
+; loop repeats until cx is 0
+; for (cx = 80 ;cx > 0; cx -= 1) {
+;     scroll_scenery();
+; }
+
+   mov cx, 80
+fb1:
+   push cx
+   call scroll_scenery
+   pop cx
+   loop fb1
+
 
 ```
 
@@ -138,9 +152,14 @@ les
 # Strings
 
 ```asm
+std       ; set direction flag for decrementing string operations
 cld       ; clear direction flag
-sed       ;
 stosb     ; store byte ; *(es+di) = al; di += 1
 stosw     ; store word ; *(es+di) = ax; di += 2
+
+
+pushf     ; push flags
+popf      ; retore flags
+
 ```
 
