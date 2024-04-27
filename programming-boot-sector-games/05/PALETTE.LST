@@ -1,0 +1,56 @@
+     1                                  
+     2                                   cpu 8086
+     3                                  
+     4                                   org 0x0100
+     5                                  
+     6                                   v_a: equ 0xfa00
+     7                                   v_b: equ 0xfa02
+     8                                  
+     9                                   start:
+    10 00000000 B81300                     mov ax, 0x0013
+    11 00000003 CD10                       int 0x10
+    12                                  
+    13 00000005 B800A0                     mov ax, 0xa000
+    14 00000008 8ED8                       mov ds, ax
+    15 0000000A 8EC0                       mov es, ax
+    16                                  
+    17                                  m4:
+    18 0000000C B87F00                     mov ax, 127
+    19 0000000F A300FA                     mov [v_a], ax
+    20                                  m0:
+    21 00000012 B87F00                     mov ax, 127
+    22 00000015 A302FA                     mov [v_b], ax
+    23                                  
+    24                                  m1:
+    25 00000018 A100FA                     mov ax, [v_a]
+    26 0000001B BA4001                     mov dx, 320
+    27 0000001E F7E2                       mul dx
+    28 00000020 030602FA                   add ax, [v_b]
+    29 00000024 97                         xchg ax, di
+    30                                  
+    31 00000025 A100FA                     mov ax, [v_a]
+    32 00000028 83E078                     and ax, 0x78
+    33 0000002B 01C0                       add ax, ax
+    34                                  
+    35 0000002D 8B1E02FA                   mov bx, [v_b]
+    36 00000031 83E378                     and bx, 0x78
+    37 00000034 B103                       mov cl, 3
+    38 00000036 D3EB                       shr bx, cl
+    39 00000038 01D8                       add ax, bx
+    40 0000003A AA                         stosb
+    41                                  
+    42 0000003B FF0E02FA                   dec word [v_b]
+    43 0000003F 79D7                       jns m1
+    44                                  
+    45 00000041 FF0E00FA                   dec word [v_a]
+    46 00000045 79CB                       jns m0
+    47                                  
+    48 00000047 B400                       mov ah, 0x00
+    49 00000049 CD16                       int 0x16
+    50                                  
+    51 0000004B B80200                     mov ax, 0x0002
+    52 0000004E CD10                       int 0x10
+    53                                  
+    54 00000050 CD20                       int 0x20
+    55                                  
+    56                                  
