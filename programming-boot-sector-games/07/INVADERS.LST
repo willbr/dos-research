@@ -1,0 +1,372 @@
+     1                                  
+     2                                  
+     3                                  %ifndef com_file
+     4                                  com_file: equ 1
+     5                                  %endif
+     6                                  
+     7                                  cpu 8086
+     8                                  
+     9                                  base: equ 0xfc80
+    10                                  
+    11                                  shots:    equ base+0x00
+    12                                  	; 4 shots, 2 bytes each
+    13                                  	; plus space for an ignored shot
+    14                                  
+    15                                  old_time: equ base+0x0c
+    16                                  level:    equ base+0x10
+    17                                  lives:    equ base+0x11
+    18                                  sprites:  equ base+0x12
+    19                                  
+    20                                  SHIP_ROW:    equ 0x5c*OFFSET_X
+    21                                  X_WIDTH:     equ 0x0140
+    22                                  OFFSET_X     equ X_WIDTH*2
+    23                                  SPRITE_SIZE: equ 4
+    24                                  
+    25                                  SPACESHIP_COLOR:         equ 0x1c
+    26                                  BARRIER_COLOR:           equ 0x0b
+    27                                  SHIP_EXPLOSION_COLOR:    equ 0x0a
+    28                                  INVADER_EXPLOSION_COLOR: equ 0x0e
+    29                                  BULLET_COLOR:            equ 0x0c
+    30                                  START_COLOR:             equ ((sprites+SPRITE_SIZE-(shots+2))/SPRITE_SIZE+0x20)
+    31                                  
+    32                                  
+    33                                  
+    34                                  %if com_file
+    35                                     org 0x0100
+    36                                  %else
+    37                                     org 0x7c00
+    38                                  %endif
+    39 00000000 B81300                     mov ax, 0x0013
+    40 00000003 CD10                       int 0x10             ; 320x200x256
+    41 00000005 FC                         cld
+    42 00000006 B800A0                     mov ax, 0xa000
+    43 00000009 8ED8                       mov ds, ax
+    44 0000000B 8EC0                       mov es, ax
+    45 0000000D B404                       mov ah, 0x04
+    46 0000000F A390FC                     mov [level], ax      ; level = 0, lives = 4
+    47                                  
+    48                                  
+    49                                  restart_game:
+    50 00000012 31C0                       xor ax, ax
+    51 00000014 B9487E                     mov cx, level/2
+    52 00000017 31FF                       xor di, di
+    53 00000019 F3                         rep
+    54 0000001A AB                         stosw
+    55                                  
+    56 0000001B 8B05                       mov ax, [di]
+    57 0000001D 40                         inc ax
+    58 0000001E 40                         inc ax
+    59 0000001F AB                         stosw
+    60 00000020 88C4                       mov ah, al
+    61 00000022 92                         xchg ax, dx
+    62                                  
+    63                                  
+    64 00000023 B8001C                     mov ax, SPACESHIP_COLOR*0x0100+0x00
+    65 00000026 AB                         stosw
+    66 00000027 B898E6                     mov ax, SHIP_ROW+0x4c*2
+    67 0000002A AB                         stosw
+    68                                  
+    69                                  
+    70 0000002B B82814                     mov ax, 0x08*OFFSET_X+0x28
+    71 0000002E BB1025                     mov bx, START_COLOR*0x0100+0x10
+    72                                  in1:
+    73 00000031 B10B                       mov cl, 0x0b
+    74                                  in5:
+    75 00000033 AB                         stosw
+    76 00000034 83C016                     add ax, 0x0b*2
+    77 00000037 93                         xchg ax, bx
+    78 00000038 AB                         stosw
+    79 00000039 FEC4                       inc ah
+    80 0000003B 93                         xchg ax, bx
+    81 0000003C E2F5                       loop in5
+    82 0000003E 058E15                     add ax, 0x09*OFFSET_X-11*0x000b*2
+    83 00000041 80FF5C                     cmp bh, START_COLOR+55
+    84 00000044 75EB                       jne in1
+    85                                  
+    86                                     ; draw the barriers
+    87                                  
+    88 00000046 BFA0D4                     mov di, 0x55*OFFSET_X+0x10*2
+    89 00000049 B105                       mov cl, 5
+    90                                  
+    91                                  
+    92                                  in48:
+    93 0000004B B8040B                     mov ax, BARRIER_COLOR*0x0100+0x04
+    94 0000004E E88E01                     call draw_sprite
+    95 00000051 83C73C                     add di, 0x1e*2
+    96 00000054 E2F5                       loop in48
+    97                                  
+    98                                  in14:
+    99 00000056 BE96FC                     mov si, sprites+SPRITE_SIZE
+   100                                  
+   101                                     ; game loop
+   102                                     ; si = next invader to animate
+   103                                     ; dl = state 0:left 1:right >=2:down
+   104                                     ; dh = nstate
+   105                                     ; ch = dead invaders
+   106                                     ; bp = frame counter
+   107                                  in46:
+   108 00000059 807C0220                   cmp byte [si+2], 0x20
+   109 0000005D 722D                       jc in2
+   110 0000005F FEC5                       inc ch
+   111 00000061 80FD37                     cmp ch, 55
+   112 00000064 74AC                       je restart_game
+   113                                  
+   114                                     ; yes, speed up invaders
+   115                                  
+   116                                  in6:
+   117 00000066 AD                         lodsw
+   118 00000067 97                         xchg ax, di
+   119 00000068 AD                         lodsw
+   120 00000069 3C28                       cmp al, 0x28
+   121 0000006B 740B                       je in27
+   122 0000006D 3C20                       cmp al, 0x20
+   123 0000006F 7504                       jne in29
+   124 00000071 C644FE28                   mov byte [si-2], 0x28
+   125                                  in29:
+   126 00000075 E86701                     call draw_sprite
+   127                                  in27:
+   128 00000078 81FE72FD                   cmp si, sprites+56*SPRITE_SIZE
+   129 0000007C 75DB                       jne in46
+   130 0000007E 88F0                       mov al, dh
+   131 00000080 2C02                       sub al, 2
+   132 00000082 72D2                       jc in14
+   133 00000084 3401                       xor al, 1
+   134 00000086 88C2                       mov dl, al
+   135 00000088 88C6                       mov dh, al
+   136 0000008A EBCA                       jmp in14
+   137                                  
+   138                                  in2:
+   139 0000008C 80740208                   xor byte [si+2], 8
+   140 00000090 45                         inc bp
+   141 00000091 83E507                     and bp, 7
+   142 00000094 52                         push dx
+   143 00000095 56                         push si
+   144 00000096 55                         push bp
+   145 00000097 750E                       jne in12
+   146                                  
+   147                                  in22:
+   148 00000099 B400                       mov ah, 0x00
+   149 0000009B CD1A                       int 0x1a
+   150 0000009D 3B168CFC                   cmp dx, [old_time]
+   151 000000A1 74F6                       je in22
+   152 000000A3 89168CFC                   mov [old_time], dx
+   153                                  
+   154                                  in12:
+   155 000000A7 BE80FC                     mov si, shots
+   156 000000AA B90400                     mov cx, 4
+   157 000000AD AD                         lodsw
+   158 000000AE 3D4001                     cmp ax, X_WIDTH
+   159 000000B1 97                         xchg ax, di
+   160 000000B2 7243                       jc in31
+   161                                  
+   162 000000B4 E82001                     call zero
+   163 000000B7 81EF4201                   sub di, X_WIDTH+2
+   164 000000BB 8A05                       mov al, [di]
+   165 000000BD 2C20                       sub al, 0x20
+   166 000000BF 7229                       jc in30
+   167 000000C1 56                         push si
+   168 000000C2 57                         push di
+   169 000000C3 B404                       mov ah, SPRITE_SIZE
+   170 000000C5 F6E4                       mul ah
+   171 000000C7 01C6                       add si, ax
+   172 000000C9 AD                         lodsw
+   173 000000CA 97                         xchg ax, di
+   174 000000CB C60420                     mov byte [si], 0x20
+   175 000000CE B8080E                     mov ax, INVADER_EXPLOSION_COLOR*0x0100+0x08
+   176 000000D1 E80B01                     call draw_sprite
+   177 000000D4 5F                         pop di
+   178 000000D5 5E                         pop si
+   179 000000D6 EB1F                       jmp in31
+   180                                  
+   181                                  in24:
+   182 000000D8 AD                         lodsw
+   183 000000D9 09C0                       or ax, ax
+   184 000000DB 742D                       je in23
+   185 000000DD 3D00F0                     cmp ax, 0x60*OFFSET_X
+   186 000000E0 97                         xchg ax, di
+   187 000000E1 7314                       jnc in31
+   188 000000E3 E8F100                     call zero
+   189 000000E6 81C73E01                   add di, X_WIDTH-2
+   190                                  
+   191                                  
+   192                                     ; draw bullet
+   193                                  in30:
+   194 000000EA B80C0C                     mov ax, BULLET_COLOR*0x0100+BULLET_COLOR
+   195 000000ED 897CFE                     mov [si-2], di
+   196 000000F0 80BD40010B                 cmp byte [di+X_WIDTH], BARRIER_COLOR
+   197 000000F5 7505                       jne in7
+   198                                  
+   199                                  
+   200                                     ; remove bullet
+   201                                  in31:
+   202 000000F7 31C0                       xor ax, ax
+   203 000000F9 8944FE                     mov [si-2], ax
+   204                                  
+   205                                  in7:
+   206 000000FC 803D1C                     cmp byte [di], SPACESHIP_COLOR
+   207 000000FF 7506                       jne in41
+   208                                  
+   209 00000101 C70692FC380A               mov word [sprites], SHIP_EXPLOSION_COLOR*0x0100+0x38
+   210                                  
+   211                                  in41:
+   212 00000107 E8CF00                     call big_pixel
+   213                                  
+   214                                  in23:
+   215 0000010A E2CC                       loop in24
+   216                                  
+   217 0000010C BE92FC                     mov si, sprites
+   218 0000010F AD                         lodsw
+   219 00000110 08C0                       or al, al
+   220 00000112 740C                       je in42
+   221 00000114 0408                       add al, 0x08
+   222 00000116 7508                       jne in42
+   223 00000118 B41C                       mov ah, SPACESHIP_COLOR
+   224 0000011A FE0E91FC                   dec byte [lives]
+   225 0000011E 784E                       js in10
+   226                                  in42:
+   227 00000120 8944FE                     mov [si-2], ax
+   228 00000123 8B3C                       mov di, [si]
+   229 00000125 E8B700                     call draw_sprite
+   230 00000128 7532                       jne in43
+   231                                  
+   232 0000012A B402                       mov ah, 0x02  ; bios get keyboard flags
+   233 0000012C CD16                       int 0x16
+   234                                  
+   235                                  %if com_file
+   236 0000012E A810                       test al, 0x10 ; scroll lock?
+   237 00000130 753C                       jnz in10
+   238                                  %endif
+   239                                     
+   240 00000132 A804                       test al, 0x04 ; ctrl?
+   241 00000134 7402                       jz in17
+   242 00000136 4F                         dec di        ; move 2 pixel to the left
+   243 00000137 4F                         dec di
+   244                                  in17:
+   245 00000138 A808                       test al, 0x08 ; alt?
+   246 0000013A 7402                       jz in18
+   247 0000013C 47                         inc di        ; move 2 pixel to the right
+   248 0000013D 47                         inc di
+   249                                  in18:
+   250 0000013E A803                       test al, 0x03 ; shift?
+   251 00000140 740D                       jz in35
+   252 00000142 833E80FC00                 cmp word [shots], 0
+   253 00000147 7506                       jne in35
+   254 00000149 8D4508                     lea ax, [di+(0x04*2)]
+   255 0000014C A380FC                     mov [shots], ax
+   256                                  in35:
+   257 0000014F 97                         xchg ax, di
+   258 00000150 3DFEE5                     cmp ax, SHIP_ROW-2
+   259 00000153 7407                       je in43
+   260 00000155 3D32E7                     cmp ax, SHIP_ROW+0x0132
+   261 00000158 7402                       je in43
+   262                                  in19:
+   263 0000015A 8904                       mov [si], ax
+   264                                  in43:
+   265 0000015C 5D                         pop bp
+   266 0000015D 5E                         pop si
+   267 0000015E 5A                         pop dx
+   268                                  
+   269 0000015F 8B04                       mov ax, [si]
+   270 00000161 80FA01                     cmp dl, 1
+   271 00000164 760F                       jbe in9
+   272 00000166 058002                     add ax, 0x0280
+   273 00000169 3D80D4                     cmp ax, 0x55*0x280
+   274 0000016C 7220                       jc in8
+   275                                  in10:
+   276                                  %if com_file
+   277 0000016E B80300                     mov ax, 0x0003 ; text mode
+   278 00000171 CD10                       int 0x10
+   279 00000173 CD20                       int 0x20       ; exit to dos
+   280                                  %else
+   281                                     jmp $
+   282                                  %endif
+   283                                  
+   284                                  in9:
+   285 00000175 48                         dec ax         ; moving let
+   286 00000176 48                         dec ax
+   287 00000177 7203                       jc in20
+   288 00000179 83C004                     add ax, 4      ; moving right
+   289                                  in20:
+   290 0000017C 50                         push ax
+   291 0000017D D1E8                       shr ax, 1
+   292 0000017F B1A0                       mov cl, 0xa0
+   293 00000181 F6F1                       div cl
+   294 00000183 FECC                       dec ah
+   295 00000185 80FC94                     cmp ah, 0x94
+   296 00000188 58                         pop ax
+   297 00000189 7203                       jb in8
+   298 0000018B 80CE16                     or dh, 22
+   299                                  in8:
+   300 0000018E 8904                       mov [si], ax
+   301 00000190 05060F                     add ax, 0x06*0x280+0x03*2
+   302 00000193 93                         xchg ax, bx
+   303                                  
+   304 00000194 B90300                     mov cx, 3
+   305 00000197 E440                       in al, (0x40)
+   306 00000199 3CFC                       cmp al, 0xfc
+   307 0000019B 720D                       jc in4
+   308 0000019D BF82FC                     mov di, shots+2
+   309                                  in45:
+   310 000001A0 833D00                     cmp word [di], 0
+   311 000001A3 7403                       je in44
+   312 000001A5 AF                         scasw
+   313 000001A6 E2F8                       loop in45
+   314                                  in44:
+   315 000001A8 891D                       mov [di], bx
+   316                                  in4:
+   317 000001AA E9B9FE                     jmp in6
+   318                                  
+   319                                  
+   320                                  
+   321                                  bitmaps:
+   322 000001AD 18183C243C7EFF24           db 0x18,0x18,0x3c,0x24,0x3c,0x7e,0xff,0x24
+   323 000001B5 0080421810488201           db 0x00,0x80,0x42,0x18,0x10,0x48,0x82,0x01
+   324 000001BD 00BDDB7E243C66C3           db 0x00,0xbd,0xdb,0x7e,0x24,0x3c,0x66,0xc3
+   325 000001C5 003C5AFFA53C6666           db 0x00,0x3c,0x5a,0xff,0xa5,0x3c,0x66,0x66
+   326 000001CD 0000000000000000           db 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+   327                                  
+   328                                  
+   329                                  bit:
+   330 000001D5 7202                       jc big_pixel
+   331                                  zero:
+   332 000001D7 31C0                       xor ax, ax
+   333                                  big_pixel:
+   334 000001D9 89854001                   mov [di+X_WIDTH], ax
+   335 000001DD AB                         stosw
+   336 000001DE C3                         ret
+   337                                  
+   338                                  
+   339                                  draw_sprite:
+   340 000001DF 51                         push cx
+   341 000001E0 57                         push di
+   342 000001E1 9C                         pushf
+   343                                  in3:
+   344 000001E2 50                         push ax
+   345 000001E3 BB[AD01]                   mov bx, bitmaps
+   346 000001E6 2ED7                       cs xlat
+   347                                  
+   348 000001E8 93                         xchg ax, bx
+   349 000001E9 B90A00                     mov cx, 10
+   350 000001EC F8                         clc
+   351                                  in0:
+   352 000001ED 88F8                       mov al, bh
+   353 000001EF 88FC                       mov ah, bh
+   354 000001F1 E8E1FF                     call  bit
+   355 000001F4 D0E3                       shl bl, 1
+   356 000001F6 E2F5                       loop in0
+   357 000001F8 81C76C02                   add di, OFFSET_X-20
+   358 000001FC 58                         pop ax
+   359 000001FD 40                         inc ax
+   360 000001FE A807                       test al, 7
+   361 00000200 75E0                       jne in3
+   362 00000202 9D                         popf
+   363 00000203 5F                         pop di
+   364 00000204 59                         pop cx
+   365 00000205 C3                         ret
+   366                                  
+   367                                  %if com_file
+   368                                  %else
+   369                                     times 510-($-$$) db 0x4f
+   370                                     db 0x55,0xaa
+   371                                  %endif
+   372                                  
