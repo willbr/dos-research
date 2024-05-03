@@ -1,0 +1,339 @@
+     1                                  
+     2                                  
+     3                                  
+     4                                  
+     5                                  %ifndef com_file
+     6                                  com_file: equ 1
+     7                                  %endif
+     8                                  
+     9                                  
+    10                                  base:         equ 0xf9fe
+    11                                  intended_dir: equ base+0x00
+    12                                  frame:        equ base+0x01
+    13                                  x_player:     equ base+0x02
+    14                                  y_player:     equ base+0x04
+    15                                  old_time:     equ base+0x06
+    16                                  
+    17                                  
+    18                                  BASE_MAZE:    equ 16*X_OFFSET+32
+    19                                  pos1:         equ BASE_MAZE+21*8*X_OFFSET
+    20                                  
+    21                                  X_OFFSET:     equ 0x0140
+    22                                  
+    23                                  MAZE_COLOR:   equ 0x37
+    24                                  PILL_COLOR:   equ 0x02
+    25                                  PLAYER_COLOR: equ 0x0e
+    26                                  
+    27                                  GHOST1_COLOR: equ 0x21
+    28                                  GHOST2_COLOR: equ 0x2e
+    29                                  GHOST3_COLOR: equ 0x28
+    30                                  GHOST4_COLOR: equ 0x34
+    31                                  
+    32                                  
+    33                                  
+    34                                  %if com_file
+    35                                     org 0x0100
+    36                                  %else
+    37                                     org 0x7c00
+    38                                  %endif
+    39                                  
+    40                                  restart:
+    41 00000000 B81300                     mov ax, 0x0013      ; 320x200x256
+    42 00000003 CD10                       int 0x10
+    43 00000005 FC                         cld
+    44 00000006 B800A0                     mov ax, 0xa000
+    45 00000009 8ED8                       mov ds, ax
+    46 0000000B 8EC0                       mov es, ax
+    47                                  
+    48 0000000D BE[7801]                   mov si, maze
+    49 00000010 BF2014                     mov di, BASE_MAZE
+    50                                  
+    51                                  draw_maze_row:
+    52 00000013 2EAD                       cs lodsw
+    53 00000015 91                         xchg ax, cx
+    54 00000016 BBF000                     mov  bx, 30*8
+    55                                  
+    56                                  draw_maze_col:
+    57 00000019 D1E1                       shl cx, 1
+    58 0000001B B81837                     mov ax, MAZE_COLOR*0x0100+0x18
+    59 0000001E 7303                       jnc dm1
+    60 00000020 B83802                     mov ax, PILL_COLOR*0x0100+0x38
+    61                                  
+    62                                  dm1:
+    63 00000023 E8A001                     call draw_sprite
+    64 00000026 01DF                       add di, bx
+    65 00000028 83EB10                     sub bx, 16
+    66 0000002B 720A                       jc dm2
+    67 0000002D E89601                     call draw_sprite
+    68 00000030 29DF                       sub di, bx
+    69 00000032 83EF08                     sub di, 8
+    70 00000035 EBE2                       jmp draw_maze_col
+    71                                  
+    72                                  dm2:
+    73 00000037 81C78809                   add di, X_OFFSET*8-15*8
+    74 0000003B 81FE[A201]                 cmp si, setup_data
+    75 0000003F 75D2                       jne draw_maze_row
+    76                                  
+    77 00000041 B105                       mov cl, 5
+    78 00000043 B80200                     mov ax, 2
+    79                                  
+    80                                  dm3:
+    81 00000046 2EA5                       cs movsw
+    82 00000048 AB                         stosw
+    83 00000049 E2FB                       loop dm3
+    84                                  
+    85                                  
+    86                                  game_loop:
+    87 0000004B B400                       mov ah, 0x00     ; read bios clock
+    88 0000004D CD1A                       int 0x1a
+    89 0000004F 3B1604FA                   cmp dx, [old_time]
+    90 00000053 74F6                       je game_loop
+    91 00000055 891604FA                   mov [old_time], dx
+    92                                  
+    93 00000059 B401                       mov ah, 0x01
+    94 0000005B CD16                       int 0x16
+    95 0000005D B400                       mov ah, 0x00
+    96 0000005F 7402                       je no_key
+    97 00000061 CD16                       int 0x16
+    98                                  no_key:
+    99 00000063 88E0                       mov al, ah
+   100 00000065 2C48                       sub al, 0x48
+   101 00000067 720C                       jc no_key2
+   102 00000069 3C09                       cmp al, 0x09
+   103 0000006B 7308                       jnc no_key2
+   104 0000006D BB[AC01]                   mov bx, dirs
+   105 00000070 2ED7                       cs xlat
+   106 00000072 A2FEF9                     mov [intended_dir], al
+   107                                  no_key2:
+   108 00000075 BE20E6                     mov si, pos1
+   109 00000078 AD                         lodsw
+   110 00000079 97                         xchg ax, di
+   111 0000007A AD                         lodsw
+   112 0000007B 93                         xchg ax, bx
+   113 0000007C 31C0                       xor ax, ax
+   114 0000007E E82C00                     call move_sprite2
+   115 00000081 8036FFF980                 xor byte [frame], 0x80
+   116 00000086 B8280E                     mov ax, 0x0e28
+   117 00000089 7807                       js close_mouth
+   118 0000008B A022E6                     mov al, [pos1+2]
+   119 0000008E B103                       mov cl, 3
+   120 00000090 D2E0                       shl al, cl
+   121                                  close_mouth:
+   122 00000092 E83101                     call draw_sprite
+   123                                  
+   124 00000095 B721                       mov bh, GHOST1_COLOR
+   125 00000097 E81B01                     call move_ghost
+   126 0000009A B72E                       mov bh, GHOST2_COLOR
+   127 0000009C E81601                     call move_ghost
+   128 0000009F B728                       mov bh, GHOST3_COLOR
+   129 000000A1 E81101                     call move_ghost
+   130 000000A4 B734                       mov bh, GHOST4_COLOR
+   131 000000A6 E80C01                     call move_ghost
+   132 000000A9 EBA0                       jmp game_loop
+   133                                  
+   134                                  move_sprite3:
+   135 000000AB 7403                       je move_sprite
+   136                                  move_sprite2:
+   137 000000AD E81601                     call draw_sprite
+   138                                  move_sprite:
+   139 000000B0 89F8                       mov ax, di
+   140 000000B2 31D2                       xor dx, dx
+   141 000000B4 B94001                     mov cx, X_OFFSET
+   142 000000B7 F7F1                       div cx
+   143 000000B9 88D4                       mov ah, dl
+   144 000000BB 08C4                       or ah, al
+   145 000000BD 80E407                     and ah, 7
+   146 000000C0 755B                       jne ms0
+   147                                  
+   148 000000C2 B537                       mov ch, MAZE_COLOR
+   149 000000C4 386DFF                     cmp [di-0x0001], ch
+   150 000000C7 10E4                       adc ah, ah
+   151 000000C9 38AD000A                   cmp [di+X_OFFSET*8], ch
+   152 000000CD 10E4                       adc ah, ah
+   153 000000CF 386D08                     cmp [di+0x0008], ch
+   154 000000D2 10E4                       adc ah, ah
+   155 000000D4 38ADC0FE                   cmp [di-X_OFFSET], ch
+   156 000000D8 10E4                       adc ah, ah
+   157                                  
+   158 000000DA 84FF                       test bh, bh
+   159 000000DC 742D                       je ms4
+   160                                  
+   161 000000DE F6C305                     test bl, 0x05
+   162 000000E1 740C                       je ms6
+   163 000000E3 3B1600FA                   cmp dx, [x_player]
+   164 000000E7 B002                       mov al, 0x02
+   165 000000E9 720E                       jc ms8
+   166 000000EB B008                       mov al, 0x08
+   167 000000ED EB0A                       jmp ms8
+   168                                  
+   169                                  ms6:
+   170 000000EF 3A0602FA                   cmp al, [y_player]
+   171 000000F3 B004                       mov al, 0x04
+   172 000000F5 7202                       jc ms8
+   173 000000F7 B001                       mov al, 0x01
+   174                                  
+   175                                  ms8:
+   176 000000F9 84C4                       test ah, al
+   177 000000FB 7522                       jne ms1
+   178                                  
+   179 000000FD 88D8                       mov al, bl
+   180                                  ms9:
+   181 000000FF 84C4                       test ah, al
+   182 00000101 751C                       jne ms1
+   183 00000103 D0E8                       shr al, 1
+   184 00000105 75F8                       jne ms9
+   185 00000107 B008                       mov al, 0x08
+   186 00000109 EBF4                       jmp ms9
+   187                                  
+   188                                     ; pillman
+   189                                  
+   190                                  ms4:
+   191 0000010B 891600FA                   mov [x_player], dx
+   192 0000010F A202FA                     mov [y_player], al
+   193                                  
+   194 00000112 A0FEF9                     mov al, [intended_dir]
+   195 00000115 84C4                       test ah, al
+   196 00000117 7506                       jne ms1
+   197                                  
+   198                                  ms5:
+   199 00000119 20DC                       and ah, bl
+   200 0000011B 741A                       je ms2
+   201                                  
+   202                                  ms0:
+   203 0000011D 88D8                       mov al, bl
+   204                                  
+   205                                  ms1:
+   206 0000011F 8844FE                     mov [si-2], al
+   207                                  
+   208 00000122 A805                       test al, 5
+   209 00000124 BB80FD                     mov bx, -X_OFFSET*2
+   210 00000127 7503                       jne ms3
+   211 00000129 BB0200                     mov bx, 1*2
+   212                                  
+   213                                  ms3:
+   214 0000012C A80C                       test al, 12
+   215 0000012E 7402                       je ms7
+   216 00000130 F7DB                       neg bx
+   217                                  ms7:
+   218 00000132 01DF                       add di, bx
+   219 00000134 897CFC                     mov [si-4], di
+   220                                  ms2:
+   221 00000137 C3                         ret
+   222                                  
+   223                                  bitmaps:
+   224 00000138 0042E7E7FFFF7E3C           db 0x00,0x42,0xe7,0xe7,0xff,0xff,0x7e,0x3c    ; dir = 1
+   225 00000140 3C7EFCF0F0FC7E3C           db 0x3c,0x7e,0xfc,0xf0,0xf0,0xfc,0x7e,0x3c    ; dir = 2
+   226 00000148 FFFFFFFFFFFFFFFF           db 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff    ; Maze
+   227 00000150 3C7EFFFFE7E74200           db 0x3c,0x7e,0xff,0xff,0xe7,0xe7,0x42,0x00    ; dir = 4
+   228 00000158 3C7EFFFFFFFF7E3C           db 0x3c,0x7e,0xff,0xff,0xff,0xff,0x7e,0x3c    ; closed mouth
+   229 00000160 3C7EDBDBFFFFFFA5           db 0x3c,0x7e,0xdb,0xdb,0xff,0xff,0xff,0xa5    ; ghost
+   230 00000168 0000001818000000           db 0x00,0x00,0x00,0x18,0x18,0x00,0x00,0x00    ; pill
+   231 00000170 3C7E3F0F0F3F7E3C           db 0x3c,0x7e,0x3f,0x0f,0x0f,0x3f,0x7e,0x3c    ; dir = 8
+   232                                  
+   233                                  
+   234                                  maze:
+   235 00000178 0000                       dw 0b0000_0000_0000_0000
+   236 0000017A FE7F                       dw 0b0111_1111_1111_1110
+   237 0000017C 0242                       dw 0b0100_0010_0000_0010
+   238 0000017E 0242                       dw 0b0100_0010_0000_0010
+   239 00000180 FF7F                       dw 0b0111_1111_1111_1111
+   240 00000182 4042                       dw 0b0100_0010_0100_0000
+   241 00000184 7E7E                       dw 0b0111_1110_0111_1110
+   242 00000186 0202                       dw 0b0000_0010_0000_0010
+   243 00000188 7F02                       dw 0b0000_0010_0111_1111
+   244 0000018A C003                       dw 0b0000_0011_1100_0000
+   245 0000018C 4002                       dw 0b0000_0010_0100_0000
+   246 0000018E 7F02                       dw 0b0000_0010_0111_1111
+   247 00000190 4002                       dw 0b0000_0010_0100_0000
+   248 00000192 FE7F                       dw 0b0111_1111_1111_1110
+   249 00000194 0242                       dw 0b0100_0010_0000_0010
+   250 00000196 FF7B                       dw 0b0111_1011_1111_1111
+   251 00000198 400A                       dw 0b0000_1010_0100_0000
+   252 0000019A 7E7E                       dw 0b0111_1110_0111_1110
+   253 0000019C 0240                       dw 0b0100_0000_0000_0010
+   254 0000019E FF7F                       dw 0b0111_1111_1111_1111
+   255 000001A0 0000                       dw 0b0000_0000_0000_0000
+   256                                  
+   257                                  
+   258                                  setup_data:
+   259 000001A2 98AA                       dw BASE_MAZE+0x78*X_OFFSET+0x78
+   260 000001A4 9050                       dw BASE_MAZE+0x30*X_OFFSET+0x70
+   261 000001A6 9864                       dw BASE_MAZE+0x40*X_OFFSET+0x78
+   262 000001A8 A03C                       dw BASE_MAZE+0x20*X_OFFSET+0x80
+   263 000001AA A850                       dw BASE_MAZE+0x30*X_OFFSET+0x88
+   264                                  
+   265                                  
+   266                                  dirs:
+   267 000001AC 01                         db 0x01          ; 0x38 = up arrow
+   268 000001AD 00                         db 0x00
+   269 000001AE 00                         db 0x00
+   270 000001AF 08                         db 0x08          ; 0x4b = left arrow
+   271 000001B0 00                         db 0x00
+   272 000001B1 02                         db 0x02          ; 0x4d = right arrow
+   273 000001B2 00                         db 0x00
+   274 000001B3 00                         db 0x00
+   275 000001B4 04                         db 0x04          ; 0x50 = down arrow
+   276                                  
+   277                                  
+   278                                  ; move ghost
+   279                                  ; bh = color
+   280                                  move_ghost:
+   281 000001B5 AD                         lodsw
+   282 000001B6 97                         xchg ax, di
+   283 000001B7 AD                         lodsw
+   284 000001B8 84E4                       test ah, ah
+   285 000001BA 93                         xchg ax, bx
+   286 000001BB B030                       mov al, 0x30
+   287 000001BD 50                         push ax
+   288 000001BE C644FF02                   mov byte [si-1], 0x02
+   289 000001C2 E8E6FE                     call move_sprite3
+   290 000001C5 58                         pop ax
+   291                                  
+   292                                     ; ah = sprite color
+   293                                     ; al = sprite (x8)
+   294                                     ; di = target address
+   295                                  draw_sprite:
+   296 000001C6 50                         push ax
+   297 000001C7 53                         push bx
+   298 000001C8 51                         push cx
+   299 000001C9 57                         push di
+   300                                  
+   301                                  ds0:
+   302 000001CA 50                         push ax
+   303 000001CB BB[3001]                   mov bx, bitmaps-8
+   304 000001CE 2ED7                       cs xlat
+   305 000001D0 93                         xchg ax, bx
+   306 000001D1 B90800                     mov cx, 8
+   307                                  ds1:
+   308 000001D4 88F8                       mov al, bh
+   309 000001D6 D0E3                       shl bl, 1
+   310 000001D8 7202                       jc ds2
+   311 000001DA 31C0                       xor ax, ax
+   312                                  ds2:
+   313 000001DC 80FF10                     cmp bh, 0x10
+   314 000001DF 720A                       jc ds4
+   315 000001E1 803D0E                     cmp byte [di], PLAYER_COLOR
+   316 000001E4 7503                       jne ds3
+   317 000001E6 E917FE                     jmp restart
+   318                                  ds3:
+   319 000001E9 3205                       xor al, [di]
+   320                                  ds4:
+   321 000001EB AA                         stosb
+   322 000001EC E2E6                       loop ds1
+   323 000001EE 81C73801                   add di, X_OFFSET-8
+   324 000001F2 58                         pop ax
+   325 000001F3 40                         inc ax
+   326 000001F4 A807                       test al, 7
+   327 000001F6 75D2                       jne ds0
+   328 000001F8 5F                         pop di
+   329 000001F9 59                         pop cx
+   330 000001FA 5B                         pop bx
+   331 000001FB 58                         pop ax
+   332 000001FC C3                         ret
+   333                                  
+   334                                  %if com_file
+   335                                  %else
+   336                                     times 510-($--$$) db 0x4f
+   337                                     db 0x55, 0xaa
+   338                                  %endif
+   339                                  
