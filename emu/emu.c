@@ -467,7 +467,7 @@ computer_step(Computer *c, u32 steps) {
                 break;
 
             case 0x8a: /* mov al, [bx] */
-                n8 = c->memory[c->pc+1];
+                n8 = c->memory[c->bx.u16];
                 c->ax.part.al = n8;
                 c->pc += 2;
                 break;
