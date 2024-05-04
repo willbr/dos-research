@@ -418,9 +418,9 @@ computer_push(Computer *c, u16 value) {
 
 void
 computer_pop(Computer *c, u16 *ptr_value) {
-    u16 n16;
-    n16 = c->memory[c->sp] & (c->memory[c->sp + 1] << 8);
-    *ptr_value = n16;
+	u16 n16;
+	n16 = c->memory[c->sp] + (c->memory[c->sp + 1] << 8);
+	*ptr_value = n16;
 	c->sp += 2;
 }
 
