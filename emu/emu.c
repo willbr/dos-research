@@ -20,11 +20,11 @@ DLLEXPORT void myFunction() {
 #define mask_flag_n 0x20
 #define mask_flag_c 0x10
 
-#define computer_set_flag(gb, flag) \
-		(gb->af.part.f |= flag)
+#define computer_set_flag(c, flag) \
+		(c->flags |= flag)
 
-#define computer_clear_flag(gb, flag) \
-		(gb->af.part.f &= ~(flag))
+#define computer_clear_flag(c, flag) \
+		(c->flags &= ~(flag))
 
 typedef unsigned char byte;
 
@@ -484,9 +484,10 @@ computer_step(Computer *c, u32 steps) {
 
             case 0x74: /* jz ? */
                 e8 = c->memory[c->pc+1];
-                /* TODO */
-                //c->pc += e8;
-                c->pc += 2;
+		c->pc += 2;
+		if (c->flags & mask_flag_z) {
+			c->pc += e8;
+		}
                 break;
 
             case 0x8a: /* mov al, [bx] */
@@ -502,6 +503,9 @@ computer_step(Computer *c, u32 steps) {
                     case 0xc0: /* test al, al */
                         /* TODO */
 			n8 = c->ax.part.al & c->ax.part.al;
+			if (n8 == 0) {
+				computer_set_flag(c, mask_flag_z);
+			}
                         c->pc += 2;
                         break;
 

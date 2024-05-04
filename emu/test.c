@@ -7,14 +7,16 @@
 
 int
 interupt_0x10_putchar(Computer *c) {
-    printf("putchar '%c'\n", c->ax.part.al);
+    //printf("putchar '%c'\n", c->ax.part.al);
+    printf("%c", c->ax.part.al);
     return 0;
 }
 
 int
 interupt_0x20_exit(Computer *c) {
-    puts("exit");
-    return 1;
+	puts("");
+	puts("exit");
+	return 1;
 }
 
 int
@@ -57,14 +59,13 @@ main(int argc, char **argv) {
     computer_memcpy(&c, 0x0100, rom, file_size);
     /* hexdump(c.memory, 0x0100, 50); */
 
-    computer_dump(&c);
+    //computer_dump(&c);
 
-    for (i = 0; i < 9; i += 1) {
+    for (i = 0; i < 130; i += 1) {
         if (computer_step(&c, 1)) {
-		computer_dump(&c);
             break;
         }
-        computer_dump(&c);
+        //computer_dump(&c);
     }
 
     /*
