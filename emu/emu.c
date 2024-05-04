@@ -352,15 +352,22 @@ computer_dump(Computer *c) {
 }
 
 
-    /*
 void
-computer_push(Computer *gb, u16 value) {
-	gb->sp -= 2;
-	gb->memory[gb->sp] = value & 0xff;
-	gb->memory[gb->sp + 1] = (value >> 8) & 0xff;
+computer_push(Computer *c, u16 value) {
+	c->sp -= 2;
+	c->memory[c->sp] = value & 0xff;
+	c->memory[c->sp + 1] = (value >> 8) & 0xff;
 }
 
-    */
+
+void
+computer_pop(Computer *c, u16 *ptr_value) {
+    u16 n16;
+    n16 = c->memory[c->sp] & (c->memory[c->sp + 1] << 8);
+    *ptr_value = n16;
+	c->sp += 2;
+}
+
 
 __declspec(dllexport)
 u32
@@ -377,22 +384,22 @@ computer_step(Computer *c, u32 steps) {
         /* printf("opcode %x\n", opcode); */
         switch (opcode) {
             case 0x43: /* inc bx */
-                /* TODO */
+                c->bx.u16 += 1;
                 c->pc += 1;
                 break;
 
             case 0x48: /* dec ax */
-                /* TODO */
+                c->ax.u16 -= 1;
                 c->pc += 1;
                 break;
 
             case 0x53: /* push bx */
-                /* TODO */
+                computer_push(c, c->bx.u16);
                 c->pc += 1;
                 break;
 
             case 0x5b: /* pop bx */
-                /* TODO */
+                computer_pop(c, &c->bx.u16);
                 c->pc += 1;
                 break;
 
@@ -425,8 +432,8 @@ computer_step(Computer *c, u32 steps) {
                 break;
 
             case 0xb4: /* mov ah, ?*/
-                // n8 = c->memory[c->pc+1];
-                //c->ax.part.ah = n8;
+                n8 = c->memory[c->pc+1];
+                c->ax.part.ah = n8;
                 c->pc += 2;
                 break;
 
