@@ -2,6 +2,16 @@
 #include <string.h>
 #include <assert.h>
 
+#ifdef _MSC_VER
+#define DLLEXPORT __declspec(dllexport)
+#else
+#define DLLEXPORT
+#endif
+
+DLLEXPORT void myFunction() {
+    // function implementation
+}
+
 #define false 0
 #define true (!false)
 
@@ -84,7 +94,7 @@ typedef struct OpcodeDef {
 
 #include "opcodes.c"
 
-__declspec(dllexport)
+DLLEXPORT
 u32 
 computer_init(Computer *c) {
     int i = 0;
@@ -140,7 +150,7 @@ computer_read_u16le(Computer *gb, u16 offset) {
 
 
 
-__declspec(dllexport)
+DLLEXPORT
 void * 
 computer_memcpy(
 	Computer *c,
@@ -339,7 +349,7 @@ computer_dis(
 
 }
 
-__declspec(dllexport)
+DLLEXPORT
 u32
 computer_dump(Computer *c) {
     u16 file_offset = 0;
@@ -406,7 +416,7 @@ computer_pop(Computer *c, u16 *ptr_value) {
 }
 
 
-__declspec(dllexport)
+DLLEXPORT
 u32
 computer_step(Computer *c, u32 steps) {
 	u32 i          = 0;
