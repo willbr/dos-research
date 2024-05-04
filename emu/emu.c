@@ -517,14 +517,12 @@ computer_step(Computer *c, u32 steps) {
 
             case 0xeb: /* jmp short ? */
                 e8 = c->memory[c->pc+1];
-                /* TODO */
-                //c->pc += e8;
-                c->pc += 2;
+                c->pc += 2 + e8;
                 break;
 
-			default:
-				fprintf(stderr, "unknown opcode 0x%02x\n\n", opcode);
-				return 1;
+		default:
+			fprintf(stderr, "unknown opcode 0x%02x\n\n", opcode);
+			return 1;
         }
 
 	}
