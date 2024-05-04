@@ -7,7 +7,7 @@
 
 int
 interupt_0x10_putchar(Computer *c) {
-    puts("putchar");
+    printf("putchar '%x'\n", c->ax.part.al);
     return 0;
 }
 

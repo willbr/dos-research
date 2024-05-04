@@ -26,10 +26,10 @@ typedef unsigned long long u64;
 
 
 #if defined(LITTLE_ENDIAN)
-struct RegisterAX { u8 ah; u8 al; };
-struct RegisterBX { u8 bh; u8 bl; };
-struct RegisterCX { u8 ch; u8 cl; };
-struct RegisterDX { u8 dh; u8 dl; };
+struct RegisterAX { u8 al; u8 ah; };
+struct RegisterBX { u8 bl; u8 bh; };
+struct RegisterCX { u8 cl; u8 ch; };
+struct RegisterDX { u8 dl; u8 dh; };
 #elif defined(BIG_ENDIAN)
 struct RegisterAX { u8 ah; u8 al; };
 struct RegisterBX { u8 bh; u8 bl; };
@@ -96,7 +96,7 @@ computer_init(Computer *c) {
     c->si = 0;
     c->di = 0;
     c->bp = 0;
-    c->sp = 0;
+    c->sp = 0xff00;
 	c->pc = 0x0100;
     c->flags = 0;
 
