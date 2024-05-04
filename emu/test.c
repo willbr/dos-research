@@ -57,14 +57,14 @@ main(int argc, char **argv) {
     computer_memcpy(&c, 0x0100, rom, file_size);
     /* hexdump(c.memory, 0x0100, 50); */
 
+    computer_dump(&c);
+
     for (i = 0; i < 100; i += 1) {
         if (computer_step(&c, 1)) {
             break;
         }
         computer_dump(&c);
     }
-
-    computer_dump(&c);
 
     /*
     puts("stack");

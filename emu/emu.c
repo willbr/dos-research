@@ -58,30 +58,31 @@ typedef struct Computer {
 } Computer;
 
 
-/*
 typedef struct OpcodeOperand {
-	char name[4];
-	int  bytes;
-	int  immediate;
-	int increment;
-	int decrement;
+	int name;
+	//int  bytes;
+	//int  immediate;
+	//int  increment;
+	//int  decrement;
 } OpcodeOperand;
 
 
 typedef struct OpcodeDef {
 	char mnemonic[20];
 	int num_bytes;
-	int cycle_steps;
-	int cycles[2];
+	//int cycle_steps;
+	//int cycles[2];
 	int num_operands;
 	OpcodeOperand operands[3];
-	int immediate;
-	char flag_z;
-	char flag_n;
-	char flag_h;
-	char flag_c;
+	//int immediate;
+	//char flag_z;
+	//char flag_n;
+	//char flag_h;
+	//char flag_c;
 } OpcodeDef;
-*/
+
+
+#include "opcodes.c"
 
 __declspec(dllexport)
 u32 
@@ -172,16 +173,53 @@ computer_memcpy(
 }
 
 
-    /*
 void
 computer_dis_operand(
-				Computer *gb,
+				Computer *c,
 				u16 offset,
 				char *s,
 				OpcodeOperand *op) {
 
+    s8  e8  = 0;
+    u16 n16 = 0;
+    char c1, c2, c3, c4;
+    
+    //printf("operand %c %c\n", (op->name & 0xff00) >> 8, op->name & 0xff);
+
+    switch (op->name) {
+    case 'e8':
+        e8 = c->memory[offset+1];
+        sprintf(s, "%d", e8);
+        break;
+
+    case 'n16':
+        n16 = computer_read_u16le(c, offset+1);
+        sprintf(s, "0x%04x", n16);
+        break;
+
+    default:
+        c1 = (op->name >> 24) & 0xff;
+        c2 = (op->name >> 16) & 0xff;
+        c3 = (op->name >> 8) & 0xff;
+        c4 = op->name & 0xff;
+
+        if (op->name <= 0xff) {
+            sprintf(s, "%c", c4);
+        } else if (op->name <= 0xffff) {
+            sprintf(s, "%c%c", c3, c4);
+        } else if (op->name <= 0xffffff) {
+            sprintf(s, "%c%c%c", c2, c3, c4);
+        } else if (op->name <= 0xffffffff) {
+            sprintf(s, "%c%c%c%c", c1, c2, c3, c4);
+        } else {
+            printf("default");
+        }
+
+        break;
+    }
+/*
+
 		u16 a16 = 0;
-		u16 n16 = 0;
 		u8  n8  = 0;
 		s8  e8  = 0;
 
@@ -217,29 +255,24 @@ computer_dis_operand(
 		} else {
 				sprintf(s, "%s%s%s%s", prefix, op->name, mod, suffix);
 		}
+*/
 }
-        */
 
-    /*
 void
 computer_dis(
-	Computer *gb,
+	Computer *c,
 	u16 offset,
 	char *opcode_bytes,
 	char *assembly) {
-	char sep[2] = "";
+
 	static char op1[10] = "";
 	static char op2[10] = "";
 	static char op3[10] = "";
 
-	u8 *pc = &gb->memory[offset];
 	OpcodeDef *spec = NULL;
+	u8 *pc = &c->memory[offset];
 
-	if (*pc == 0xcb) {
-		spec = &prefixed[*pc];
-	} else {
-		spec = &unprefixed[*pc];
-	}
+    spec = &opcodes[*pc];
 
 	switch (spec->num_bytes) {
 	case 0:
@@ -268,7 +301,7 @@ computer_dis(
 		sprintf(assembly, "%s         ", spec->mnemonic);
 		break;
 	case 1:
-		computer_dis_operand(gb, offset, op1, &spec->operands[0]);
+		computer_dis_operand(c, offset, op1, &spec->operands[0]);
 		sprintf(
 			assembly,
 			"%-3s %s      ",
@@ -277,23 +310,23 @@ computer_dis(
 			);
 		break;
 	case 2:
-		computer_dis_operand(gb, offset, op1, &spec->operands[0]);
-		computer_dis_operand(gb, offset, op2, &spec->operands[1]);
+		computer_dis_operand(c, offset, op1, &spec->operands[0]);
+		computer_dis_operand(c, offset, op2, &spec->operands[1]);
 		sprintf(
 			assembly,
-			"%-3s %s %s   ",
+			"%-3s %s, %s   ",
 			spec->mnemonic,
 			op1,
 			op2
 			);
 		break;
 	case 3:
-		computer_dis_operand(gb, offset, op1, &spec->operands[0]);
-		computer_dis_operand(gb, offset, op2, &spec->operands[1]);
-		computer_dis_operand(gb, offset, op3, &spec->operands[2]);
+		computer_dis_operand(c, offset, op1, &spec->operands[0]);
+		computer_dis_operand(c, offset, op2, &spec->operands[1]);
+		computer_dis_operand(c, offset, op3, &spec->operands[2]);
 		sprintf(
 			assembly,
-			"%-3s %s %s %s",
+			"%-3s %s, %s, %s",
 			spec->mnemonic,
 			op1,
 			op2,
@@ -305,26 +338,24 @@ computer_dis(
 	}
 
 }
-    */
-
 
 __declspec(dllexport)
 u32
 computer_dump(Computer *c) {
     u16 file_offset = 0;
-    /*
 	static char opcode_bytes[9] = "op";
 	static char assembly[20] = "asm";
+    /*
 	static char flags[5] = "----";
 	u8 deref_hl = gb->memory[gb->hl.u16];
-
-	computer_dis(gb, gb->pc, opcode_bytes, assembly);
 
 	flags[0] = gb->af.part.f & mask_flag_z ? 'z' : '-';
 	flags[1] = gb->af.part.f & mask_flag_h ? 'h' : '-';
 	flags[2] = gb->af.part.f & mask_flag_n ? 'n' : '-';
 	flags[3] = gb->af.part.f & mask_flag_c ? 'c' : '-';
         */
+
+	computer_dis(c, c->pc, opcode_bytes, assembly);
 
 	printf(
             "%04x "
@@ -336,7 +367,9 @@ computer_dump(Computer *c) {
             "%04x "
             "%04x "
             "%04x "
-            "%04x"
+            "%04x "
+            "| %-10s "
+            "%-10s"
             "\n"
             ,
             c->ax.u16,
@@ -348,7 +381,9 @@ computer_dump(Computer *c) {
             c->bp,
             c->sp,
             c->pc,
-            c->flags
+            c->flags,
+            opcode_bytes,
+            assembly
 		);
 	return 0;
 }
