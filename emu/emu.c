@@ -469,3 +469,30 @@ computer_step(Computer *c, u32 steps) {
 	return 0;
 }
 
+
+void
+hexdump(u8 *src, int size) {
+    int i = 0;
+    int j = 0;
+    for (; size > 0; size -= 16) {
+        printf("%08x | ", i);
+        for (j = 0; j < 16; j += 2) {
+            printf("%02x%02x ", *(src + i + j), *(src + i + j+1));
+        }
+
+        printf("| ");
+
+        for (j = 0; j < 16; j += 1) {
+            printf("%c",
+                    *(src + i + j) > ' ' ?
+                    *(src + i + j) : '.'
+                    );
+        }
+
+        printf("\n");
+
+        i += 16;
+    }
+}
+
+

@@ -64,6 +64,7 @@ main(int argc, char **argv) {
     }
 
     computer_dump(&c);
+    hexdump(rom, 50);
 
 	return 0;
 }
