@@ -157,6 +157,8 @@ cld       ; clear direction flag
 stosb     ; store byte ; *(es+di) = al; di += 1
 stosw     ; store word ; *(es+di) = ax; di += 2
 
+cs lodsb  ; ax = *(memory+si); si += 1
+cs lodsw  ; ax = *(memory+si); si += 2
 
 pushf     ; push flags
 popf      ; retore flags
