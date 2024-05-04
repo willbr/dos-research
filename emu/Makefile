@@ -6,15 +6,13 @@ ifeq ($(UNAME_S),Linux)
     EXEEXT =
     LIBEXT = .so
     PYTHON = python3
-endif
-ifeq ($(UNAME_S),Darwin)
+else ifeq ($(UNAME_S),Darwin)
     CC = clang
     CFLAGS = -std=c89 -Wno-multichar
     EXEEXT =
     LIBEXT = .dylib
     PYTHON = python3
-endif
-ifeq ($(OS),Windows_NT)
+else ifeq ($(OS),Windows_NT)
     CC = tcc
     CFLAGS = -std=c89
     EXEEXT = .exe
@@ -29,8 +27,7 @@ else
 endif
 
 test$(EXEEXT): test.c libdosemu$(LIBEXT)
-	$(CC) $(CFLAGS)
-	test.c -o test$(EXEEXT) -L. -ldosemu
+	$(CC) $(CFLAGS) test.c -o test$(EXEEXT) -L. -ldosemu
 
 libdosemu$(LIBEXT): emu.c opcodes.c
 	$(CC) $(CFLAGS) -shared emu.c -o libdosemu$(LIBEXT) -DLITTLE_ENDIAN
