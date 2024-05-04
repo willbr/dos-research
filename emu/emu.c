@@ -191,7 +191,9 @@ computer_dis_operand(
 				OpcodeOperand *op) {
 
     s8  e8  = 0;
+    u8  n8  = 0;
     u16 n16 = 0;
+    u16 a16 = 0;
     char c1, c2, c3, c4;
     
     //printf("operand %c %c\n", (op->name & 0xff00) >> 8, op->name & 0xff);
@@ -199,7 +201,14 @@ computer_dis_operand(
     switch (op->name) {
     case 'e8':
         e8 = c->memory[offset+1];
-        sprintf(s, "%d", e8);
+        // sprintf(s, "%d", e8);
+	a16 = offset + 2 + e8;
+        sprintf(s, "0x%02x", a16);
+        break;
+
+    case 'n8':
+        n8 = c->memory[offset+1];
+        sprintf(s, "0x%02x", n8);
         break;
 
     case 'n16':
