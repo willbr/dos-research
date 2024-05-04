@@ -104,6 +104,8 @@ computer_init(Computer *c) {
         c->interupt[i] = NULL;
     }
 
+    memset(c->memory, 0, sizeof(c->memory));
+
 	puts(
             "ax   "
             "bx   "
@@ -478,8 +480,8 @@ computer_step(Computer *c, u32 steps) {
 
 
 void
-hexdump(u8 *src, int size) {
-    int i = 0;
+hexdump(u8 *src, int offset, int size) {
+    int i = offset;
     int j = 0;
     for (; size > 0; size -= 16) {
         printf("%08x | ", i);

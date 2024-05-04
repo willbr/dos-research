@@ -55,6 +55,7 @@ main(int argc, char **argv) {
     fclose(file);
 
     computer_memcpy(&c, 0x0100, rom, file_size);
+    /* hexdump(c.memory, 0x0100, 50); */
 
     for (i = 0; i < 100; i += 1) {
         if (computer_step(&c, 1)) {
@@ -64,7 +65,11 @@ main(int argc, char **argv) {
     }
 
     computer_dump(&c);
-    hexdump(rom, 50);
+
+    /*
+    puts("stack");
+    hexdump(c.memory, 0xfee0, 0x20);
+    */
 
 	return 0;
 }
