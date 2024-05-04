@@ -94,6 +94,8 @@ typedef struct OpcodeDef {
 
 #include "opcodes.c"
 
+void hexdump(u8 *src, int offset, int size);
+
 DLLEXPORT
 u32 
 computer_init(Computer *c) {
@@ -291,7 +293,27 @@ computer_dis(
 	OpcodeDef *spec = NULL;
 	u8 *pc = &c->memory[offset];
 
-    spec = &opcodes[*pc];
+    	spec = &opcodes[*pc];
+
+	switch (*pc) {
+	case 0x84: /* test */
+		switch (*(pc + 1)) {
+		case 0xc0:
+			sprintf(opcode_bytes, "%02x %02x   ", *pc, *(pc + 1));
+			sprintf(
+				assembly,
+				"%-3s al, al      ",
+				spec->mnemonic
+				);
+			return;
+		default:
+			break;
+		}
+		break;
+
+	default:
+		break;
+	}
 
 	switch (spec->num_bytes) {
 	case 0:
@@ -433,6 +455,7 @@ computer_step(Computer *c, u32 steps) {
 	u8 param       = 0;
     u16 n8         = 0;
     u16 n16        = 0;
+    u16 a16        = 0;
     s8  e8         = 0;
 
 	for (i = 0; i < steps; i += 1) {
@@ -478,6 +501,7 @@ computer_step(Computer *c, u32 steps) {
                 switch (param) {
                     case 0xc0: /* test al, al */
                         /* TODO */
+			n8 = c->ax.part.al & c->ax.part.al;
                         c->pc += 2;
                         break;
 

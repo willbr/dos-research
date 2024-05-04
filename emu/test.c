@@ -59,8 +59,9 @@ main(int argc, char **argv) {
 
     computer_dump(&c);
 
-    for (i = 0; i < 100; i += 1) {
+    for (i = 0; i < 9; i += 1) {
         if (computer_step(&c, 1)) {
+		computer_dump(&c);
             break;
         }
         computer_dump(&c);
