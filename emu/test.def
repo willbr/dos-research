@@ -1,0 +1,7 @@
+LIBRARY test.exe
+
+EXPORTS
+computer_dump
+computer_init
+computer_memcpy
+computer_step

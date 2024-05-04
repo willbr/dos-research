@@ -1,0 +1,21 @@
+﻿00000000  BB1701            mov bx,0x117
+00000003  8A07              mov al,[bx]
+00000005  84C0              test al,al
+00000007  740C              jz 0x15
+00000009  53                push bx
+0000000A  B40E              mov ah,0xe
+0000000C  BB0F00            mov bx,0xf
+0000000F  CD10              int 0x10
+00000011  5B                pop bx
+00000012  43                inc bx
+00000013  EBEE              jmp short 0x3
+00000015  CD20              int 0x20
+00000017  48                dec ax
+00000018  656C              gs insb
+0000001A  6C                insb
+0000001B  6F                outsw
+0000001C  2C20              sub al,0x20
+0000001E  776F              ja 0x8f
+00000020  726C              jc 0x8e
+00000022  64                fs
+00000023  00                db 0x00
