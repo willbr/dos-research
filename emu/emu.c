@@ -61,7 +61,7 @@ typedef struct Computer {
 	u16 di; /* target address */
 	u16 bp; /* base pointer   */
 	u16 sp; /* stack pointer  */
-	u16 pc; /* stack pointer  */
+	u16 ip; /* instruction pointer  */
 	u16 flags; /* stack pointer  */
 	u8 memory[0x10000];
     interupt_callback interupt[0xff];
@@ -110,7 +110,7 @@ computer_init(Computer *c) {
     c->di = 0;
     c->bp = 0;
     c->sp = 0xff00;
-	c->pc = 0x0100;
+	c->ip = 0x0100;
     c->flags = 0;
 
     for (i = 0; i < 256; i += 1) {
@@ -128,7 +128,7 @@ computer_init(Computer *c) {
             "di   "
             "bp   "
             "sp   "
-            "pc   "
+            "ip   "
             "flags "
 	    );
 	return 0;
@@ -271,7 +271,7 @@ computer_dis_operand(
 		} else if (strcmp(op->name, "e8") == 0) {
 				n8 = computer_read_u8(gb, offset+1);
 				e8 = n8;
-				a16 = gb->pc + 2 + e8;
+				a16 = gb->ip + 2 + e8;
 				sprintf(s, "%s%04x%s", prefix, a16, suffix);
 		} else {
 				sprintf(s, "%s%s%s%s", prefix, op->name, mod, suffix);
@@ -291,15 +291,15 @@ computer_dis(
 	static char op3[10] = "";
 
 	OpcodeDef *spec = NULL;
-	u8 *pc = &c->memory[offset];
+	u8 *ip = &c->memory[offset];
 
-    	spec = &opcodes[*pc];
+    	spec = &opcodes[*ip];
 
-	switch (*pc) {
+	switch (*ip) {
 	case 0x84: /* test */
-		switch (*(pc + 1)) {
+		switch (*(ip + 1)) {
 		case 0xc0:
-			sprintf(opcode_bytes, "%02x %02x   ", *pc, *(pc + 1));
+			sprintf(opcode_bytes, "%02x %02x   ", *ip, *(ip + 1));
 			sprintf(
 				assembly,
 				"%-3s al, al      ",
@@ -317,20 +317,20 @@ computer_dis(
 
 	switch (spec->num_bytes) {
 	case 0:
-		sprintf(opcode_bytes, "%02x      ", *pc);
+		sprintf(opcode_bytes, "%02x      ", *ip);
 		break;
 	case 1:
-		sprintf(opcode_bytes, "%02x      ", *pc);
+		sprintf(opcode_bytes, "%02x      ", *ip);
 		break;
 	case 2:
-		sprintf(opcode_bytes, "%02x %02x   ", *pc, *(pc + 1));
+		sprintf(opcode_bytes, "%02x %02x   ", *ip, *(ip + 1));
 		break;
 	case 3:
 		sprintf(opcode_bytes,
 			"%02x %02x %02x",
-			*pc,
-			*(pc + 1),
-			*(pc + 2));
+			*ip,
+			*(ip + 1),
+			*(ip + 2));
 		break;
 	default:
 		printf("num_bytes = %d\n", spec->num_bytes);
@@ -396,7 +396,7 @@ computer_dump(Computer *c) {
 	flags[3] = gb->af.part.f & mask_flag_c ? 'c' : '-';
         */
 
-	computer_dis(c, c->pc, opcode_bytes, assembly);
+	computer_dis(c, c->ip, opcode_bytes, assembly);
 
 	printf(
             "%04x "
@@ -421,7 +421,7 @@ computer_dump(Computer *c) {
             c->di,
             c->bp,
             c->sp,
-            c->pc,
+            c->ip,
             c->flags,
             opcode_bytes,
             assembly
@@ -459,45 +459,45 @@ computer_step(Computer *c, u32 steps) {
     s8  e8         = 0;
 
 	for (i = 0; i < steps; i += 1) {
-		opcode = c->memory[c->pc];
+		opcode = c->memory[c->ip];
         /* printf("opcode %x\n", opcode); */
         switch (opcode) {
             case 0x43: /* inc bx */
                 c->bx.u16 += 1;
-                c->pc += 1;
+                c->ip += 1;
                 break;
 
             case 0x48: /* dec ax */
                 c->ax.u16 -= 1;
-                c->pc += 1;
+                c->ip += 1;
                 break;
 
             case 0x53: /* push bx */
                 computer_push(c, c->bx.u16);
-                c->pc += 1;
+                c->ip += 1;
                 break;
 
             case 0x5b: /* pop bx */
                 computer_pop(c, &c->bx.u16);
-                c->pc += 1;
+                c->ip += 1;
                 break;
 
             case 0x74: /* jz ? */
-                e8 = c->memory[c->pc+1];
-		c->pc += 2;
+                e8 = c->memory[c->ip+1];
+		c->ip += 2;
 		if (c->flags & mask_flag_z) {
-			c->pc += e8;
+			c->ip += e8;
 		}
                 break;
 
             case 0x8a: /* mov al, [bx] */
                 n8 = c->memory[c->bx.u16];
                 c->ax.part.al = n8;
-                c->pc += 2;
+                c->ip += 2;
                 break;
 
             case 0x84: /* test ? ? */
-                param = c->memory[c->pc+1];
+                param = c->memory[c->ip+1];
 
                 switch (param) {
                     case 0xc0: /* test al, al */
@@ -506,7 +506,7 @@ computer_step(Computer *c, u32 steps) {
 			if (n8 == 0) {
 				computer_set_flag(c, mask_flag_z);
 			}
-                        c->pc += 2;
+                        c->ip += 2;
                         break;
 
                     default:
@@ -516,20 +516,20 @@ computer_step(Computer *c, u32 steps) {
                 break;
 
             case 0xb4: /* mov ah, ?*/
-                n8 = c->memory[c->pc+1];
+                n8 = c->memory[c->ip+1];
                 c->ax.part.ah = n8;
-                c->pc += 2;
+                c->ip += 2;
                 break;
 
             case 0xbb: /* mov bx, n16*/
-                n16 = computer_read_u16le(c, c->pc + 1);
+                n16 = computer_read_u16le(c, c->ip + 1);
                 /* printf("n16 %X\n", n16); */
                 c->bx.u16 = n16;
-                c->pc += 3;
+                c->ip += 3;
                 break;
 
             case 0xcd: /* int ? */
-                n8 = c->memory[c->pc+1];
+                n8 = c->memory[c->ip+1];
 
                 if (c->interupt[n8] == NULL) {
                     fprintf(stderr, "unknown interupt 0x%02x\n\n", n8);
@@ -540,12 +540,12 @@ computer_step(Computer *c, u32 steps) {
                     return 1;
                 }
 
-                c->pc += 2;
+                c->ip += 2;
                 break;
 
             case 0xeb: /* jmp short ? */
-                e8 = c->memory[c->pc+1];
-                c->pc += 2 + e8;
+                e8 = c->memory[c->ip+1];
+                c->ip += 2 + e8;
                 break;
 
 		default:
