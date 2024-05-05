@@ -1,3 +1,19 @@
+# 8088
+
+```asm
+
+ax      ; accumulator
+bx      ; address
+cx      ; counter
+dx      ; 32bit extension of ax
+si      ; source address
+di      ; destination address
+bp      ; base pointer
+sp      ; stack pointer
+flags
+
+```
+
 ```asm
 inc      ; increment by one
 int      ; interruption (call service vector)
@@ -11,19 +27,19 @@ test     ; test register mask or zero
 
 
 ```asm
-xor
-or
-and
-not
-neg
-shl
-shr
-sar
+xor      ; ^
+or       ; |
+and      ; &
+not      ; !
+neg      ; ~
+shl      ; <<
+shr      ; >>
+sal      ; signed shift left
+sar      ; signed shift right
 ```
 
 ```asm
 add
-and
 call
 cmp
 dec
@@ -118,7 +134,7 @@ jpo d8
 jo  d8
 jno d8
 
-jcxz d8
+jcxz d8        ; if cx == 0 then jump
 
 loop d8
 
@@ -140,9 +156,7 @@ fb1:
 # New
 
 ```asm
-cbw
-jcxz
-loop
+cbw       ; convert byte to word, sign extend
 
 lds
 les
@@ -157,8 +171,11 @@ cld       ; clear direction flag
 stosb     ; store byte ; *(es+di) = al; di += 1
 stosw     ; store word ; *(es+di) = ax; di += 2
 
-cs lodsb  ; ax = *(memory+si); si += 1
-cs lodsw  ; ax = *(memory+si); si += 2
+lodsb     ; ax = *(ds+si); si += 1
+lodsw     ; ax = *(ds+si); si += 2
+
+cs lodsb  ; ax = *(cs+si); si += 1
+cs lodsw  ; ax = *(cs+si); si += 2
 
 pushf     ; push flags
 popf      ; retore flags
