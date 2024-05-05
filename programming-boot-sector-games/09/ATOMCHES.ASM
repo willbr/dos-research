@@ -1,3 +1,5 @@
+; command format d2d4
+
 use16
 
 %ifndef com_file
@@ -161,7 +163,10 @@ sr20:
    mov bl, scores
    xlatb
    cbw
-   cmp cl, 3
+   ; cmp cl, 4            ; 4-ply depth
+   ; cmp cl, 3            ; 3-ply depth
+   ; cmp cl, 2            ; 2-ply depth
+   cmp cl, 1             ; 1-ply depth
    jnc sr22
    pusha                 ; Save all state (+ current side in ch)
    call sr28             ; Do move

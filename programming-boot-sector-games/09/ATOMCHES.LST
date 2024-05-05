@@ -1,264 +1,278 @@
-     1                                  use16
+     1                                  ; command format d2d4
      2                                  
-     3                                  %ifndef com_file
-     4                                  com_file: equ 1
-     5                                  %endif
-     6                                  
-     7                                  %if com_file
-     8                                     org 0x0100
-     9                                  %else
-    10                                     org 0x7c00
-    11                                  %endif
-    12                                  
-    13                                  
+     3                                  use16
+     4                                  
+     5                                  %ifndef com_file
+     6                                  com_file: equ 1
+     7                                  %endif
+     8                                  
+     9                                  %if com_file
+    10                                     org 0x0100
+    11                                  %else
+    12                                     org 0x7c00
+    13                                  %endif
     14                                  
-    15 00000000 FC                         cld
+    15                                  
     16                                  
-    17                                  %if com_file
-    18                                     ;
-    19                                  %else
-    20                                     mov sp, stack
-    21                                     push cs
-    22                                     push cs
+    17 00000000 FC                         cld
+    18                                  
+    19                                  %if com_file
+    20                                     ;
+    21                                  %else
+    22                                     mov sp, stack
     23                                     push cs
-    24                                     pop ds
-    25                                     pop es
-    26                                     pop ss
-    27                                  %endif
-    28                                     ; create board
-    29 00000001 BFF802                     mov di, board-8
-    30 00000004 89F9                       mov cx, di
-    31                                  sr1:
-    32 00000006 57                         push di
-    33 00000007 58                         pop ax
-    34 00000008 2488                       and al, 0x88
-    35 0000000A 7402                       jz sr2
-    36 0000000C B007                       mov al, 0x07
-    37                                  sr2:
-    38 0000000E AA                         stosb
-    39 0000000F E2F5                       loop sr1
-    40                                     ; setup board
-    41 00000011 BE[4601]                   mov si, initial
-    42 00000014 BF0003                     mov di, board
-    43 00000017 B108                       mov cl, 0x08
-    44                                  sr3:
-    45 00000019 AC                         lodsb
-    46 0000001A AA                         stosb
-    47 0000001B 0C08                       or al, 8
-    48 0000001D 88456F                     mov [di+0x6f], al
-    49 00000020 FE450F                     inc byte [di+0x0f]
-    50 00000023 C6455F09                   mov byte [di+0x5f], 0x09
-    51 00000027 E2F0                       loop sr3
-    52                                  sr21:
-    53 00000029 68[2900]                   push sr21
-    54 0000002C 68[7600]                   push play
-    55 0000002F 68[3A00]                   push display_board
-    56 00000032 68[7000]                   push sr28
-    57 00000035 BE[2901]                   mov si, key2
-    58 00000038 56                         push si
-    59 00000039 56                         push si
-    60                                  display_board:
-    61 0000003A BEF802                     mov si, board-8
-    62                                  
-    63 0000003D B149                       mov cl, 73
-    64                                  sr4:
-    65 0000003F AC                         lodsb
-    66 00000040 BB[5401]                   mov bx, chars
-    67 00000043 D7                         xlatb
-    68 00000044 3C0D                       cmp al, 0x0d
-    69 00000046 750B                       jnz sr5
-    70 00000048 83C607                     add si, 7
-    71 0000004B E8E500                     call display
-    72 0000004E B00A                       mov al, 0x0a
-    73 00000050 E8E000                     call display
-    74                                  sr5:
-    75 00000053 E8DD00                     call display
-    76 00000056 E2E7                       loop sr4
-    77 00000058 C3                         ret
-    78                                  sr14:
-    79 00000059 42                         inc dx
-    80 0000005A FECE                       dec dh
-    81 0000005C 753D                       jnz sr12
-    82                                  sr17:
-    83 0000005E 46                         inc si
-    84                                  sr6:
-    85 0000005F 81FE7803                   cmp si, board+120
-    86 00000063 7519                       jne sr7
-    87 00000065 5F                         pop di
-    88 00000066 5E                         pop si
-    89 00000067 84C9                       test cl, cl
-    90 00000069 750A                       jne sr24
-    91 0000006B 83FD81                     cmp bp, -127
-    92 0000006E 7C05                       jl sr24
-    93                                  sr28:
-    94 00000070 A4                         movsb
-    95 00000071 C644FF00                   mov byte [si-1], 0
-    96                                  sr24:
-    97 00000075 C3                         ret
-    98                                  play:
-    99 00000076 BD00FF                     mov bp, -256
-   100 00000079 55                         push bp
-   101 0000007A 55                         push bp
-   102 0000007B BE0003                     mov si, board
-   103                                  sr7:
-   104 0000007E AC                         lodsb
-   105 0000007F 30E8                       xor al, ch
-   106 00000081 48                         dec ax
-   107 00000082 3C06                       cmp al, 6
-   108 00000084 73D9                       jnc sr6
-   109 00000086 08C0                       or al, al
-   110 00000088 7504                       jnz sr8
-   111 0000008A 08ED                       or ch, ch
-   112 0000008C 7501                       jnz sr25
-   113                                  sr8:
-   114 0000008E 40                         inc ax
-   115                                  sr25:
-   116 0000008F 4E                         dec si
-   117 00000090 0404                       add al, 0x04
-   118 00000092 88C4                       mov ah, al
-   119 00000094 80E40C                     and ah, 0x0c
-   120 00000097 B3[5F]                     mov bl, offsets-4
-   121 00000099 D7                         xlatb
-   122 0000009A 92                         xchg dx, ax
-   123                                  sr12:
-   124 0000009B 89F7                       mov di, si
-   125                                  sr9:
-   126 0000009D 88D3                       mov bl, dl
-   127 0000009F 97                         xchg ax, di
-   128 000000A0 0207                       add al, [bx]
-   129 000000A2 97                         xchg ax, di
-   130 000000A3 8A05                       mov al, [di]
-   131 000000A5 40                         inc ax
-   132 000000A6 8A24                       mov ah, [si]
-   133 000000A8 80FA[7A]                   cmp dl, 16+displacement
-   134 000000AB FEC8                       dec al
-   135 000000AD 7465                       jz sr10
-   136 000000AF 7205                       jc sr27
-   137 000000B1 80FE03                     cmp dh, 3
-   138 000000B4 72A8                       jb sr17
-   139                                  sr27:
-   140 000000B6 30E8                       xor al, ch
-   141 000000B8 2C09                       sub al, 0x09
-   142 000000BA 3C05                       cmp al, 0x05
-   143 000000BC 8A05                       mov al, [di]
-   144 000000BE 7742                       ja sr18
-   145                                     ; z=0/1 if king captured
-   146 000000C0 750C                       jne sr20
-   147 000000C2 FEC9                       dec cl
-   148 000000C4 BD4E00                     mov bp, 78
-   149 000000C7 7502                       jne sr26
-   150 000000C9 01ED                       add bp, bp
-   151                                  sr26:
-   152 000000CB 58                         pop ax
-   153 000000CC 58                         pop ax
-   154 000000CD C3                         ret
-   155                                  sr20:
-   156 000000CE 50                         push ax
-   157 000000CF 2407                       and al, 7
-   158 000000D1 B3[4E]                     mov bl, scores
-   159 000000D3 D7                         xlatb
-   160 000000D4 98                         cbw
-   161 000000D5 80F903                     cmp cl, 3
-   162 000000D8 7311                       jnc sr22
-   163 000000DA 60                         pusha
-   164 000000DB E892FF                     call sr28
-   165 000000DE 80F508                     xor ch, 8
-   166 000000E1 41                         inc cx
-   167 000000E2 E891FF                     call play
-   168 000000E5 89E3                       mov bx, sp
-   169 000000E7 296F0E                     sub [bx+14], bp
-   170 000000EA 61                         popa
-   171                                  sr22:
-   172 000000EB 39C5                       cmp bp, ax
-   173 000000ED 7F07                       jg sr23
-   174 000000EF 95                         xchg ax, bp
-   175 000000F0 7504                       jne sr23
-   176 000000F2 E440                       in al, (0x40)
-   177 000000F4 3CAA                       cmp al, 0xaa
-   178                                  sr23:
-   179 000000F6 58                         pop ax
-   180 000000F7 8824                       mov [si], ah
-   181 000000F9 8805                       mov [di], al
-   182 000000FB 7F05                       jg sr18
-   183 000000FD 83C404                     add sp, 4
-   184 00000100 56                         push si
-   185 00000101 57                         push di
-   186                                  sr18:
-   187 00000102 FECC                       dec ah
-   188 00000104 30EC                       xor ah, ch
-   189 00000106 7409                       jz sr16
-   190 00000108 80FC04                     cmp ah, 0x04
-   191 0000010B 7304                       jnc sr16
-   192 0000010D 08C0                       or al, al
-   193 0000010F 748C                       jz sr9
-   194                                  sr16:
-   195 00000111 E945FF                     jmp sr14
-   196                                  sr10:
-   197 00000114 72B8                       jc sr20
-   198 00000116 80FE02                     cmp dh, 2
-   199 00000119 77E7                       ja sr18
-   200 0000011B 75B1                       jnz short sr20
-   201 0000011D 96                         xchg ax, si
-   202 0000011E 50                         push ax
-   203 0000011F 2C20                       sub al, 0x20
-   204 00000121 3C40                       cmp al, 0x40
-   205 00000123 58                         pop ax
-   206 00000124 96                         xchg ax, si
-   207 00000125 18C6                       sbb dh, al
-   208 00000127 EBA5                       jmp short sr20
-   209                                  key2:
-   210 00000129 87F7                       xchg si, di
-   211 0000012B E80100                     call key
-   212 0000012E 97                         xchg di, ax
-   213                                  key:
-   214 0000012F B400                       mov ah, 0
-   215 00000131 CD16                       int 0x16
-   216                                  display:
-   217 00000133 60                         pusha
-   218 00000134 B40E                       mov ah, 0x0e
-   219 00000136 B700                       mov bh, 0x00
-   220 00000138 CD10                       int 0x10
-   221 0000013A 61                         popa
-   222 0000013B 83E00F                     and ax, 0x0f
-   223 0000013E 6BE8F0                     imul bp, ax,-0x10
-   224 00000141 8DBB7F03                   lea di,[bp+di+board+127]
-   225 00000145 C3                         ret
-   226                                  initial:
-   227 00000146 0205030406030502           db 2, 5, 3, 4, 6, 3, 5, 2
-   228                                  scores:
-   229 0000014E 000105030903               db 0, 1, 5, 3, 9, 3
-   230                                  chars:
-   231 00000154 2E707262716E6B0D2E-        db ".prbqnk", 0x0d, ".PRBQNK"
-   231 0000015D 505242514E4B       
-   232                                  offsets:
-   233 00000163 [7A]                       db 16+displacement
-   234 00000164 [7E]                       db 20+displacement
-   235 00000165 [72]                       db  8+displacement
-   236 00000166 [76]                       db 12+displacement
-   237 00000167 [72]                       db  8+displacement
-   238 00000168 [6A]                       db  0+displacement
-   239 00000169 [72]                       db  8+displacement
-   240                                  displacement:
-   241 0000016A DFE1EEF20E121F21           db -33, -31, -18, -14, 14, 18, 31, 33
-   242 00000172 F010FF01                   db -16, 16, -1, 1
-   243 00000176 0F11F1EF                   db 15, 17, -15, -17
-   244 0000017A F1EFF0E0                   db -15, -17, -16, -32
-   245 0000017E 0F111020                   db 15, 17, 16, 32
-   246                                  
-   247                                  
-   248                                  %if com_file
-   249                                  board: equ 0x0300
-   250                                  %else
-   251                                     db "Toledo Atomchess. Mar/04/2016"
-   252                                     db " (c) 2015-2016 Oscar Toledo G. "
-   253                                     db "www.nanochess.org"
-   254                                     db " Happy coding! :-) "
-   255                                     db "Most fun MBR ever!!"
-   256                                     db 0, 0, 0
-   257                                  
-   258                                     db 0x55, 0xaa
-   259                                  
-   260                                     board: equ 0x7e00
-   261                                     stack: equ 0x8000
-   262                                  %endif
-   263                                  
+    24                                     push cs
+    25                                     push cs
+    26                                     pop ds
+    27                                     pop es
+    28                                     pop ss
+    29                                  %endif
+    30                                     ; create board
+    31 00000001 BFF802                     mov di, board-8
+    32 00000004 89F9                       mov cx, di
+    33                                  sr1:
+    34 00000006 57                         push di
+    35 00000007 58                         pop ax
+    36 00000008 2488                       and al, 0x88 ; 0x88 board
+    37 0000000A 7402                       jz sr2
+    38 0000000C B007                       mov al, 0x07 ; Frontier
+    39                                  sr2:
+    40 0000000E AA                         stosb
+    41 0000000F E2F5                       loop sr1
+    42                                  
+    43                                     ; setup board
+    44 00000011 BE[4601]                   mov si, initial
+    45 00000014 BF0003                     mov di, board
+    46 00000017 B108                       mov cl, 0x08
+    47                                  sr3:
+    48 00000019 AC                         lodsb              ; load piece
+    49 0000001A AA                         stosb              ; black piece
+    50 0000001B 0C08                       or al, 8
+    51 0000001D 88456F                     mov [di+0x6f], al  ; white pieces
+    52 00000020 FE450F                     inc byte [di+0x0f]         ; black pawn
+    53 00000023 C6455F09                   mov byte [di+0x5f], 0x09   ; white pawn
+    54 00000027 E2F0                       loop sr3
+    55                                  
+    56                                  sr21:
+    57 00000029 68[2900]                   push sr21    ; 7th repeat loop
+    58 0000002C 68[7600]                   push play    ; 6th computer play ch: 8=white, 0=black
+    59 0000002F 68[3A00]                   push display_board    ; 5th returns cx to zero
+    60 00000032 68[7000]                   push sr28             ; 4th make movement
+    61 00000035 BE[2901]                   mov si, key2
+    62 00000038 56                         push si               ; 3rd take coordinate
+    63 00000039 56                         push si               ; 2nd take coordinate
+    64                                  display_board:
+    65 0000003A BEF802                     mov si, board-8
+    66                                     			 ; assume ch=0
+    67                                  			 ; loop if play is called with ch=8
+    68 0000003D B149                       mov cl, 73            ; 1 frontier + 8 rows * (* cols+1 frontier)
+    69                                  sr4:
+    70 0000003F AC                         lodsb
+    71 00000040 BB[5401]                   mov bx, chars         ; Note BH is reused outside this subroutine
+    72 00000043 D7                         xlatb
+    73 00000044 3C0D                       cmp al, 0x0d          ; Is it BC?
+    74 00000046 750B                       jnz sr5               ; No, jump
+    75 00000048 83C607                     add si, 7             ; Jump 7 frontier bytes
+    76 0000004B E8E500                     call display          ; Display RC
+    77 0000004E B00A                       mov al, 0x0a          ; Now display LF
+    78 00000050 E8E000                     call display
+    79                                  sr5:
+    80 00000053 E8DD00                     call display
+    81 00000056 E2E7                       loop sr4
+    82 00000058 C3                         ret                   ; cx=0
+    83                                  sr14:
+    84 00000059 42                         inc dx                ; Shorter than inc dl and doesn't overflow
+    85 0000005A FECE                       dec dh
+    86 0000005C 753D                       jnz sr12
+    87                                  sr17:
+    88 0000005E 46                         inc si
+    89                                  sr6:
+    90 0000005F 81FE7803                   cmp si, board+120
+    91 00000063 7519                       jne sr7
+    92 00000065 5F                         pop di
+    93 00000066 5E                         pop si
+    94 00000067 84C9                       test cl, cl           ; Top call?
+    95 00000069 750A                       jne sr24
+    96 0000006B 83FD81                     cmp bp, -127          ; Illegal move? (any move = always in check)
+    97 0000006E 7C05                       jl sr24               ; Yes, don't move
+    98                                  sr28:
+    99 00000070 A4                         movsb                 ; Do move
+   100 00000071 C644FF00                   mov byte [si-1], 0    ; Clear origin square
+   101                                  sr24:
+   102 00000075 C3                         ret
+   103                                  play:
+   104 00000076 BD00FF                     mov bp, -256          ; Current score
+   105 00000079 55                         push bp               ; Origin square
+   106 0000007A 55                         push bp               ; Target square
+   107 0000007B BE0003                     mov si, board
+   108                                  sr7:
+   109 0000007E AC                         lodsb                 ; Read square
+   110 0000007F 30E8                       xor al, ch            ; XOR with current playing side
+   111 00000081 48                         dec ax                ; Empty square 0x00 becomes 0xff
+   112 00000082 3C06                       cmp al, 6             ; Ignore if frontier or empty
+   113 00000084 73D9                       jnc sr6
+   114 00000086 08C0                       or al, al             ; Is it a pawn?
+   115 00000088 7504                       jnz sr8
+   116 0000008A 08ED                       or ch, ch             ; Current side is black?
+   117 0000008C 7501                       jnz sr25              ; No, jump
+   118                                  sr8:
+   119 0000008E 40                         inc ax
+   120                                  sr25:
+   121 0000008F 4E                         dec si
+   122 00000090 0404                       add al, 0x04
+   123 00000092 88C4                       mov ah, al            ; Total movements of piece in ah (later dh)
+   124 00000094 80E40C                     and ah, 0x0c
+   125 00000097 B3[5F]                     mov bl, offsets-4
+   126 00000099 D7                         xlatb
+   127 0000009A 92                         xchg dx, ax           ; Movements offset in dl
+   128                                  sr12:
+   129 0000009B 89F7                       mov di, si            ; Restart target square
+   130                                  sr9:
+   131 0000009D 88D3                       mov bl, dl            ; Build index into directions
+   132 0000009F 97                         xchg ax, di
+   133 000000A0 0207                       add al, [bx]          ; Next target square
+   134 000000A2 97                         xchg ax, di
+   135 000000A3 8A05                       mov al, [di]          ; Content of target square in al
+   136 000000A5 40                         inc ax
+   137 000000A6 8A24                       mov ah, [si]          ; Content of origin square in ah
+   138 000000A8 80FA[7A]                   cmp dl, 16+displacement
+   139 000000AB FEC8                       dec al                ; Check for empty square in z flag
+   140 000000AD 7465                       jz sr10               ; Goes to empty square, jump
+   141 000000AF 7205                       jc sr27               ; If not pawn, jump
+   142 000000B1 80FE03                     cmp dh, 3             ; Straight?
+   143 000000B4 72A8                       jb sr17               ; Yes, avoid+cancel any 2 square movement
+   144                                  sr27:
+   145 000000B6 30E8                       xor al, ch
+   146 000000B8 2C09                       sub al, 0x09          ; Valid capture?
+   147 000000BA 3C05                       cmp al, 0x05          ; Check Z with king, c=0 if invalid
+   148 000000BC 8A05                       mov al, [di]
+   149 000000BE 7742                       ja sr18               ; No, avoid
+   150                                     ; z=0/1 if king captured
+   151 000000C0 750C                       jne sr20              ; Wizard trick, jump if not captured king
+   152 000000C2 FEC9                       dec cl                ; If not in first response...
+   153 000000C4 BD4E00                     mov bp, 78            ; ...maximum score
+   154 000000C7 7502                       jne sr26
+   155 000000C9 01ED                       add bp, bp            ; Maximum score (maybe checkmate/stalemate)
+   156                                  sr26:
+   157 000000CB 58                         pop ax                ; Ignore values
+   158 000000CC 58                         pop ax
+   159 000000CD C3                         ret
+   160                                  sr20:
+   161 000000CE 50                         push ax               ; Save for restoring in near future
+   162 000000CF 2407                       and al, 7
+   163 000000D1 B3[4E]                     mov bl, scores
+   164 000000D3 D7                         xlatb
+   165 000000D4 98                         cbw
+   166                                     ; cmp cl, 4            ; 4-ply depth
+   167                                     ; cmp cl, 3            ; 3-ply depth
+   168                                     ; cmp cl, 2            ; 2-ply depth
+   169 000000D5 80F901                     cmp cl, 1             ; 1-ply depth
+   170 000000D8 7311                       jnc sr22
+   171 000000DA 60                         pusha                 ; Save all state (+ current side in ch)
+   172 000000DB E892FF                     call sr28             ; Do move
+   173 000000DE 80F508                     xor ch, 8             ; Change side
+   174 000000E1 41                         inc cx                ; Increase depth
+   175 000000E2 E891FF                     call play
+   176 000000E5 89E3                       mov bx, sp
+   177 000000E7 296F0E                     sub [bx+14], bp       ; Subtrack BP from AX
+   178 000000EA 61                         popa                  ; Restore state
+   179                                  sr22:
+   180 000000EB 39C5                       cmp bp, ax            ; Better score?
+   181 000000ED 7F07                       jg sr23               ; No, jump
+   182 000000EF 95                         xchg ax, bp           ; New best score
+   183 000000F0 7504                       jne sr23              ; Same score?
+   184 000000F2 E440                       in al, (0x40)
+   185 000000F4 3CAA                       cmp al, 0xaa          ; Randomize it
+   186                                  sr23:
+   187 000000F6 58                         pop ax                ; Restore board
+   188 000000F7 8824                       mov [si], ah
+   189 000000F9 8805                       mov [di], al
+   190 000000FB 7F05                       jg sr18
+   191 000000FD 83C404                     add sp, 4
+   192 00000100 56                         push si               ; Save movement
+   193 00000101 57                         push di
+   194                                  sr18:
+   195 00000102 FECC                       dec ah
+   196 00000104 30EC                       xor ah, ch            ; Was it a pawn?
+   197 00000106 7409                       jz sr16               ; Yes, end sequence, choose next movement
+   198 00000108 80FC04                     cmp ah, 0x04          ; Knight or king?
+   199 0000010B 7304                       jnc sr16              ; End sequence, choose next movement
+   200 0000010D 08C0                       or al, al             ; To empty square?
+   201 0000010F 748C                       jz sr9                ; Yes, follow line of squares
+   202                                  sr16:
+   203 00000111 E945FF                     jmp sr14
+   204                                  sr10:
+   205 00000114 72B8                       jc sr20               ; If no pawn, jump
+   206 00000116 80FE02                     cmp dh, 2             ; Diagonal?
+   207 00000119 77E7                       ja sr18               ; Yes, avoid
+   208 0000011B 75B1                       jnz short sr20        ; Advances one square? No, jump
+   209 0000011D 96                         xchg ax, si
+   210 0000011E 50                         push ax
+   211 0000011F 2C20                       sub al, 0x20
+   212 00000121 3C40                       cmp al, 0x40          ; Moving from the center of the board?
+   213 00000123 58                         pop ax
+   214 00000124 96                         xchg ax, si
+   215 00000125 18C6                       sbb dh, al            ; Yes, then avoid checking for two squares
+   216 00000127 EBA5                       jmp short sr20
+   217                                  
+   218                                     ; Read algebraic coordinate
+   219                                  key2:
+   220 00000129 87F7                       xchg si, di
+   221 0000012B E80100                     call key              ; Read letter
+   222 0000012E 97                         xchg di, ax
+   223                                     			 ; Fall through to read number
+   224                                     ; Read a key and display it
+   225                                  key:
+   226 0000012F B400                       mov ah, 0             ; Read keyboard
+   227 00000131 CD16                       int 0x16              ; Call BIOS, only affects AX and flags
+   228                                  
+   229                                  display:
+   230 00000133 60                         pusha
+   231 00000134 B40E                       mov ah, 0x0e          ; Console output
+   232 00000136 B700                       mov bh, 0x00
+   233 00000138 CD10                       int 0x10              ; Call BIOS, can affect AX in old VGA BIOS
+   234 0000013A 61                         popa
+   235 0000013B 83E00F                     and ax, 0x0f          ; Extract column
+   236 0000013E 6BE8F0                     imul bp, ax,-0x10     ; Calculate digit row multiplied by 16
+   237 00000141 8DBB7F03                   lea di,[bp+di+board+127] ; Subtract board column
+   238 00000145 C3                         ret
+   239                                  
+   240                                  initial:
+   241 00000146 0205030406030502           db 2, 5, 3, 4, 6, 3, 5, 2
+   242                                  scores:
+   243 0000014E 000105030903               db 0, 1, 5, 3, 9, 3
+   244                                  chars:
+   245 00000154 2E707262716E6B0D2E-        db ".prbqnk", 0x0d, ".PRBQNK"
+   245 0000015D 505242514E4B       
+   246                                  offsets:
+   247 00000163 [7A]                       db 16+displacement
+   248 00000164 [7E]                       db 20+displacement
+   249 00000165 [72]                       db  8+displacement
+   250 00000166 [76]                       db 12+displacement
+   251 00000167 [72]                       db  8+displacement
+   252 00000168 [6A]                       db  0+displacement
+   253 00000169 [72]                       db  8+displacement
+   254                                  displacement:
+   255 0000016A DFE1EEF20E121F21           db -33, -31, -18, -14, 14, 18, 31, 33
+   256 00000172 F010FF01                   db -16, 16, -1, 1
+   257 00000176 0F11F1EF                   db 15, 17, -15, -17
+   258 0000017A F1EFF0E0                   db -15, -17, -16, -32
+   259 0000017E 0F111020                   db 15, 17, 16, 32
+   260                                  
+   261                                  
+   262                                  %if com_file
+   263                                  board: equ 0x0300
+   264                                  %else
+   265                                     db "Toledo Atomchess. Mar/04/2016"
+   266                                     db " (c) 2015-2016 Oscar Toledo G. "
+   267                                     db "www.nanochess.org"
+   268                                     db " Happy coding! :-) "
+   269                                     db "Most fun MBR ever!!"
+   270                                     db 0, 0, 0
+   271                                  
+   272                                     db 0x55, 0xaa
+   273                                  
+   274                                     board: equ 0x7e00
+   275                                     stack: equ 0x8000
+   276                                  %endif
+   277                                  
