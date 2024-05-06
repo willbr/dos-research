@@ -1,0 +1,50 @@
+     1                                  org 0x0100
+     2                                  
+     3                                  key_esc:       equ 0x1b
+     4                                  key_backspace: equ 0x08
+     5                                  key_enter:     equ 0x0d
+     6                                  ascii_bell:    equ 0x07
+     7                                  ascii_lf:      equ 0x0a
+     8                                  ascii_cr:      equ 0x0d
+     9                                  
+    10                                  start:
+    11 00000000 B400                       mov ah, 0x00
+    12 00000002 CD16                       int 0x16          ; read key
+    13                                  
+    14 00000004 3C1B                       cmp al, key_esc
+    15 00000006 742B                       je exit
+    16                                  
+    17 00000008 3C08                       cmp al, key_backspace
+    18 0000000A 750F                       jne not_backspace
+    19                                  
+    20                                  handle_backspace:
+    21 0000000C E81C00                     call putchar
+    22 0000000F B020                       mov al, ' '
+    23 00000011 E81700                     call putchar
+    24 00000014 B008                       mov al, key_backspace
+    25 00000016 E81200                     call putchar
+    26 00000019 EBE5                       jmp start
+    27                                  
+    28                                  not_backspace:
+    29 0000001B 3C0D                       cmp al, key_enter
+    30 0000001D 7507                       jne not_enter
+    31                                  
+    32 0000001F B00A                       mov al, ascii_lf
+    33 00000021 E80700                     call putchar
+    34 00000024 B00D                       mov al, ascii_cr
+    35                                  
+    36                                  not_enter:
+    37 00000026 E80200                     call putchar
+    38 00000029 EBD5                       jmp start
+    39                                  
+    40                                  putchar:
+    41 0000002B B40E                       mov ah, 0x0e
+    42 0000002D BB0F00                     mov bx, 0x000f
+    43 00000030 CD10                       int 0x10
+    44 00000032 C3                         ret
+    45                                  
+    46                                  
+    47                                  
+    48                                  exit:
+    49 00000033 CD20                       int 0x20
+    50                                  
