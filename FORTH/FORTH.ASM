@@ -53,6 +53,28 @@ start:
     call puts
 
 
+   ; pluck one work at a time
+   ; 7, "10 10 +"
+   ; ^ next_word
+   ;
+   ; into
+   ; 2, "10", 4, "10 +"
+   ;          ^ next_word         
+   ;
+   ; into
+   ; 2, "10", 2, "10", 1, "+"
+   ;                   ^ next_word         
+   ;
+   ; into
+   ; 2, "10", 2 "10", 1, "+", 0
+
+   mov si, next_word
+   mov [si], line_buffer
+   call pluck_word
+
+   mov si, next_word
+   call puts
+
    int 0x20
 
 
