@@ -1,4 +1,4 @@
-# 8088
+# x86
 
 ```asm
 
@@ -10,6 +10,8 @@ si      ; source address
 di      ; destination address
 bp      ; base pointer
 sp      ; stack pointer
+ip      ; instruction pointer
+ss      ; stack segment
 flags
 
 ```
