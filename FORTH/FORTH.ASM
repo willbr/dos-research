@@ -8,36 +8,56 @@ ascii_lf:      equ 0x0a
 ascii_cr:      equ 0x0d
 
 section .data
-   welcome_message db 5, "hello"
+   welcome_message db 5, "a b c"
    prompt db 2, "; "
 
 section .bss
-   line_buffer resb 0xff
+   line_buffer  resb 0xff
+   next_token   resw 1
+   token_buffer resb 0xff
 
 section .text
 
 start:
-   mov si, welcome_message
-   call puts
-   call newline
+   ;mov si, welcome_message
+   ;call puts
+   ;call newline
    ;int 0x20
 
-   mov si, prompt
-   call puts
+   ;mov si, prompt
+   ;call puts
 
-   mov di, line_buffer
-   call readline
+   ;mov di, line_buffer
+   ;call readline
+   ;call newline
 
-   call newline
+    xor cx, cx
+    mov si, welcome_message
+    mov di, line_buffer
+    lodsb
+    mov cl, al
+    stosb
+    .loop:
+    lodsb
+    stosb
+    loop .loop
 
-   mov si, line_buffer
-   call puts
+
+   ;mov si, line_buffer
+   ;call puts
+   ; call newline
+
+    mov word [next_token], line_buffer
+    call pluck_token
+    ; todo break if empty
+    call puts
+
 
    int 0x20
 
 
    ; di = dst address
-   ; cx = line length ; can I remove cx? and use length = (si - pop si)?
+   ; cx = line length ; can I remove cx? and use length = (di - pop di)?
 readline:
    mov cx, 0
    push di
@@ -116,4 +136,38 @@ newline:
    mov al, ascii_cr
    call putchar
    ret
+
+pluck_token:
+    mov si, [next_token]
+    lodsb
+    xor cx, cx
+    mov cl, al          ; read length
+
+    mov di, token_buffer
+    push di
+    push di
+    inc di
+    .loop:
+    cmp cx, 0
+    je .end_loop
+
+    lodsb
+    cmp al, ' ' ; is space?
+    je .end_loop
+
+    stosb
+
+    loop .loop
+
+    .end_loop:
+    pop di
+    pop di
+    ret
+
+skip_spaces:
+    lodsb
+    cmp al, ' '
+    je skip_spaces
+    dec si
+    ret
 

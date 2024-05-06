@@ -8,112 +8,166 @@
      8                                  ascii_cr:      equ 0x0d
      9                                  
     10                                  section .data
-    11 00000000 0568656C6C6F               welcome_message db 5, "hello"
+    11 00000000 056120622063               welcome_message db 5, "a b c"
     12 00000006 023B20                     prompt db 2, "; "
     13                                  
     14                                  section .bss
-    15 00000000 <res FFh>                  line_buffer resb 0xff
-    16                                  
-    17                                  section .text
+    15 00000000 <res FFh>                  line_buffer  resb 0xff
+    16 000000FF ????                       next_token   resw 1
+    17 00000101 <res FFh>                  token_buffer resb 0xff
     18                                  
-    19                                  start:
-    20 00000000 BE[0000]                   mov si, welcome_message
-    21 00000003 E86400                     call puts
-    22 00000006 E87100                     call newline
-    23                                     ;int 0x20
-    24                                  
-    25 00000009 BE[0600]                   mov si, prompt
-    26 0000000C E85B00                     call puts
-    27                                  
-    28 0000000F BF[0000]                   mov di, line_buffer
-    29 00000012 E80B00                     call readline
-    30                                  
-    31 00000015 E86200                     call newline
-    32                                  
-    33 00000018 BE[0000]                   mov si, line_buffer
-    34 0000001B E84C00                     call puts
-    35                                  
-    36 0000001E CD20                       int 0x20
-    37                                  
-    38                                  
-    39                                     ; di = dst address
-    40                                     ; cx = line length ; can I remove cx? and use length = (si - pop si)?
-    41                                  readline:
-    42 00000020 B90000                     mov cx, 0
-    43 00000023 57                         push di
-    44 00000024 47                         inc di
+    19                                  section .text
+    20                                  
+    21                                  start:
+    22                                     ;mov si, welcome_message
+    23                                     ;call puts
+    24                                     ;call newline
+    25                                     ;int 0x20
+    26                                  
+    27                                     ;mov si, prompt
+    28                                     ;call puts
+    29                                  
+    30                                     ;mov di, line_buffer
+    31                                     ;call readline
+    32                                     ;call newline
+    33                                  
+    34 00000000 31C9                        xor cx, cx
+    35 00000002 BE[0000]                    mov si, welcome_message
+    36 00000005 BF[0000]                    mov di, line_buffer
+    37 00000008 AC                          lodsb
+    38 00000009 88C1                        mov cl, al
+    39 0000000B AA                          stosb
+    40                                      .loop:
+    41 0000000C AC                          lodsb
+    42 0000000D AA                          stosb
+    43 0000000E E2FC                        loop .loop
+    44                                  
     45                                  
-    46                                  .loop:
-    47 00000025 B400                       mov ah, 0x00
-    48 00000027 CD16                       int 0x16              ; read key
+    46                                     ;mov si, line_buffer
+    47                                     ;call puts
+    48                                     ; call newline
     49                                  
-    50 00000029 3C1B                       cmp al, key_esc       ; if esc return
-    51 0000002B 7431                       je .calc_length
-    52                                  
-    53 0000002D 3C08                       cmp al, key_backspace
-    54 0000002F 7516                       jne .other_chars
+    50 00000010 C706[FF00][0000]            mov word [next_token], line_buffer
+    51 00000016 E87000                      call pluck_token
+    52                                      ; todo break if empty
+    53 00000019 E84C00                      call puts
+    54                                  
     55                                  
-    56 00000031 83F900                     cmp cx, 0
-    57 00000034 741C                       je .underflow
+    56 0000001C CD20                       int 0x20
+    57                                  
     58                                  
-    59                                     ; todo check for overflow
-    60                                  
-    61 00000036 49                         dec cx
-    62 00000037 4F                         dec di
-    63                                  
-    64 00000038 E82700                     call putchar
-    65 0000003B B020                       mov al, ' '
-    66 0000003D E82200                     call putchar
-    67 00000040 B008                       mov al, key_backspace
-    68 00000042 E81D00                     call putchar
-    69 00000045 EBDE                       jmp .loop
-    70                                  
-    71                                  .other_chars:
-    72 00000047 41                         inc cx
-    73 00000048 AA                         stosb
-    74                                  
-    75 00000049 3C0D                       cmp al, key_enter
-    76 0000004B 7411                       je .calc_length
-    77                                  
-    78 0000004D E81200                     call putchar
-    79 00000050 EBD3                       jmp .loop
+    59                                     ; di = dst address
+    60                                     ; cx = line length ; can I remove cx? and use length = (di - pop di)?
+    61                                  readline:
+    62 0000001E B90000                     mov cx, 0
+    63 00000021 57                         push di
+    64 00000022 47                         inc di
+    65                                  
+    66                                  .loop:
+    67 00000023 B400                       mov ah, 0x00
+    68 00000025 CD16                       int 0x16              ; read key
+    69                                  
+    70 00000027 3C1B                       cmp al, key_esc       ; if esc return
+    71 00000029 7431                       je .calc_length
+    72                                  
+    73 0000002B 3C08                       cmp al, key_backspace
+    74 0000002D 7516                       jne .other_chars
+    75                                  
+    76 0000002F 83F900                     cmp cx, 0
+    77 00000032 741C                       je .underflow
+    78                                  
+    79                                     ; todo check for overflow
     80                                  
-    81                                  .underflow:
-    82 00000052 B007                       mov al, ascii_bell
-    83 00000054 E80B00                     call putchar
-    84 00000057 B008                       mov al, key_backspace
-    85 00000059 E80600                     call putchar
-    86 0000005C EBC7                       jmp .loop
-    87                                  
-    88                                  .calc_length:
-    89 0000005E 5F                         pop di
-    90 0000005F 880D                       mov [di], cl
-    91 00000061 C3                         ret
-    92                                  
-    93                                  putchar:
-    94 00000062 B40E                       mov ah, 0x0e
-    95 00000064 BB0F00                     mov bx, 0x000f
-    96 00000067 CD10                       int 0x10
-    97 00000069 C3                         ret
-    98                                  
-    99                                  puts:
-   100 0000006A 31C9                       xor cx, cx
-   101 0000006C 8A0C                       mov cl, [si] ; read string length
-   102 0000006E 46                         inc si
-   103                                  
-   104 0000006F B40E                       mov ah, 0x0e
-   105 00000071 BB0F00                     mov bx, 0x000f
-   106                                  .puts_loop:
-   107 00000074 AC                         lodsb
-   108 00000075 CD10                       int 0x10
-   109 00000077 E2FB                       loop .puts_loop
-   110 00000079 C3                         ret
-   111                                  
+    81 00000034 49                         dec cx
+    82 00000035 4F                         dec di
+    83                                  
+    84 00000036 E82700                     call putchar
+    85 00000039 B020                       mov al, ' '
+    86 0000003B E82200                     call putchar
+    87 0000003E B008                       mov al, key_backspace
+    88 00000040 E81D00                     call putchar
+    89 00000043 EBDE                       jmp .loop
+    90                                  
+    91                                  .other_chars:
+    92 00000045 41                         inc cx
+    93 00000046 AA                         stosb
+    94                                  
+    95 00000047 3C0D                       cmp al, key_enter
+    96 00000049 7411                       je .calc_length
+    97                                  
+    98 0000004B E81200                     call putchar
+    99 0000004E EBD3                       jmp .loop
+   100                                  
+   101                                  .underflow:
+   102 00000050 B007                       mov al, ascii_bell
+   103 00000052 E80B00                     call putchar
+   104 00000055 B008                       mov al, key_backspace
+   105 00000057 E80600                     call putchar
+   106 0000005A EBC7                       jmp .loop
+   107                                  
+   108                                  .calc_length:
+   109 0000005C 5F                         pop di
+   110 0000005D 880D                       mov [di], cl
+   111 0000005F C3                         ret
    112                                  
-   113                                  newline:
-   114 0000007A B00A                       mov al, ascii_lf
-   115 0000007C E8E3FF                     call putchar
-   116 0000007F B00D                       mov al, ascii_cr
-   117 00000081 E8DEFF                     call putchar
-   118 00000084 C3                         ret
-   119                                  
+   113                                  putchar:
+   114 00000060 B40E                       mov ah, 0x0e
+   115 00000062 BB0F00                     mov bx, 0x000f
+   116 00000065 CD10                       int 0x10
+   117 00000067 C3                         ret
+   118                                  
+   119                                  puts:
+   120 00000068 31C9                       xor cx, cx
+   121 0000006A 8A0C                       mov cl, [si] ; read string length
+   122 0000006C 46                         inc si
+   123                                  
+   124 0000006D B40E                       mov ah, 0x0e
+   125 0000006F BB0F00                     mov bx, 0x000f
+   126                                  .puts_loop:
+   127 00000072 AC                         lodsb
+   128 00000073 CD10                       int 0x10
+   129 00000075 E2FB                       loop .puts_loop
+   130 00000077 C3                         ret
+   131                                  
+   132                                  
+   133                                  newline:
+   134 00000078 B00A                       mov al, ascii_lf
+   135 0000007A E8E3FF                     call putchar
+   136 0000007D B00D                       mov al, ascii_cr
+   137 0000007F E8DEFF                     call putchar
+   138 00000082 C3                         ret
+   139                                  
+   140 00000083 90                          nop
+   141 00000084 BEEFCAFE                    db 0xbe, 0xef, 0xca, 0xfe
+   142 00000088 90                          nop
+   143                                  pluck_token:
+   144 00000089 8B36[FF00]                  mov si, [next_token]
+   145 0000008D 31C9                        xor cx, cx
+   146 0000008F 8A0C                        mov cl, [si]          ; read length
+   147                                  
+   148 00000091 BF[0101]                    mov di, token_buffer
+   149 00000094 57                          push di
+   150 00000095 57                          push di
+   151 00000096 47                          inc di
+   152                                      .loop:
+   153 00000097 83F900                      cmp cx, 0
+   154 0000009A 7408                        je .end_loop
+   155                                  
+   156 0000009C AC                          lodsb
+   157 0000009D 3C20                        cmp al, ' ' ; is space?
+   158 0000009F 7403                        je .end_loop
+   159                                  
+   160 000000A1 AA                          stosb
+   161                                  
+   162 000000A2 E2F3                        loop .loop
+   163                                  
+   164                                      .end_loop:
+   165 000000A4 C3                          ret
+   166                                  
+   167                                  skip_spaces:
+   168 000000A5 AC                          lodsb
+   169 000000A6 3C20                        cmp al, ' '
+   170 000000A8 74FB                        je skip_spaces
+   171 000000AA 4E                          dec si
+   172 000000AB C3                          ret
+   173                                  
