@@ -17,7 +17,6 @@ flags
 ```
 
 ```asm
-inc      ; increment by one
 int      ; interruption (call service vector)
 je       ; jump if equal
 jz       ; jump if zero
@@ -42,29 +41,33 @@ sar      ; signed shift right
 
 ```asm
 add
+sub
+inc      ; increment by one
+dec      ; decrement by one
+div      ; unsigned
+mul      ; unsigned
+idiv     ; signed
+imul     ; signed
+```
+
+
+```asm
 call
+ret
+```
+
+```asm
 cmp
-dec
-div
-idiv
-imul
 in
-mul
-neg
 nop
-not
-or
 rcl
 rcr
-ret
 rol
 ror
 sar
 shl
 sal
 shr
-sub
-xor
 ```
 
 
