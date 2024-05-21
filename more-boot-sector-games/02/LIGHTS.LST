@@ -19,253 +19,250 @@
     19                                  memory_end: equ 0x28 ; end of memory
     20                                  
     21                                  
-    22                                  
-    23                                  
-    24                                  start:
-    25 00000000 31C0                    	xor ax, ax
-    26 00000002 B91400                  	mov cx, memory_end/2
-    27                                  .0:
-    28 00000005 50                      	push ax
-    29 00000006 E2FD                    	loop .0
-    30                                  
-    31 00000008 B002                    	mov al, 0x02
-    32 0000000A CD10                    	int 0x10        ; text mode 80x25
+    22                                  start:
+    23 00000000 31C0                    	xor ax, ax
+    24 00000002 B91400                  	mov cx, memory_end/2
+    25                                  .0:
+    26 00000005 50                      	push ax
+    27 00000006 E2FD                    	loop .0
+    28                                  
+    29 00000008 B002                    	mov al, 0x02
+    30 0000000A CD10                    	int 0x10        ; text mode 80x25
+    31                                  
+    32 0000000C 89E5                    	mov bp, sp
     33                                  
-    34 0000000C 89E5                    	mov bp, sp
-    35                                  
-    36 0000000E E440                    	in al, 0x40 ; get a pseudo random number
-    37 00000010 96                      	xchg ax, si
-    38                                  
-    39 00000011 FC                      	cld
-    40 00000012 B800B8                  	mov ax, 0xb800     ; video segment
-    41 00000015 8ED8                    	mov ds, ax
-    42 00000017 8EC0                    	mov es, ax
+    34 0000000E E440                    	in al, 0x40 ; get a pseudo random number
+    35 00000010 96                      	xchg ax, si
+    36                                  
+    37 00000011 FC                      	cld
+    38 00000012 B800B8                  	mov ax, 0xb800     ; video segment
+    39 00000015 8ED8                    	mov ds, ax
+    40 00000017 8EC0                    	mov es, ax
+    41                                  
+    42 00000019 E8F000                  	call show_buttons
     43                                  
-    44 00000019 E8F000                  	call show_buttons
-    45                                  
-    46                                  restart_game:
-    47 0000001C 31C0                    	xor ax, ax
-    48 0000001E 894604                  	mov [bp+next_seq], ax
-    49                                  
-    50                                  game_loop:
-    51 00000021 B10F                    	mov cl, 15
-    52 00000023 E83801                  	call wait_ticks
+    44                                  restart_game:
+    45 0000001C 31C0                    	xor ax, ax
+    46 0000001E 894604                  	mov [bp+next_seq], ax
+    47                                  
+    48                                  game_loop:
+    49 00000021 B10F                    	mov cl, 15
+    50 00000023 E83801                  	call wait_ticks
+    51                                  
+    52                                  	; add a new light to sequence
     53                                  
-    54                                  	; add a new light to sequence
+    54 00000026 8B7E04                  	mov di, [bp+next_seq]
     55                                  
-    56 00000026 8B7E04                  	mov di, [bp+next_seq]
-    57                                  
-    58 00000029 B86100                  	mov ax, 97
-    59 0000002C F7E6                    	mul si
-    60 0000002E 83C017                  	add ax, 23
-    61 00000031 96                      	xchg ax, si
-    62                                  
-    63                                  
+    56 00000029 B86100                  	mov ax, 97
+    57 0000002C F7E6                    	mul si
+    58 0000002E 83C017                  	add ax, 23
+    59 00000031 96                      	xchg ax, si
+    60                                  
+    61 00000032 80E403                  	and ah, 0x03                      ; extract random from high byte
+    62 00000035 80C431                  	add ah, 0x31                      ; add ascii '1'
+    63 00000038 886308                  	mov [bp+di+memory], ah
     64                                  
-    65 00000032 80E403                  	and ah, 0x03                      ; extract random from high byte
-    66 00000035 80C431                  	add ah, 0x31                      ; add ascii '1'
-    67 00000038 886308                  	mov [bp+di+memory], ah
-    68                                  
-    69 0000003B B80800                  	mov ax, 8
-    70 0000003E 83FF05                  	cmp di, 5                         ; if number of lights < 5
-    71 00000041 7209                    	jb .2
-    72 00000043 B006                    	mov al, 6
-    73 00000045 83FF0D                  	cmp di, 13
-    74 00000048 7202                    	jb .2
-    75 0000004A B004                    	mov al, 4
-    76                                  .2:
-    77 0000004C 894606                  	mov [bp+timing], ax
-    78 0000004F 83FF1F                  	cmp di, 31
-    79 00000052 7503E98800              	je victory
-    80 00000057 FE4604                  	inc byte [bp+next_seq]
-    81                                  
-    82                                  ; show current sequence
-    83                                  
-    84 0000005A 31FF                    	xor di, di
-    85                                  .1:
-    86 0000005C 8A4308                  	mov al, [bp+di+memory]
-    87 0000005F 57                      	push di
-    88 00000060 884602                  	mov [bp+button], al
-    89 00000063 E8A600                  	call show_buttons
-    90 00000066 8B4E06                  	mov cx, [bp+timing]
-    91 00000069 E8F200                  	call wait_ticks
-    92 0000006C E81501                  	call speaker_off
-    93                                  
-    94 0000006F C6460200                	mov byte [bp+button], 0
-    95 00000073 E89600                  	call show_buttons
-    96 00000076 E8E300                  	call wait_tick
-    97 00000079 5F                      	pop di
-    98 0000007A 47                      	inc di
-    99 0000007B 3B7E04                  	cmp di, [bp+next_seq]
-   100 0000007E 75DC                    	jne .1
-   101                                  	
-   102                                  .9:
-   103 00000080 B401                    	mov ah, 0x01
-   104 00000082 CD16                    	int 0x16        ; if key pressed
-   105 00000084 7406                    	je .8
-   106 00000086 B400                    	mov ah, 0x00
-   107 00000088 CD16                    	int 0x16        ; read key
-   108 0000008A EBF4                    	jmp .9
-   109                                  .8:
-   110                                  
-   111                                  	; comparison of player input with sequence
-   112 0000008C 31FF                    	xor di, di
-   113                                  .4:
-   114 0000008E B400                    	mov ah, 0x00
-   115 00000090 CD16                    	int 0x16
-   116 00000092 3C1B                    	cmp al, 0x1b
-   117 00000094 746F                    	je exit_game
-   118 00000096 3C31                    	cmp al, 0x31 ; ascii '1'
-   119 00000098 72F4                    	jb .4
-   120 0000009A 3C35                    	cmp al, 0x35    ; > ascii '4'?
-   121 0000009C 73F0                    	jnb .4
-   122 0000009E 50                      	push ax
-   123 0000009F 57                      	push di
-   124 000000A0 884602                  	mov [bp+button], al
-   125 000000A3 E86600                  	call show_buttons
-   126 000000A6 8B4E06                  	mov cx, [bp+timing]
-   127 000000A9 E8B200                  	call wait_ticks
-   128 000000AC E8D500                  	call speaker_off
-   129                                  
-   130 000000AF C6460200                	mov byte [bp+button], 0
-   131 000000B3 E85600                  	call show_buttons
-   132 000000B6 E8A500                  	call wait_ticks
-   133 000000B9 5F                      	pop di
-   134 000000BA 58                      	pop ax
-   135 000000BB 3A4308                  	cmp al, [bp+di+memory]
-   136 000000BE 7509                    	jne wrong
-   137                                  
-   138 000000C0 47                      	inc di
-   139 000000C1 3B7E04                  	cmp di, [bp+next_seq]
-   140 000000C4 75C8                    	jne .4
-   141 000000C6 E958FF                  	jmp game_loop
-   142                                  
-   143                                  
-   144                                  wrong:
-   145 000000C9 B9F96E                  	mov cx, 28409
-   146 000000CC E8A200                  	call speaker
-   147 000000CF B11B                    	mov cl, 27
-   148 000000D1 E88A00                  	call wait_ticks
-   149 000000D4 E8AD00                  	call speaker_off
-   150 000000D7 B11B                    	mov cl, 27
-   151 000000D9 E88200                  	call wait_ticks
-   152 000000DC E93DFF                  	jmp restart_game
-   153                                  
-   154                                  
-   155                                  victory:
-   156 000000DF B032                    	mov al, '2'
-   157 000000E1 B90E00                  	mov cx, 14
-   158                                  .1:
-   159 000000E4 51                      	push cx
-   160 000000E5 50                      	push ax
-   161 000000E6 884602                  	mov byte [bp+button], al
-   162 000000E9 E82000                  	call show_buttons
-   163 000000EC B102                    	mov cl, 2
-   164 000000EE E86D00                  	call wait_ticks
-   165 000000F1 C6460200                	mov byte [bp+button], 0
-   166 000000F5 E81400                  	call show_buttons
-   167 000000F8 58                      	pop ax
-   168 000000F9 40                      	inc ax
-   169 000000FA 3C35                    	cmp al, '5'
-   170 000000FC 7502                    	jne .2
-   171 000000FE B031                    	mov al, '1'
-   172                                  .2:
-   173 00000100 59                      	pop cx
-   174 00000101 E2E1                    	loop .1
-   175 00000103 EBC4                    	jmp wrong
-   176                                  
-   177                                  
-   178                                  exit_game:
-   179 00000105 B80200                  	mov ax, 0x0002
-   180 00000108 CD10                    	int 0x10        ; clean screen
-   181 0000010A CD20                    	int 0x20        ; exit to dos
-   182                                  
-   183                                  
-   184                                  show_buttons:
-   185 0000010C BF6601                  	mov di, 0x0166
-   186 0000010F BB2F31                  	mov bx, 0x312f
-   187 00000112 B9390B                  	mov cx, 2873
-   188 00000115 E82100                  	call show_button
-   189                                  
-   190 00000118 BF9201                  	mov di, 0x0192
-   191 0000011B BB4F32                  	mov bx, 0x324f
-   192 0000011E B9FB0E                  	mov cx, 3835
-   193 00000121 E81500                  	call show_button
-   194                                  
-   195 00000124 BF4608                  	mov di, 0x0846
-   196 00000127 BB6F33                  	mov bx, 0x336f
-   197 0000012A B9CC12                  	mov cx, 4812
-   198 0000012D E80900                  	call show_button
-   199                                  
-   200 00000130 BF7208                  	mov di, 0x0872
-   201 00000133 BB3F34                  	mov bx, 0x343f
-   202 00000136 B97216                  	mov cx, 5746
-   203                                  
-   204                                  	; fall through
-   205                                  
-   206                                  show_button:
-   207 00000139 B020                    	mov al, 0x20
-   208 0000013B 3A7E02                  	cmp bh, [bp+button]
-   209 0000013E 7505                    	jne .0
-   210 00000140 E82E00                  	call speaker
-   211 00000143 B0B0                    	mov al, 0xb0
-   212                                  .0:
-   213 00000145 B90A00                  	mov cx, 10
-   214                                  .1:
-   215 00000148 51                      	push cx
-   216 00000149 88DC                    	mov ah, bl
-   217 0000014B B114                    	mov cl, 20
-   218 0000014D F3AB                    	rep stosw
-   219 0000014F 83C778                  	add di, 160-20*2
-   220 00000152 59                      	pop cx
-   221 00000153 E2F3                    	loop .1
-   222 00000155 88F8                    	mov al, bh
-   223 00000157 8985F4FC                	mov [di+20-5*160], ax
-   224 0000015B C3                      	ret
+    65 0000003B B80800                  	mov ax, 8
+    66 0000003E 83FF05                  	cmp di, 5                         ; if number of lights < 5
+    67 00000041 7209                    	jb .2
+    68 00000043 B006                    	mov al, 6
+    69 00000045 83FF0D                  	cmp di, 13
+    70 00000048 7202                    	jb .2
+    71 0000004A B004                    	mov al, 4
+    72                                  .2:
+    73 0000004C 894606                  	mov [bp+timing], ax
+    74 0000004F 83FF1F                  	cmp di, 31
+    75 00000052 7503E98800              	je victory
+    76 00000057 FE4604                  	inc byte [bp+next_seq]
+    77                                  
+    78                                  ; show current sequence
+    79                                  
+    80 0000005A 31FF                    	xor di, di
+    81                                  .1:
+    82 0000005C 8A4308                  	mov al, [bp+di+memory]
+    83 0000005F 57                      	push di
+    84 00000060 884602                  	mov [bp+button], al
+    85 00000063 E8A600                  	call show_buttons
+    86 00000066 8B4E06                  	mov cx, [bp+timing]
+    87 00000069 E8F200                  	call wait_ticks
+    88 0000006C E81501                  	call speaker_off
+    89                                  
+    90 0000006F C6460200                	mov byte [bp+button], 0
+    91 00000073 E89600                  	call show_buttons
+    92 00000076 E8E300                  	call wait_tick
+    93 00000079 5F                      	pop di
+    94 0000007A 47                      	inc di
+    95 0000007B 3B7E04                  	cmp di, [bp+next_seq]
+    96 0000007E 75DC                    	jne .1
+    97                                  	
+    98                                  	; empty keyboard buffer
+    99                                  .9:
+   100 00000080 B401                    	mov ah, 0x01
+   101 00000082 CD16                    	int 0x16        ; if key pressed
+   102 00000084 7406                    	je .8
+   103 00000086 B400                    	mov ah, 0x00
+   104 00000088 CD16                    	int 0x16        ; read key
+   105 0000008A EBF4                    	jmp .9
+   106                                  .8:
+   107                                  
+   108                                  	; comparison of player input with sequence
+   109 0000008C 31FF                    	xor di, di
+   110                                  .4:
+   111 0000008E B400                    	mov ah, 0x00
+   112 00000090 CD16                    	int 0x16
+   113 00000092 3C1B                    	cmp al, 0x1b
+   114 00000094 746F                    	je exit_game
+   115 00000096 3C31                    	cmp al, 0x31 ; ascii '1'
+   116 00000098 72F4                    	jb .4
+   117 0000009A 3C35                    	cmp al, 0x35    ; > ascii '4'?
+   118 0000009C 73F0                    	jnb .4
+   119 0000009E 50                      	push ax
+   120 0000009F 57                      	push di
+   121 000000A0 884602                  	mov [bp+button], al
+   122 000000A3 E86600                  	call show_buttons
+   123 000000A6 8B4E06                  	mov cx, [bp+timing]
+   124 000000A9 E8B200                  	call wait_ticks
+   125 000000AC E8D500                  	call speaker_off
+   126                                  
+   127 000000AF C6460200                	mov byte [bp+button], 0
+   128 000000B3 E85600                  	call show_buttons
+   129 000000B6 E8A300                  	call wait_tick
+   130 000000B9 5F                      	pop di
+   131 000000BA 58                      	pop ax
+   132 000000BB 3A4308                  	cmp al, [bp+di+memory]
+   133 000000BE 7509                    	jne wrong
+   134                                  
+   135 000000C0 47                      	inc di
+   136 000000C1 3B7E04                  	cmp di, [bp+next_seq]
+   137 000000C4 75C8                    	jne .4
+   138 000000C6 E958FF                  	jmp game_loop
+   139                                  
+   140                                  
+   141                                  wrong:
+   142 000000C9 B9F96E                  	mov cx, 28409
+   143 000000CC E8A200                  	call speaker
+   144 000000CF B11B                    	mov cl, 27
+   145 000000D1 E88A00                  	call wait_ticks
+   146 000000D4 E8AD00                  	call speaker_off
+   147 000000D7 B11B                    	mov cl, 27
+   148 000000D9 E88200                  	call wait_ticks
+   149 000000DC E93DFF                  	jmp restart_game
+   150                                  
+   151                                  
+   152                                  victory:
+   153 000000DF B032                    	mov al, '2'
+   154 000000E1 B90E00                  	mov cx, 14
+   155                                  .1:
+   156 000000E4 51                      	push cx
+   157 000000E5 50                      	push ax
+   158 000000E6 884602                  	mov byte [bp+button], al
+   159 000000E9 E82000                  	call show_buttons
+   160 000000EC B102                    	mov cl, 2
+   161 000000EE E86D00                  	call wait_ticks
+   162 000000F1 C6460200                	mov byte [bp+button], 0
+   163 000000F5 E81400                  	call show_buttons
+   164 000000F8 58                      	pop ax
+   165 000000F9 40                      	inc ax
+   166 000000FA 3C35                    	cmp al, '5'
+   167 000000FC 7502                    	jne .2
+   168 000000FE B031                    	mov al, '1'
+   169                                  .2:
+   170 00000100 59                      	pop cx
+   171 00000101 E2E1                    	loop .1
+   172 00000103 EBC4                    	jmp wrong
+   173                                  
+   174                                  
+   175                                  exit_game:
+   176 00000105 B80200                  	mov ax, 0x0002
+   177 00000108 CD10                    	int 0x10        ; clean screen
+   178 0000010A CD20                    	int 0x20        ; exit to dos
+   179                                  
+   180                                  
+   181                                  show_buttons:
+   182 0000010C BF6601                  	mov di, 0x0166
+   183 0000010F BB2F31                  	mov bx, 0x312f
+   184 00000112 B9390B                  	mov cx, 2873
+   185 00000115 E82100                  	call show_button
+   186                                  
+   187 00000118 BF9201                  	mov di, 0x0192
+   188 0000011B BB4F32                  	mov bx, 0x324f
+   189 0000011E B9FB0E                  	mov cx, 3835
+   190 00000121 E81500                  	call show_button
+   191                                  
+   192 00000124 BF4608                  	mov di, 0x0846
+   193 00000127 BB6F33                  	mov bx, 0x336f
+   194 0000012A B9CC12                  	mov cx, 4812
+   195 0000012D E80900                  	call show_button
+   196                                  
+   197 00000130 BF7208                  	mov di, 0x0872
+   198 00000133 BB3F34                  	mov bx, 0x343f
+   199 00000136 B97216                  	mov cx, 5746
+   200                                  
+   201                                  	; fall through
+   202                                  
+   203                                  show_button:
+   204 00000139 B020                    	mov al, 0x20
+   205 0000013B 3A7E02                  	cmp bh, [bp+button]
+   206 0000013E 7505                    	jne .0
+   207 00000140 E82E00                  	call speaker
+   208 00000143 B0B0                    	mov al, 0xb0
+   209                                  .0:
+   210 00000145 B90A00                  	mov cx, 10
+   211                                  .1:
+   212 00000148 51                      	push cx
+   213 00000149 88DC                    	mov ah, bl
+   214 0000014B B114                    	mov cl, 20
+   215 0000014D F3AB                    	rep stosw
+   216 0000014F 83C778                  	add di, 160-20*2
+   217 00000152 59                      	pop cx
+   218 00000153 E2F3                    	loop .1
+   219 00000155 88F8                    	mov al, bh
+   220 00000157 8985F4FC                	mov [di+20-5*160], ax
+   221 0000015B C3                      	ret
+   222                                  
+   223                                  wait_tick:
+   224 0000015C B101                    	mov cl, 1
    225                                  
-   226                                  wait_tick:
-   227 0000015C B101                    	mov cl, 1
-   228                                  
-   229                                  wait_ticks:
-   230 0000015E B500                    	mov ch, 0
-   231                                  .0:
-   232 00000160 51                      	push cx
-   233                                  .1:
-   234 00000161 B400                    	mov ah, 0x00
-   235 00000163 CD1A                    	int 0x1a
-   236 00000165 3B5600                  	cmp dx, [bp+old_time]
-   237 00000168 74F7                    	je .1
-   238 0000016A 895600                  	mov [bp+old_time], dx
-   239 0000016D 59                      	pop cx
-   240 0000016E E2F0                    	loop .0
-   241 00000170 C3                      	ret
-   242                                  
-   243                                  
-   244                                  ; cx = frequency
-   245                                  speaker:
-   246 00000171 B0B6                    	mov al, 0xb6
-   247 00000173 E643                    	out 0x43, al
-   248 00000175 88C8                    	mov al, cl
-   249 00000177 E642                    	out 0x42, al
-   250 00000179 88E8                    	mov al, ch
-   251 0000017B E642                    	out 0x42, al
-   252 0000017D E461                    	in al, 0x61
-   253 0000017F 0C03                    	or al, 0x03
-   254 00000181 E661                    	out 0x61, al
-   255 00000183 C3                      	ret
-   256                                  
-   257                                  
-   258                                  speaker_off:
-   259 00000184 E461                    	in al, 0x61
-   260 00000186 24FC                    	and al, 0xfc
-   261 00000188 E661                    	out 0x61, al
-   262 0000018A C3                      	ret
-   263                                  
-   264                                  
-   265                                  
-   266                                  %ifdef com_file
-   267                                  %else
-   268 0000018B 4F<rep 73h>             	times 510-($-$$) db 0x4f
-   269 000001FE 55AA                    	db 0x55, 0xaa ; make it a bootable sector
-   270                                  %endif
-   271                                  
+   226                                  wait_ticks:
+   227 0000015E B500                    	mov ch, 0
+   228                                  .0:
+   229 00000160 51                      	push cx
+   230                                  .1:
+   231 00000161 B400                    	mov ah, 0x00
+   232 00000163 CD1A                    	int 0x1a
+   233 00000165 3B5600                  	cmp dx, [bp+old_time]
+   234 00000168 74F7                    	je .1
+   235 0000016A 895600                  	mov [bp+old_time], dx
+   236 0000016D 59                      	pop cx
+   237 0000016E E2F0                    	loop .0
+   238 00000170 C3                      	ret
+   239                                  
+   240                                  
+   241                                  ; cx = frequency
+   242                                  speaker:
+   243 00000171 B0B6                    	mov al, 0xb6
+   244 00000173 E643                    	out 0x43, al
+   245 00000175 88C8                    	mov al, cl
+   246 00000177 E642                    	out 0x42, al
+   247 00000179 88E8                    	mov al, ch
+   248 0000017B E642                    	out 0x42, al
+   249 0000017D E461                    	in al, 0x61
+   250 0000017F 0C03                    	or al, 0x03
+   251 00000181 E661                    	out 0x61, al
+   252 00000183 C3                      	ret
+   253                                  
+   254                                  
+   255                                  speaker_off:
+   256 00000184 E461                    	in al, 0x61
+   257 00000186 24FC                    	and al, 0xfc
+   258 00000188 E661                    	out 0x61, al
+   259 0000018A C3                      	ret
+   260                                  
+   261                                  
+   262                                  
+   263                                  %ifdef com_file
+   264                                  %else
+   265 0000018B 4F<rep 73h>             	times 510-($-$$) db 0x4f
+   266 000001FE 55AA                    	db 0x55, 0xaa ; make it a bootable sector
+   267                                  %endif
+   268                                  

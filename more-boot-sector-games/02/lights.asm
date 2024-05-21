@@ -19,8 +19,6 @@ memory:     equ 0x08 ; start of memory
 memory_end: equ 0x28 ; end of memory
 
 
-
-
 start:
 	xor ax, ax
 	mov cx, memory_end/2
@@ -59,8 +57,6 @@ game_loop:
 	mul si
 	add ax, 23
 	xchg ax, si
-
-
 
 	and ah, 0x03                      ; extract random from high byte
 	add ah, 0x31                      ; add ascii '1'
@@ -130,7 +126,7 @@ game_loop:
 
 	mov byte [bp+button], 0
 	call show_buttons
-	call wait_ticks
+	call wait_tick
 	pop di
 	pop ax
 	cmp al, [bp+di+memory]
