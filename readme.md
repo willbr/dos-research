@@ -40,20 +40,26 @@ sar      ; signed shift right
 ```
 
 ```asm
-add
-sub
+add      ; add eax, ebx       ; eax += ebx
+sub      ; sub eax, ebx       ; eax -= ebx
 inc      ; increment by one
 dec      ; decrement by one
-div      ; unsigned
-mul      ; unsigned
+
+; unsigned
+div      ; div bl             ; al = ax / bl     // quotient
+                              ; ah = ax % bl     // remainder
+mul      ; mul bl             ; ax = al * bl
+
+; signed
 idiv     ; signed
 imul     ; signed
 ```
 
 
 ```asm
-call
-ret
+call label_name ; push address of next instruction
+                ; then jump to label_name
+ret             ; pop return address then jump to it
 ```
 
 ```asm
