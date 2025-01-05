@@ -2,7 +2,7 @@ UNAME_S := $(shell uname -s)
 
 ifeq ($(UNAME_S),Linux)
     CC = gcc
-    CFLAGS = -std=c89
+    CFLAGS = -std=c89 -DLITTLE_ENDIAN
     EXEEXT =
     LIBEXT = .so
     PYTHON = python3
@@ -14,13 +14,13 @@ else ifeq ($(UNAME_S),Darwin)
     PYTHON = python3
 else ifeq ($(OS),Windows_NT)
     CC = tcc
-    CFLAGS = -std=c89
+    CFLAGS = -std=c89 -DLITTLE_ENDIAN
     EXEEXT = .exe
     LIBEXT = .dll
     PYTHON = python
 else
     CC = gcc
-    CFLAGS = -std=c89
+    CFLAGS = -std=c89 -DLITTLE_ENDIAN
     EXEEXT =
     LIBEXT = .so
     PYTHON = python3

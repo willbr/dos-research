@@ -26,6 +26,22 @@ DLLEXPORT void myFunction() {
 #define computer_clear_flag(c, flag) \
 		(c->flags &= ~(flag))
 
+
+#define CPU_STATE_FIELDS \
+    X("%04x", c->ax.u16) \
+    X("%04x", c->bx.u16) \
+    X("%04x", c->cx.u16) \
+    X("%04x", c->dx.u16) \
+    X("%04x", c->si) \
+    X("%04x", c->di) \
+    X("%04x", c->bp) \
+    X("%04x", c->sp) \
+    X("%04x", c->ip) \
+    X("%04x", c->flags) \
+    X("| %-10s", opcode_bytes) \
+    X("%-10s", assembly)
+
+
 typedef unsigned char byte;
 
 typedef unsigned char  u8;
@@ -399,33 +415,16 @@ computer_dump(Computer *c) {
 	computer_dis(c, c->ip, opcode_bytes, assembly);
 
 	printf(
-            "%04x "
-            "%04x "
-            "%04x "
-            "%04x "
-            "%04x "
-            "%04x "
-            "%04x "
-            "%04x "
-            "%04x "
-            "%04x "
-            "| %-10s "
-            "%-10s"
-            "\n"
-            ,
-            c->ax.u16,
-            c->bx.u16,
-            c->cx.u16,
-            c->dx.u16,
-            c->si,
-            c->di,
-            c->bp,
-            c->sp,
-            c->ip,
-            c->flags,
-            opcode_bytes,
-            assembly
-		);
+#define X(format, value) format " "
+	CPU_STATE_FIELDS
+#undef X
+	"\n"
+	// Define X for generating the argument list
+#define X(format, value) , value
+	CPU_STATE_FIELDS
+#undef X
+	);
+
 	return 0;
 }
 

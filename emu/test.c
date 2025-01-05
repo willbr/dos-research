@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define LITTLE_ENDIAN
+//#define LITTLE_ENDIAN
 #include "emu.c"
 
 
@@ -27,15 +27,17 @@ main(int argc, char **argv) {
     char *rom = NULL;
     int i = 0;
 
-	Computer c;
-	computer_init(&c);
+    Computer c;
+
+    computer_init(&c);
+
     c.interupt[0x10] = interupt_0x10_putchar;
     c.interupt[0x20] = interupt_0x20_exit;
 
     assert(argc == 2);
 
     filename = *(argv+1);
-    /* printf("filename: %s\n", filename); */
+    printf("filename: %s\n", filename);
 
     file = fopen(filename, "rb");
     if (file == NULL) {
@@ -57,21 +59,21 @@ main(int argc, char **argv) {
     fclose(file);
 
     computer_memcpy(&c, 0x0100, rom, file_size);
-    /* hexdump(c.memory, 0x0100, 50); */
+    hexdump(c.memory, 0x0100, 50);
 
-    //computer_dump(&c);
+    // computer_dump(&c);
 
     for (i = 0; i < 130; i += 1) {
         if (computer_step(&c, 1)) {
             break;
         }
-        //computer_dump(&c);
+        computer_dump(&c);
     }
 
-    /*
+    computer_dump(&c);
+
     puts("stack");
     hexdump(c.memory, 0xfee0, 0x20);
-    */
 
 	return 0;
 }
