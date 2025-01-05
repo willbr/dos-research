@@ -13,22 +13,22 @@ screen_init(Screen *screen) {
     screen->y = 0;
 }
 
-// Print the entire screen
+#define HLINE_WIDTH (SCREEN_WIDTH+2)
+
 void
 screen_print(const Screen *screen) {
-    int i = 0;
-#define HLINE_WIDTH (SCREEN_WIDTH+2)
-    char s[HLINE_WIDTH] = "";
-    memset(s, '-', HLINE_WIDTH); 
-    s[0] = '+';
-    s[HLINE_WIDTH-1] = '+';
-    s[HLINE_WIDTH] = '\0';
-
+	int i = 0;
+	char s[HLINE_WIDTH + 1] = "";
+	memset(s, '-', HLINE_WIDTH); 
+	s[0] = '+';
+	s[HLINE_WIDTH-1] = '+';
+	s[HLINE_WIDTH] = '\0';
 	puts(s);
-    for (i = 0; i < SCREEN_HEIGHT; i++) {
-        int line_index = (screen->current_line + i) % SCREEN_HEIGHT;
-        printf("|%.*s|\n", SCREEN_WIDTH, screen->lines[line_index]);
-    }
+
+	for (i = 0; i < SCREEN_HEIGHT; i++) {
+		int line_index = (screen->current_line + i) % SCREEN_HEIGHT;
+		printf("|%.*s|\n", SCREEN_WIDTH, screen->lines[line_index]);
+	}
 	puts(s);
 }
 

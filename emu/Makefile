@@ -38,3 +38,9 @@ opcodes.c: build_opcodes.py
 run-test: test$(EXEEXT)
 	./test$(EXEEXT) first.com
 
+run-first: test$(EXEEXT)
+	./test$(EXEEXT) first.com
+
+run-rogue: test$(EXEEXT)
+	./test$(EXEEXT) ../more-boot-sector-games/03/ROGUE.COM
+
