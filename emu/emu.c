@@ -41,6 +41,9 @@ DLLEXPORT void myFunction() {
     X("| %-10s", opcode_bytes) \
     X("%-10s", assembly)
 
+#define SCREEN_WIDTH 80
+#define SCREEN_HEIGHT 24
+
 
 typedef unsigned char byte;
 
@@ -68,6 +71,13 @@ struct RegisterDX { u8 dh; u8 dl; };
 struct Computer;
 typedef int (*interupt_callback)(struct Computer*);
 
+typedef struct {
+    char lines[SCREEN_HEIGHT][SCREEN_WIDTH]; // Ring buffer for the screen
+    int current_line;                        // Index of the top-most line in the ring buffer
+    int x, y;                                // Cursor position
+} Screen;
+
+
 typedef struct Computer {
 	union { u16 u16; struct RegisterAX part; } ax; /* accumulator */
 	union { u16 u16; struct RegisterBX part; } bx; /* address     */
@@ -81,6 +91,7 @@ typedef struct Computer {
 	u16 flags; /* stack pointer  */
 	u8 memory[0x10000];
     interupt_callback interupt[0xff];
+    Screen screen;
 } Computer;
 
 
@@ -135,18 +146,6 @@ computer_init(Computer *c) {
 
     memset(c->memory, 0, sizeof(c->memory));
 
-	puts(
-            "ax   "
-            "bx   "
-            "cx   "
-            "dx   "
-            "si   "
-            "di   "
-            "bp   "
-            "sp   "
-            "ip   "
-            "flags "
-	    );
 	return 0;
 }
 
