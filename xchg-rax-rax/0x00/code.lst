@@ -1,0 +1,17 @@
+     1                                  ; [0x00]
+     2                                  
+     3                                  [BITS 64]
+     4                                  
+     5                                  section .text
+     6                                  global _start
+     7                                  
+     8                                  _start:
+     9 00000000 31C0                    	xor eax, eax
+    10 00000002 488D1C2500000000        	lea rbx, [0]
+    11 0000000A E2FE                    	loop $
+    12 0000000C BA00000000              	mov rdx, 0
+    13 00000011 83E600                  	and esi, 0
+    14 00000014 29FF                    	sub edi, edi
+    15 00000016 6A00                    	push 0
+    16 00000018 5D                      	pop rbp
+    17                                  

@@ -1,0 +1,17 @@
+I2024-08-03T13:21:44.503719:blink/loader.c:561:51945 execve needs chmod +x
+I2024-08-03T13:21:55.399568:blink/loader.c:561:51959 execve needs chmod +x
+I2024-08-03T13:22:18.060797:blink/loader.c:561:51972 execve needs chmod +x
+I2024-08-03T13:23:58.441430:blink/blinkenlights.c:3295:52079 Tui
+I2024-08-03T13:23:58.442603:blink/blinkenlights.c:956:52079 loaded program code.bin
+000000400000-000001400fff   16m   1% rwx code.bin
+4fffff800000-4fffffffffff 8192k   1% rwx [stack]
+I2024-08-03T13:23:58.442763:blink/blinkenlights.c:773:52079 TuiRejuvinate
+I2024-08-03T13:24:12.374643:blink/blinkenlights.c:3101:52079 ReadKeyboard interrupted
+I2024-08-03T13:24:15.043032:blink/blinkenlights.c:3101:52079 ReadKeyboard interrupted
+I2024-08-03T13:24:34.309132:blink/blinkenlights.c:3101:52079 ReadKeyboard interrupted
+I2024-08-03T13:24:37.449606:blink/blinkenlights.c:3101:52079 ReadKeyboard interrupted
+I2024-08-03T13:24:47.265409:blink/blinkenlights.c:3356:52079 TUI INT
+I2024-08-03T13:24:47.505390:blink/blinkenlights.c:3374:52079 TUI EXIT
+I2024-08-03T13:24:47.505516:blink/blinkenlights.c:842:52079 TuiCleanup
+I2024-08-03T13:24:47.505546:blink/blinkenlights.c:834:52079 TtyRestore
+I2024-08-03T13:24:47.506769:blink/blinkenlights.c:834:0 TtyRestore
