@@ -450,9 +450,10 @@ OpcodeDef opcodes[0x100] = {
         ,
 
         {
-            .mnemonic  = "? 0x40",
+            .mnemonic  = "inc",
             .num_bytes = 1,
-            .num_operands = 0
+            .num_operands = 1,
+            .operands={{.name='ax'}}
         }
         ,
 
@@ -470,15 +471,15 @@ OpcodeDef opcodes[0x100] = {
         }
         ,
 
-    {
-        .mnemonic  = "inc",
-        .num_bytes = 1,
-        .num_operands = 1,
-        .operands  = {
-            {.name='bx'}
+        {
+            .mnemonic  = "inc",
+            .num_bytes = 1,
+            .num_operands = 1,
+            .operands  = {
+                {.name='bx'}
+            }
         }
-    }
-    ,
+        ,
 
         {
             .mnemonic  = "? 0x44",
@@ -568,9 +569,12 @@ OpcodeDef opcodes[0x100] = {
         ,
 
         {
-            .mnemonic  = "? 0x50",
+            .mnemonic  = "push",
             .num_bytes = 1,
-            .num_operands = 0
+            .num_operands = 1,
+            .operands = {
+                {.name='ax'}
+            }
         }
         ,
 
@@ -588,15 +592,15 @@ OpcodeDef opcodes[0x100] = {
         }
         ,
 
-    {
-        .mnemonic  = "push",
-        .num_bytes = 1,
-        .num_operands = 1,
-        .operands  = {
-            {.name='bx'}
+        {
+            .mnemonic  = "push",
+            .num_bytes = 1,
+            .num_operands = 1,
+            .operands = {
+                {.name='bx'}
+            }
         }
-    }
-    ,
+        ,
 
         {
             .mnemonic  = "? 0x54",
@@ -1019,9 +1023,10 @@ OpcodeDef opcodes[0x100] = {
         ,
 
         {
-            .mnemonic  = "? 0x8e",
-            .num_bytes = 1,
-            .num_operands = 0
+            .mnemonic  = "mov",
+            .num_bytes = 2,
+            .num_operands = 1,
+            .operands={{.name='modrm'}}
         }
         ,
 
@@ -1257,9 +1262,13 @@ OpcodeDef opcodes[0x100] = {
         ,
 
         {
-            .mnemonic  = "? 0xb0",
-            .num_bytes = 1,
-            .num_operands = 0
+            .mnemonic  = "mov",
+            .num_bytes = 2,
+            .num_operands = 2,
+            .operands  = {
+                {.name='al'},
+                {.name='n8'}
+            }
         }
         ,
 
@@ -1317,9 +1326,13 @@ OpcodeDef opcodes[0x100] = {
         ,
 
         {
-            .mnemonic  = "? 0xb8",
-            .num_bytes = 1,
-            .num_operands = 0
+            .mnemonic  = "mov",
+            .num_bytes = 3,
+            .num_operands = 2,
+                .operands = {
+                    {.name='ax'},
+                    {.name='n16'}
+                }
         }
         ,
 
@@ -1363,9 +1376,13 @@ OpcodeDef opcodes[0x100] = {
         ,
 
         {
-            .mnemonic  = "? 0xbe",
-            .num_bytes = 1,
-            .num_operands = 0
+            .mnemonic  = "mov",
+            .num_bytes = 3,
+            .num_operands = 2,
+            .operands = {
+                {.name='si'},
+                {.name='n16'}
+            }
         }
         ,
 
@@ -1639,9 +1656,13 @@ OpcodeDef opcodes[0x100] = {
         ,
 
         {
-            .mnemonic  = "? 0xe5",
-            .num_bytes = 1,
-            .num_operands = 0
+            .mnemonic  = "in",
+            .num_bytes = 2,
+            .num_operands = 2,
+            .operands{
+                {.name='ax'},
+                {.name='n16'}
+            }
         }
         ,
 

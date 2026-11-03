@@ -242,6 +242,10 @@ computer_dis_operand(
         sprintf(s, "0x%04x", n16);
         break;
 
+    case 'modrm':
+        sprintf(s, "modrm");
+        break;
+
     default:
         c1 = (op->name >> 24) & 0xff;
         c2 = (op->name >> 16) & 0xff;
@@ -559,7 +563,7 @@ computer_step(Computer *c, u32 steps) {
                 break;
 
 
-            case 0x8E: // MOV segment register, r/m16
+            case 0x8e: // MOV segment register, r/m16
                 {
                     u8 modrm = c->memory[c->ip + 1]; // Fetch ModR/M byte
                     u8 reg = (modrm >> 3) & 0x07;   // Extract `reg` field (segment register)
@@ -626,6 +630,14 @@ computer_step(Computer *c, u32 steps) {
                 /* printf("n16 %X\n", n16); */
                 c->bx.u16 = n16;
                 c->ip += 3;
+                break;
+
+            case 0xbe: // mov si, n16
+                {
+                    n16 = computer_read_u16le(c, c->ip + 1);
+                    c->si = n16;
+                    c->ip += 3;
+                }
                 break;
 
             case 0xcd: /* int ? */
