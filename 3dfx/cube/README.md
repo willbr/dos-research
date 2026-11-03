@@ -20,10 +20,15 @@ emulation; this configuration uses DOSBox-X's emulated Voodoo hardware with
 its OpenGL backend, with Glide passthrough disabled. See the
 [DOSBox-X Voodoo guide](https://dosbox-x.com/wiki/Guide:Setting-up-3dfx-Voodoo-in-DOSBox%E2%80%90X).
 
+All three configs use `voodoo_maxmem=false` for a standard Voodoo 1:
+4 MB total, split into 2 MB framebuffer/depth storage and 2 MB texture
+memory, with one texture mapping unit. The demo uses 640×480 at 60 Hz.
+The configured 32 MB of system RAM is separate from the card's memory.
+
 ## Build
 
 With `curl.exe` and `7z.exe` on PATH, run `./setup.ps1` once to fetch and
-extract dependencies locally and build. Subsequent edits only need
+extract the Open Watcom compiler locally and build. Subsequent edits only need
 `./build.ps1`. If your PowerShell policy blocks scripts, use
 `powershell -NoProfile -ExecutionPolicy Bypass -File ./setup.ps1` (or `build.ps1`).
 
@@ -31,14 +36,16 @@ The build uses Open Watcom's DOS/4GW target, stack calling convention and
 case-insensitive symbol matching for the original Glide import library.
 The original headers declare the calls as `__stdcall`.
 
-Dependencies are downloaded, not installed system-wide:
+The SDK and DOS runtimes are included in Git under `../vendor/`;
+Open Watcom is downloaded, not installed system-wide:
 
 - [Open Watcom](https://github.com/open-watcom/open-watcom-v2/releases/tag/Current-build)
 - [Original Glide 2.43 SDK archive](https://3dfxarchive.com/downloads/glide_sdk-243.zip)
 - [Voodoo 1 runtime overlay](https://github.com/efliks/nostalgic-glide-demo/blob/master/glide2x.ovl)
 
-Third-party SDK/runtime files retain their original terms and are ignored
-by Git. The compiler download follows Current-build, so future setup runs
+Third-party SDK/runtime files retain their original terms. Builds copy the
+vendored runtimes into this directory; these generated copies are ignored.
+The compiler download follows Current-build, so future setup runs
 may use a newer compiler.
 
 ## Verification

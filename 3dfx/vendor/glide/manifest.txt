@@ -1,0 +1,298 @@
+FileSize Typ Name
+======== === =================================
+-------- dir Docs\
+-------- dir Docs\Glide\
+ 6522368 dat Docs\Glide\GLIDEPGM.DOC
+ 1121196 dat Docs\Glide\GLIDEREF.DOC
+ 1095461 txt Docs\Glide\GLRELNO.DOC
+  144129 dat Docs\Glide\GLRELNO.PDF
+ 1104561 dat Docs\Glide\Glidepgm.PDF
+ 1052725 dat Docs\Glide\Glideref.PDF
+-------- dir Docs\Install\
+ 1984000 dat Docs\Install\INSTALL.DOC
+-------- dir Glide\
+-------- dir Glide\Bin\
+-------- dir Glide\Bin\Dos\
+   87428 dat Glide\Bin\Dos\ALPHA.3DF
+  174813 dat Glide\Bin\Dos\DECAL1.3DF
+  265396 bin Glide\Bin\Dos\DOS4GW.EXE
+   88452 dat Glide\Bin\Dos\LAVA.3DF
+  174813 dat Glide\Bin\Dos\MATT1.3DF
+  174813 dat Glide\Bin\Dos\MIRO.3DF
+   10972 dat Glide\Bin\Dos\light.3df
+   90922 bin Glide\Bin\Dos\test00.exe
+   90926 bin Glide\Bin\Dos\test01.exe
+   90926 bin Glide\Bin\Dos\test02.exe
+   90922 bin Glide\Bin\Dos\test03.exe
+   90922 bin Glide\Bin\Dos\test04.exe
+   90922 bin Glide\Bin\Dos\test05.exe
+   90922 bin Glide\Bin\Dos\test06.exe
+   90922 bin Glide\Bin\Dos\test07.exe
+   90922 bin Glide\Bin\Dos\test08.exe
+   91022 bin Glide\Bin\Dos\test09.exe
+   91026 bin Glide\Bin\Dos\test10.exe
+   91034 bin Glide\Bin\Dos\test11.exe
+   92482 bin Glide\Bin\Dos\test12.exe
+   90922 bin Glide\Bin\Dos\test13.exe
+   90934 bin Glide\Bin\Dos\test14.exe
+   91022 bin Glide\Bin\Dos\test15.exe
+   91034 bin Glide\Bin\Dos\test16.exe
+   91302 bin Glide\Bin\Dos\test17.exe
+   91022 bin Glide\Bin\Dos\test18.exe
+   91238 bin Glide\Bin\Dos\test19.exe
+   91122 bin Glide\Bin\Dos\test20.exe
+   91398 bin Glide\Bin\Dos\test21.exe
+   91138 bin Glide\Bin\Dos\test22.exe
+   91034 bin Glide\Bin\Dos\test23.exe
+   90990 bin Glide\Bin\Dos\test24.exe
+   98066 bin Glide\Bin\Dos\test25.exe
+   92222 bin Glide\Bin\Dos\test26.exe
+   90966 bin Glide\Bin\Dos\test27.exe
+   90994 bin Glide\Bin\Dos\test28.exe
+   91014 bin Glide\Bin\Dos\test29.exe
+  104172 bin Glide\Bin\Dos\texus.exe
+-------- dir Glide\Bin\Win32\
+   87428 dat Glide\Bin\Win32\ALPHA.3DF
+  174813 dat Glide\Bin\Win32\DECAL1.3DF
+   88452 dat Glide\Bin\Win32\LAVA.3DF
+  174813 dat Glide\Bin\Win32\MATT1.3DF
+  174813 dat Glide\Bin\Win32\MIRO.3DF
+   10972 dat Glide\Bin\Win32\light.3df
+   80384 bin Glide\Bin\Win32\test00.exe
+   80384 bin Glide\Bin\Win32\test01.exe
+   80384 bin Glide\Bin\Win32\test02.exe
+   80384 bin Glide\Bin\Win32\test03.exe
+   80896 bin Glide\Bin\Win32\test04.exe
+   80896 bin Glide\Bin\Win32\test05.exe
+   80896 bin Glide\Bin\Win32\test06.exe
+   80896 bin Glide\Bin\Win32\test07.exe
+   80896 bin Glide\Bin\Win32\test08.exe
+   81408 bin Glide\Bin\Win32\test09.exe
+   81408 bin Glide\Bin\Win32\test10.exe
+   80896 bin Glide\Bin\Win32\test11.exe
+   82432 bin Glide\Bin\Win32\test12.exe
+   80896 bin Glide\Bin\Win32\test13.exe
+   80896 bin Glide\Bin\Win32\test14.exe
+   81408 bin Glide\Bin\Win32\test15.exe
+   80896 bin Glide\Bin\Win32\test16.exe
+   81920 bin Glide\Bin\Win32\test17.exe
+   81408 bin Glide\Bin\Win32\test18.exe
+   81920 bin Glide\Bin\Win32\test19.exe
+   81920 bin Glide\Bin\Win32\test20.exe
+   82432 bin Glide\Bin\Win32\test21.exe
+   81920 bin Glide\Bin\Win32\test22.exe
+   81408 bin Glide\Bin\Win32\test23.exe
+   81408 bin Glide\Bin\Win32\test24.exe
+   88064 bin Glide\Bin\Win32\test25.exe
+   82432 bin Glide\Bin\Win32\test26.exe
+   80896 bin Glide\Bin\Win32\test27.exe
+   80896 bin Glide\Bin\Win32\test28.exe
+   81408 bin Glide\Bin\Win32\test29.exe
+  116224 bin Glide\Bin\Win32\texus.exe
+-------- dir Glide\Diags\
+-------- dir Glide\Diags\Dos\
+  265396 bin Glide\Diags\Dos\DOS4GW.EXE
+   80988 bin Glide\Diags\Dos\detect.exe
+   87306 bin Glide\Diags\Dos\fxremap.exe
+   37208 bin Glide\Diags\Dos\gwhat.exe
+  158687 bin Glide\Diags\Dos\mojo.exe
+  151035 bin Glide\Diags\Dos\pass.exe
+   91590 bin Glide\Diags\Dos\pcirw.exe
+  151319 bin Glide\Diags\Dos\resetsli.exe
+  151851 bin Glide\Diags\Dos\testsli.exe
+-------- dir Glide\Diags\Win95\
+   63488 bin Glide\Diags\Win95\detect.exe
+   68096 bin Glide\Diags\Win95\fxremap.exe
+   28672 bin Glide\Diags\Win95\gwhat.exe
+  148480 bin Glide\Diags\Win95\mojo.exe
+  142336 bin Glide\Diags\Win95\pass.exe
+   73728 bin Glide\Diags\Win95\pcirw.exe
+  144384 bin Glide\Diags\Win95\resetsli.exe
+  143360 bin Glide\Diags\Win95\testsli.exe
+-------- dir Glide\Diags\WinNT\
+   28672 bin Glide\Diags\WinNT\gwhat.exe
+  142336 bin Glide\Diags\WinNT\pass.exe
+  143872 bin Glide\Diags\WinNT\resetsli.exe
+  143360 bin Glide\Diags\WinNT\testsli.exe
+-------- dir Glide\Drivers\
+-------- dir Glide\Drivers\Voodoo\
+-------- dir Glide\Drivers\Voodoo\Dos\
+  383011 dat Glide\Drivers\Voodoo\Dos\glide2x.ovl
+-------- dir Glide\Drivers\Voodoo\NTsys\
+    6816 dat Glide\Drivers\Voodoo\NTsys\MAPMEM.SYS
+    6336 dat Glide\Drivers\Voodoo\NTsys\NTREMAP.SYS
+    4832 dat Glide\Drivers\Voodoo\NTsys\genport.sys
+-------- dir Glide\Drivers\Voodoo\Win95\
+    7584 dat Glide\Drivers\Voodoo\Win95\fxmemmap.vxd
+  393728 dat Glide\Drivers\Voodoo\Win95\glide2x.dll
+-------- dir Glide\Drivers\Voodoo\WinNT\
+  393216 dat Glide\Drivers\Voodoo\WinNT\glide2x.dll
+-------- dir Glide\Drivers\Vrush\
+-------- dir Glide\Drivers\Vrush\Dos\
+  430995 dat Glide\Drivers\Vrush\Dos\glide2x.ovl
+-------- dir Glide\Drivers\Vrush\Win95\
+    7584 dat Glide\Drivers\Vrush\Win95\fxmemmap.vxd
+  438272 dat Glide\Drivers\Vrush\Win95\glide2x.dll
+-------- dir Glide\Lib\
+-------- dir Glide\Lib\Dos\
+-------- dir Glide\Lib\Dos\Register\
+    9216 bin Glide\Lib\Dos\Register\fxdpmi.lib
+   28672 bin Glide\Lib\Dos\Register\fxmisc.lib
+   55808 bin Glide\Lib\Dos\Register\fxpci.lib
+   28160 bin Glide\Lib\Dos\Register\glide2x.lib
+  180736 bin Glide\Lib\Dos\Register\init.lib
+   26112 bin Glide\Lib\Dos\Register\init96.lib
+   89600 bin Glide\Lib\Dos\Register\sst1init.lib
+   82432 bin Glide\Lib\Dos\Register\texus.lib
+-------- dir Glide\Lib\Dos\Stack\
+    9216 bin Glide\Lib\Dos\Stack\fxdpmi.lib
+   28672 bin Glide\Lib\Dos\Stack\fxmisc.lib
+   55808 bin Glide\Lib\Dos\Stack\fxpci.lib
+   29184 bin Glide\Lib\Dos\Stack\glide2x.lib
+  180736 bin Glide\Lib\Dos\Stack\init.lib
+   26112 bin Glide\Lib\Dos\Stack\init96.lib
+   89600 bin Glide\Lib\Dos\Stack\sst1init.lib
+   83968 bin Glide\Lib\Dos\Stack\texus.lib
+-------- dir Glide\Lib\Win32\
+-------- dir Glide\Lib\Win32\NT\
+   82592 bin Glide\Lib\Win32\NT\fxpci.lib
+   39536 bin Glide\Lib\Win32\fxmisc.lib
+   82426 bin Glide\Lib\Win32\fxpci.lib
+   98320 bin Glide\Lib\Win32\glide2x.lib
+   93190 bin Glide\Lib\Win32\texus.lib
+-------- dir Glide\Src\
+    1322 txt Glide\Src\MAKEFILE
+-------- dir Glide\Src\Sst1\
+     929 txt Glide\Src\Sst1\MAKEFILE
+-------- dir Glide\Src\Sst1\glide\
+-------- dir Glide\Src\Sst1\glide\tests\
+   87428 dat Glide\Src\Sst1\glide\tests\ALPHA.3DF
+  174813 dat Glide\Src\Sst1\glide\tests\DECAL1.3DF
+   88452 dat Glide\Src\Sst1\glide\tests\LAVA.3DF
+    3565 txt Glide\Src\Sst1\glide\tests\MAKEFILE
+  174813 dat Glide\Src\Sst1\glide\tests\MATT1.3DF
+  174813 dat Glide\Src\Sst1\glide\tests\MIRO.3DF
+    4259 src Glide\Src\Sst1\glide\tests\TEST01.C
+    4627 src Glide\Src\Sst1\glide\tests\TEST02.C
+    4560 src Glide\Src\Sst1\glide\tests\TEST03.C
+    4701 src Glide\Src\Sst1\glide\tests\TEST04.C
+    5562 src Glide\Src\Sst1\glide\tests\TEST05.C
+    6027 src Glide\Src\Sst1\glide\tests\TEST06.C
+    5233 src Glide\Src\Sst1\glide\tests\TEST07.C
+    5060 src Glide\Src\Sst1\glide\tests\TEST08.C
+    6261 src Glide\Src\Sst1\glide\tests\TEST09.C
+    6194 src Glide\Src\Sst1\glide\tests\TEST10.C
+    7692 src Glide\Src\Sst1\glide\tests\TEST11.C
+   10239 src Glide\Src\Sst1\glide\tests\TEST12.C
+    5406 src Glide\Src\Sst1\glide\tests\TEST13.C
+    5506 src Glide\Src\Sst1\glide\tests\TEST14.C
+    6783 src Glide\Src\Sst1\glide\tests\TEST15.C
+    6202 src Glide\Src\Sst1\glide\tests\TEST16.C
+   10023 src Glide\Src\Sst1\glide\tests\TEST17.C
+    8524 src Glide\Src\Sst1\glide\tests\TEST18.C
+   11416 src Glide\Src\Sst1\glide\tests\TEST19.C
+   10554 src Glide\Src\Sst1\glide\tests\TEST20.C
+   12712 src Glide\Src\Sst1\glide\tests\TEST21.C
+    9970 src Glide\Src\Sst1\glide\tests\TEST22.C
+    7459 src Glide\Src\Sst1\glide\tests\TEST23.C
+   28460 src Glide\Src\Sst1\glide\tests\TEST25.C
+   10317 src Glide\Src\Sst1\glide\tests\TEST26.C
+  175835 dat Glide\Src\Sst1\glide\tests\ap88.3df
+  174815 dat Glide\Src\Sst1\glide\tests\argb1555.3df
+  174815 dat Glide\Src\Sst1\glide\tests\argb4444.3df
+  174815 dat Glide\Src\Sst1\glide\tests\argb8332.3df
+  349577 dat Glide\Src\Sst1\glide\tests\argb8888.3df
+  174895 dat Glide\Src\Sst1\glide\tests\ayiq.3df
+   12099 src Glide\Src\Sst1\glide\tests\display.c
+   10972 dat Glide\Src\Sst1\glide\tests\light.3df
+   88452 dat Glide\Src\Sst1\glide\tests\p8.3df
+   48227 src Glide\Src\Sst1\glide\tests\plib.c
+    5788 txt Glide\Src\Sst1\glide\tests\plib.h
+   87432 dat Glide\Src\Sst1\glide\tests\rgb332.3df
+  174813 dat Glide\Src\Sst1\glide\tests\rgb565.3df
+    3781 src Glide\Src\Sst1\glide\tests\test00.c
+    7452 src Glide\Src\Sst1\glide\tests\test24.c
+    5798 src Glide\Src\Sst1\glide\tests\test27.c
+    6401 src Glide\Src\Sst1\glide\tests\test28.c
+    8673 src Glide\Src\Sst1\glide\tests\test29.c
+   49326 txt Glide\Src\Sst1\glide\tests\tldata.inc
+   50109 src Glide\Src\Sst1\glide\tests\tlib.c
+    3611 txt Glide\Src\Sst1\glide\tests\tlib.h
+   87509 dat Glide\Src\Sst1\glide\tests\yiq.3df
+-------- dir Glide\Src\Sst1\include\
+    2880 txt Glide\Src\Sst1\include\3DFX.H
+    3391 txt Glide\Src\Sst1\include\FXDLL.H
+     908 txt Glide\Src\Sst1\include\FXGLOB.H
+    1255 txt Glide\Src\Sst1\include\FXOS.H
+     866 txt Glide\Src\Sst1\include\MAKEFILE
+    3179 txt Glide\Src\Sst1\include\SST1VID.H
+   37068 txt Glide\Src\Sst1\include\glide.h
+    3697 txt Glide\Src\Sst1\include\glidesys.h
+    3078 txt Glide\Src\Sst1\include\glideutl.h
+-------- dir Glide\Src\Sst1\lib\
+      60 txt Glide\Src\Sst1\lib\readme.src
+-------- dir Glide\Src\Swlibs\
+-------- dir Glide\Src\Swlibs\TexUS\
+-------- dir Glide\Src\Swlibs\TexUS\CMD\
+    1231 txt Glide\Src\Swlibs\TexUS\CMD\MAKEFILE
+   34709 src Glide\Src\Swlibs\TexUS\CMD\WACO.C
+-------- dir Glide\Src\Swlibs\TexUS\EXAMPLES\
+    1180 txt Glide\Src\Swlibs\TexUS\EXAMPLES\MAKEFILE
+    6881 src Glide\Src\Swlibs\TexUS\EXAMPLES\VIEW3DF.C
+   10210 src Glide\Src\Swlibs\TexUS\EXAMPLES\VIEWPPM.C
+-------- dir Glide\Src\Swlibs\TexUS\LIB\
+    7309 src Glide\Src\Swlibs\TexUS\LIB\3DF.C
+    2716 src Glide\Src\Swlibs\TexUS\LIB\CLAMP.C
+   11438 src Glide\Src\Swlibs\TexUS\LIB\DEQUANT.C
+    9217 src Glide\Src\Swlibs\TexUS\LIB\DIFFUSE.C
+    1459 txt Glide\Src\Swlibs\TexUS\LIB\MAKEFILE
+    3430 src Glide\Src\Swlibs\TexUS\LIB\MIPMAP.C
+   10699 src Glide\Src\Swlibs\TexUS\LIB\NCC.C
+   16385 src Glide\Src\Swlibs\TexUS\LIB\NCCNNET.C
+   19399 src Glide\Src\Swlibs\TexUS\LIB\PAL256.C
+    2764 src Glide\Src\Swlibs\TexUS\LIB\PPM.C
+   23844 src Glide\Src\Swlibs\TexUS\LIB\QUANTIZE.C
+    6568 src Glide\Src\Swlibs\TexUS\LIB\READ.C
+    8214 src Glide\Src\Swlibs\TexUS\LIB\RESAMPLE.C
+    4876 src Glide\Src\Swlibs\TexUS\LIB\RGT.C
+    9446 txt Glide\Src\Swlibs\TexUS\LIB\TEXUS.H
+    4842 txt Glide\Src\Swlibs\TexUS\LIB\TEXUSINT.H
+   15763 src Glide\Src\Swlibs\TexUS\LIB\TEXUSLIB.C
+   11899 src Glide\Src\Swlibs\TexUS\LIB\TGA.C
+   15946 src Glide\Src\Swlibs\TexUS\LIB\UTIL.C
+    1029 src Glide\Src\Swlibs\TexUS\LIB\VIEW.C
+   11784 src Glide\Src\Swlibs\TexUS\LIB\WRITE.C
+     853 txt Glide\Src\Swlibs\TexUS\MAKEFILE
+-------- dir Glide\Src\Swlibs\include\
+    2880 txt Glide\Src\Swlibs\include\3DFX.H
+    3391 txt Glide\Src\Swlibs\include\FXDLL.H
+     908 txt Glide\Src\Swlibs\include\FXGLOB.H
+    5043 txt Glide\Src\Swlibs\include\FXIMG.H
+    1255 txt Glide\Src\Swlibs\include\FXOS.H
+     866 txt Glide\Src\Swlibs\include\MAKEFILE
+-------- dir Glide\Src\Swlibs\include\NMAKE\
+   25794 src Glide\Src\Swlibs\include\NMAKE\3DFX.MAK
+     197 bat Glide\Src\Swlibs\include\NMAKE\UPDOWN.BAT
+-------- dir Glide\Src\Swlibs\lib\
+      60 txt Glide\Src\Swlibs\lib\readme.src
+    1119 txt Glide\Src\readme
+    5161 bat Glide\Src\setup.bat
+-------- dir Is95\
+   70656 dat Is95\shell.dll
+-------- dir Isnt\
+   66560 dat Isnt\shell.dll
+   29880 dat LOGO.BMP
+   78540 dat SETUP.INS
+  323612 dat _INST32I.EX_
+    8192 bin _ISDEL.EXE
+    6128 dat _SETUP.DLL
+  170443 bin _setup.lib
+     302 txt install.txt
+    7534 txt license.txt
+       0 txt manifest.txt
+    5685 txt readme.txt
+   44928 bin setup.exe
+   29880 dat sp1.bmp
+  179256 dat sp2.BMP
+  179256 dat sp3.bmp
+  298496 bin uninst.exe

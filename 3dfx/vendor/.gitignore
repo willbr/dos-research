@@ -1,0 +1,9 @@
+# Preserve the original SDK binaries despite repository-wide build ignores.
+!*.exe
+!*.dll
+!*.lib
+!*.obj
+!*.a
+!*.exp
+!*.map
+!*.cmd

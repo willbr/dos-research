@@ -1,0 +1,2 @@
+# Keep the original SDK byte-for-byte, including its line endings and spacing.
+glide/** -text -whitespace

@@ -1,0 +1,13 @@
+Glide 2.43 Runtime Drivers
+
+Copyright ( 1997 3Dfx Interactive, Inc. )
+All Rights Reserved
+
+This kit contains: 
+
+- Voodoo Graphics Drivers for Windows 95 and DOS
+
+- Voodoo Graphics Drivers for Windows NT
+  (Install must occur under Windows NT)
+
+- Voodoo Rush Drivers for Windows 95 and DOS

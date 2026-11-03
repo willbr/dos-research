@@ -1,0 +1,29 @@
+To build the sources you need to set the following environment variables:
+
+BUILD_DRIVE to whichever drive holds the source tree e.g. SET BUILD_DRIVE=E:
+BUILD_ROOT full path to this directory e.g. SET BUILD_ROOT=E:\3DFXCDGC\GLIDE\SRC
+MASM To the install directory for Microsoft Assember VERSION 6.11 ( or greater )
+           eg. SET MASM=C:\DEVEL\MASM611
+DIRECTXSDK to the DirectX SDK directory eg. SET DIRECTXSDK=C:\DEVEL\DXSDK\SDK
+
+If you are using Microsot C set MSVC to the install directory for Microsoft 
+eg. SET MSVC=C:\devel\msdev
+
+If you are using Watcom set the environment variable WATCOM to the install directory 
+for Watcom C/C++ 10.6 or greater e.g. SET WATCOM=C:\devel\WATCOM
+
+Then run the setup.bat file with an argument of:
+
+MSVC for Microsoft C
+WATWIN for Watcom Windows build
+WATDOS for Watcom DOS build
+
+You should build the directories in the following order:
+
+GCI
+SWLIBS\TEXUS
+SWLIBS\ARCADE
+
+You can then build any of the demos. The demos are designed to run under Windows 95 only.
+
+To run the demos you need to copy them to the corrsponding directory under atb_demos
