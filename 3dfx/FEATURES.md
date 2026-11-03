@@ -41,6 +41,7 @@ refresh pacing, but does not independently establish every setting's behavior.
 | Done | Demo | Feature and support | What to demonstrate |
 | --- | --- | --- | --- |
 | [x] | [`cube`](cube/README.md) | Basic triangle rendering and smooth color interpolation | Rotating rainbow cube, hidden surfaces, readable FPS; baseline passed in DOSBox-X. |
+| [x] | [`sectorforth`](sectorforth/README.md) | Native language binding to Glide | 32-bit assembly Forth compiles definitions that populate RGB vertices and draw the classic triangle; interpreter and framebuffer checks passed in DOSBox-X. |
 | [ ] | `anti-aliasing` | Edge AA: supported through `grAADraw*` | Toggle AA on slow rotating lines and a triangle; then compare a cube silhouette without introducing seams on shared edges. |
 | [ ] | `textures` | Perspective-correct texture mapping | Checkerboard on a tilted quad; CPU-generated affine version beside Glide's perspective-correct result. |
 | [ ] | `filtering` | Nearest and bilinear filtering | Magnify the same checkerboard with both filters; compare pixel edges and blur. |

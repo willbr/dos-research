@@ -10,6 +10,12 @@ SDK/runtime. The original interpreters are starting points; preserving the
 Build an interactive Forth graphics environment derived from
 [sectorforth](https://github.com/cesarblum/sectorforth).
 
+Initial implementation: [`sectorforth/`](sectorforth/README.md) now contains
+the 32-bit assembly port, a text REPL, native Glide words and a classic RGB
+triangle driven by `TRIANGLE.F`. The descriptions below retain the broader
+direction; loops, floating-point words and richer interactive graphics
+remain future work.
+
 Port the 16-bit boot-sector interpreter to 32-bit protected-mode DOS under
 DOS/4GW. Adapt cells, pointers, dictionary entries, stacks and execution
 code for 32 bits; replace BIOS-based input/output with DOS-compatible

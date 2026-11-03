@@ -10,6 +10,9 @@ with interactive Glide graphics.
 - [cube](cube/README.md): rotating rainbow cube using DOS Glide, with a live
   FPS counter and 60 Hz frame pacing. Launch with `cube/run.cmd` or
   `./cube/run.ps1`.
+- [sectorforth](sectorforth/README.md): 32-bit assembly Forth port with Glide
+  words and an RGB triangle defined in Forth. Launch with `sectorforth/run.cmd`
+  or `./sectorforth/run.ps1`.
 
 ## Manuals
 
