@@ -1,5 +1,9 @@
 # x86
 
+## 3dfx
+
+[3dfx demos](3dfx/README.md), starting with the [rainbow cube](3dfx/cube/README.md).
+
 ```asm
 
 ax      ; accumulator

@@ -1,0 +1,9 @@
+tools/
+*.LOG
+*.PPM
+*.png
+DOS4GW.EXE
+GLIDE2X.OVL
+!CUBE.EXE
+!run.cmd
+*.MRK
