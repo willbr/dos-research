@@ -4,6 +4,8 @@ Each demo lives in its own subfolder.
 
 See the [feature checklist and demo roadmap](FEATURES.md) for capabilities,
 limitations, and the next experiments to build.
+See [project notes](notes.md) for proposed sectorforth and sectorlisp ports
+with interactive Glide graphics.
 
 - [cube](cube/README.md): rotating rainbow cube using DOS Glide, with a live
   FPS counter and 60 Hz frame pacing. Launch with `cube/run.cmd` or

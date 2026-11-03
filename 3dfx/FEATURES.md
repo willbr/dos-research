@@ -55,6 +55,46 @@ These are proposed folder names, not demos that already exist. Start with
 `anti-aliasing`, then work down the list; each demo should remain runnable
 on its own.
 
+## Effects and experiments found in the manuals
+
+These extend the basic tests into visual demos. All remain untested on our
+standard 4 MB, one-TMU target. The API mechanisms below are documented;
+the scenes and comparisons are our proposed applications of them.
+Page references are the manuals' printed page numbers, not PDF page indexes.
+
+| Done | Proposed demo | What makes it interesting | Mechanism, limits and source |
+| --- | --- | --- | --- |
+| [ ] | `self-lit-city` | Fly past buildings: walls get darker as the light moves, but windows and signs stay bright. Toggle the mask to see the difference. | `grAlphaControlsITRGBLighting` uses the **most significant texture-alpha bit** to select vertex RGB or a constant color. With the constant set to white and multiplicative texture lighting, selected texels bypass vertex lighting in the same pass. This is self-illumination, not bloom or a light cast onto nearby objects. Reference p. 16. |
+| [ ] | `specular-paint` | A moving highlight crosses a painted metal panel, appearing on exposed metal but disappearing on matte painted regions. | The same alpha-controlled lighting mode can mask the **addition** of vertex-computed specular RGB. Use a black constant for regions without highlights. The CPU computes the highlight; this is not per-pixel Phong shading or normal mapping. Reference p. 16; Guide pp. 45–46. |
+| [ ] | `palette-lava` | Animate lava, flowing color bands, or water on a textured object without re-uploading its texels. Show a palette strip and count upload bytes. | Upload a `P_8` texture once, then rotate selected palette entries with `grTexDownloadTablePartial`. Each TMU has only one palette, so every indexed texture using it sees that palette change. Palette-entry alpha is ignored; use a suitable texture format if texel alpha is needed. Guide pp. 114–115; Reference pp. 94–95. |
+| [ ] | `procedural-fire` | A CPU-generated fire texture plays on a rotating cube or screen. Compare full uploads against a controlled animation where only a band of rows changes. | `grTexDownloadMipMapLevelPartial` updates an inclusive range of **whole rows**, not arbitrary rectangles. Keep the base address at the start of the mip level, with 8-byte alignment; do not cross a 2 MB texture-memory boundary. Generate pixels on the CPU. Updating only the bottom row is not enough if the fire simulation changes the rest. Reference p. 93; Guide pp. 104–108. |
+| [ ] | `model-impostor` | Render a model into a small hidden image, then put that image on a camera-facing billboard. Compare live recapture, a cached image, and the original mesh. | Voodoo 1 has no direct framebuffer-to-texture render target: draw into a 128×128 region of the back buffer without swapping, read RGB565 pixels to system RAM with `grLfbReadRegion`, and upload them with `grTexDownloadMipMapLevel`. Clear the scratch color/depth before drawing the final scene. RGB565 readback has no alpha; start with a chroma-key background and nearest filtering, then investigate edge fringes. Measure readback/upload stalls; cache images or update less often. Reference pp. 62, 66, 92; this workflow is our composition of those APIs. |
+| [ ] | `masked-window` | A scene appears through a circular or irregular window while the surrounding area stays hidden. Display the mask beside the result. | The guide describes writing nearest-depth values into the depth buffer to reject fragments in masked areas. Use a matching depth comparison and retain the mask while drawing; do not clear it away before rendering the scene. This consumes the depth buffer and is a limited masking trick, not native stencil operations or a general recursive portal system. Guide p. 75; Reference `grLfbLock`, pp. 59–61. |
+| [ ] | `fogged-lightmap-room` | Render a textured room with a moving lightmap, then fade it into fog. Toggle a deliberately incorrect implementation that fogs each pass independently. | On one TMU, apply the textures in separate passes. Match fog/blend state to the intended additive or multiplicative composition; the manual supplies separate recipes using `GR_FOG_ADD2`, `GR_FOG_MULT2`, and `GR_BLEND_PREFOG_COLOR`. Repeatedly adding the fog color produces a visibly wrong result. Guide pp. 67–72. |
+| [ ] | `fog-curves` | A corridor compares linear fog, exponential fog and exponential-squared fog. An optional custom table turns distance into colored-looking brightness bands against one fog color. | `guFogGenerateLinear`, `guFogGenerateExp`, and `guFogGenerateExp2` build the 64-entry fog table. A deliberately non-monotonic custom table is our experiment, not a stock fog model; one fog color and the table's nonuniform depth sampling limit the effect. Guide pp. 63–66; Reference pp. 114–117. |
+| [ ] | `pixel-pipeline` | Send a CPU-drawn bitmap through depth tests and alpha blending so it can pass behind a 3D object. Compare direct framebuffer writes with pipeline-enabled writes. | `grLfbLock(..., pixelPipeline=FXTRUE, ...)` can process CPU pixel writes through the pixel pipeline. Check lock success: hardware/backend support and write format matter. Set constant alpha/depth before locking when the format lacks them. Honor the returned stride; call no unrelated Glide routines while locked. This does not enable texture mapping of arbitrary CPU writes or provide GPU render-to-texture. Reference pp. 57–61; Guide chapter 11. |
+| [ ] | `texture-compression` | An image gallery compares RGB565, indexed color and 3dfx's YIQ/NCC compression, showing memory usage and enlarged color errors. | Prepare textures with the vendored TexUS tools. YIQ formats require an NCC decompression table on the same TMU; two NCC table slots can be switched without re-uploading the table every draw. This is legacy table-based compression, not DXT/S3TC. Guide pp. 95–99, 113–116; Reference pp. 94–95, 103, 106–107. |
+| [ ] | `subpixel-lab` | Slowly move tiny triangles across a magnified pixel grid; compare coordinate snapping and inspect shared edges for artifacts. | The manual warns that floating-point setup can disagree with the hardware's 12.4 fixed-point coordinates. Compare explicit snapping to a **1/16-pixel grid**. Its fast add/subtract technique requires 24-bit x87 precision; save/restore FPU state and verify the implementation rather than blindly copying the example. Emulator artifacts may differ from hardware. Guide pp. 145–146. |
+| [ ] | `overdraw-lab` | Layer opaque objects and cutout sprites; show which pixels are rejected by depth, alpha and chroma tests. Compare front-to-back with back-to-front opaque rendering. | Use `grSstPerfStats` and `grSstResetPerfStats`. Drain queued work before sampling. The hardware counters are only **24 bits**; reset or handle wrap. Clears and LFB writes affect `pixelsOut`, so raw output/input ratios are not a complete overdraw metric. Check emulator counter behavior before treating results as hardware measurements. Guide p. 136; Reference pp. 71, 74. |
+
+Suggested placement in the sequence:
+
+1. After `textures`/`filtering`, try `self-lit-city` first: a striking effect
+   with a documented single-pass path on our one-TMU card.
+2. After basic indexed textures and texture uploads, build `palette-lava`,
+   then `procedural-fire`; keep palette changes separate from pixel changes.
+3. After `combiners`, add `specular-paint` and the compression gallery.
+4. After `depth` and framebuffer access, try `masked-window` and
+   `pixel-pipeline`. Combine framebuffer readback with texture uploads for
+   `model-impostor`; start with a cached capture before attempting live updates.
+5. Combine `fog` and `texture-combine` into `fogged-lightmap-room`;
+   extend the basic fog demo with `fog-curves`.
+6. Use `subpixel-lab` and `overdraw-lab` to investigate correctness and
+   performance once several scenes exist.
+
+Do not merge all these effects into the cube: keep a small control scene
+and an independent toggle for each mechanism.
+
 ## Remaining feature inventory
 
 Split these into individual demos as we reach them.
@@ -110,6 +150,9 @@ but that configuration is not our baseline retail Voodoo 1.
 
 - Keep a visible toggle or side-by-side control comparison for the feature.
 - Record the expected result, Glide calls, relevant render state and limitations.
+- Check interactions explicitly: texture alpha may serve transparency,
+  edge coverage, or a lighting mask; these uses can compete for the same data.
+  Likewise, a depth-buffer mask must coexist with the scene's depth test.
 - Record DOSBox-X version, backend, resolution, runtime and detected TMUs.
 - Save an image when useful; include a moving test for temporal aliasing.
 - Measure completed refresh-paced frames. Do not confuse render-loop speed
