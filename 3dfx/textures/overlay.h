@@ -45,6 +45,8 @@ static void text(float x,float y,const char *s,float size,float r,float g,float 
     grTexSource(GR_TMU0,address[3],GR_MIPMAPLEVELMASK_BOTH,&tex[3]);
     grTexFilterMode(GR_TMU0,GR_TEXTUREFILTER_POINT_SAMPLED,GR_TEXTUREFILTER_POINT_SAMPLED);
     local_color();
+    grConstantColorValue(0xff000000UL|(FxU32)r|((FxU32)g<<8)|((FxU32)b<<16));
+    grColorCombine(GR_COMBINE_FUNCTION_LOCAL,GR_COMBINE_FACTOR_NONE,GR_COMBINE_LOCAL_CONSTANT,GR_COMBINE_OTHER_NONE,FXFALSE);
     grAlphaCombine(GR_COMBINE_FUNCTION_SCALE_OTHER,GR_COMBINE_FACTOR_ONE,
         GR_COMBINE_LOCAL_NONE,GR_COMBINE_OTHER_TEXTURE,FXFALSE);
     grAlphaBlendFunction(GR_BLEND_SRC_ALPHA,GR_BLEND_ONE_MINUS_SRC_ALPHA,GR_BLEND_ONE,GR_BLEND_ZERO);
@@ -107,7 +109,9 @@ static void panel_graph(int y,int fps_graph)
 }
 static void profiler_panel(void)
 {
-#ifdef BLEND_DEMO
+#ifdef LIGHTMAP_DEMO
+    static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT"};
+#elif defined(BLEND_DEMO)
     static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","STATE","HUD","PROF","WAIT"};
 #else
     static const char *labels[P_STAGES]={"INPUT","SKY","XFORM","DRAW","COMPARE","EXTRA","HUD","PROF","WAIT"};

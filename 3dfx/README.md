@@ -28,6 +28,10 @@ with interactive Glide graphics.
 - [fog](fog/README.md): continuous journey from the nave through its doorway
   into a graveyard with headstones and trees; native linear, exponential and
   exponential-squared distance fog. Launch with `fog/run.cmd` or `./fog/run.ps1`.
+- [lightmap](lightmap/README.md): the same journey with independently mapped
+  light textures, candle pools, stained-glass floor patterns and moonlit
+  graveyard shadows. **B** compares lightmaps with base textures alone.
+  Launch with `lightmap/run.cmd` or `./lightmap/run.ps1`.
 - [sectorforth](sectorforth/README.md): 32-bit assembly Forth port with Glide
   words and an RGB triangle defined in Forth. Launch with `sectorforth/run.cmd`
   or `./sectorforth/run.ps1`.

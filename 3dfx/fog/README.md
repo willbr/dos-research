@@ -49,24 +49,36 @@ attenuates their contribution: `(1-f) * lightColor`. This avoids adding fog
 color again with every light. Background and UI draw with fog disabled.
 See the vendored Programming Guide, printed pages 63–68.
 
-The scene contains 4,670 triangles and 9,808 vertices. Grass reuses the
+The stored mesh contains 5,074 triangles and 10,616 vertices, including both
+detailed and coarse gravestone meshes. Only one level draws at a time. Gravestones
+beyond 22 scene units use simplified geometry; trees retain their detail. Grass reuses the
 unused roof texture slot; procedural stained glass and candle textures are
 shared with `blending`. Total texture allocation, including profiler buffers,
 is 991,232 bytes, within the standard 2 MB TMU. User-supplied photographs,
 maps and plans were used only as references and were not saved.
 
-Static bounds reject groups of 32 faces outside the viewing frustum. From
-the graveyard, doorway visibility can also reject hidden nave geometry;
-the exterior facade remains visible. Indoor culling preserves views through
-the stained-glass side windows. Exact triangle clipping still handles
-partially visible groups.
+Static bounds reject small nave groups and individual graveyard objects outside
+camera visibility. Indoor views use the union of the doorway and window
+openings; return views retain the outer facade and nave visible through the
+door. Exact clipping handles partially visible quads. Distant headstones use
+coarse geometry, including simpler caps and no tiny inscription bars.
+
+Coincident positions share one transform per moving frame while keeping their
+separate UVs and colors. Only referenced vertices are visited. Constant face
+colors are batched through the color combiner instead of calculating RGB
+triangle gradients. Coplanar pairs share quad clipping and the regular native
+polygon API. Fog and the single TMU share identical reciprocal depth, avoiding
+redundant W gradients. The HUD also uses constant-color text. CPU cycles,
+hardware memory and graphics resolution are unchanged; all optimizations are C.
 
 ## Validation and performance
 
 Run `./verify.ps1` for OpenGL scene checks and software Voodoo fog controls.
 Run `./soak.ps1` separately for a 1,440-frame journey, half with the profiler
-visible. The latter measures actual Windows wall-clock FPS as well as
-recording guest timings; avoid running another demo during that measurement.
+visible. Add `-FullTour` for 6,000 frames covering the entire 100-second route
+at 1/60-second increments. Both tests fail on any guest frame over 18 ms or
+Windows throughput below 59.5 FPS. The benchmark measures actual Windows
+wall-clock FPS as well as recording guest timings; avoid running another demo during that measurement.
 
 Sixteen framebuffer controls test zero/half/full fog, disabled fog, independent
 alpha blending, additive attenuation, and all three generated curves at
@@ -77,15 +89,18 @@ Scene checks capture fog on/off views in the nave, at the doorway and in the
 graveyard. Culled and unculled images must match exactly at all 16 camera
 keys. The route is independently checked at 8,192 positions for doorway,
 aisle and grave clearance, and manual/tour switching is checked indoors and
-outdoors. Captures and logs are local, ignored test outputs.
+outdoors. Quad/triangle and constant/iterated-color comparisons additionally
+check four representative views. They allow at most 220 scene pixels with a
+channel difference over 16/255 to accommodate subpixel diagonal/edge rounding;
+constant-color checks currently have zero such pixels. Captures and logs are
+local, ignored test outputs.
 
-On this machine, the final 1,440-frame OpenGL soak measured **48.39 FPS** by
-Windows wall clock (29.756 seconds), with 344 frames over 18 ms and a guest
-maximum frame time of 33.916 ms. The original blending demo's regression
-run still passed at 60.10 guest FPS with no frames over 18 ms.
-
-This larger scene currently drops below 60 FPS in its busiest views. The
-profiler separates transform/cull, opaque drawing, blending, HUD and retrace
-wait; the live FPS counter uses the guest clock. Use the wall-clock soak
-result when assessing actual host throughput. Passing the functional checks
-does not assert a stable 60 FPS.
+The original larger scene measured 48.39 Windows FPS, with 344 of 1,440 guest
+frames over 18 ms. The optimized 1,440-frame soak measured **59.98 Windows
+FPS** (24.009 seconds), **60.04 guest FPS**, a **17.213 ms** maximum guest
+frame, and **zero frames over 18 ms**, including the moving camera and the
+profiler. The [lightmap demo](../lightmap/README.md) uses the same renderer
+and adds native lightmapping within that frame budget; its full 6,000-frame
+tour also passes.
+The live FPS counter uses the guest clock; assess actual host throughput with
+the Windows-clock benchmark.

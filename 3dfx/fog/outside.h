@@ -1,5 +1,22 @@
 /* Original low-poly scenery, inspired by the references, not a site survey. */
+#include "../fog/visibility.h"
+FogGroup fog_groups[FOG_MAX_GROUPS];int fog_group_count;
 int fog_nave_faces,fog_facade_first,fog_facade_last;
+static void fog_register(int first,int last)
+{
+    int i,j;Vec lo=vec(1e20f,1e20f,1e20f),hi=vec(-1e20f,-1e20f,-1e20f),d;FogGroup *g;
+    if(first==last)return;
+    if(fog_group_count==FOG_MAX_GROUPS){failed=1;return;}
+    g=&fog_groups[fog_group_count++];g->first=first;g->last=last;
+    g->lod=0;
+    for(i=first;i<last;++i)for(j=0;j<3;++j) {
+        Vec p=vertices[faces[i].v[j]].p;
+        if(p.x<lo.x)lo.x=p.x;if(p.y<lo.y)lo.y=p.y;if(p.z<lo.z)lo.z=p.z;
+        if(p.x>hi.x)hi.x=p.x;if(p.y>hi.y)hi.y=p.y;if(p.z>hi.z)hi.z=p.z;
+    }
+    g->center=mul(add(lo,hi),.5f);d=sub(hi,lo);g->radius=.5f*(float)sqrt(dot(d,d))+.001f;
+    g->minz=lo.z;g->maxz=hi.z;
+}
 static void west_portal(void)
 {
     int side,i;float z;
@@ -21,7 +38,7 @@ static void west_portal(void)
 }
 static void headstone(float x,float z,int style)
 {
-    int i;float w=.38f,h=.9f+(style%3)*.14f;
+    int i,first=face_count,fine_group;float w=.38f,h=.9f+(style%3)*.14f;
     box(x-.52f,0,z-.32f,x+.52f,.12f,z+.32f,STONE);
     if(style%4==0) {
         box(x-.12f,.12f,z-.12f,x+.12f,h+.6f,z+.12f,STONE);
@@ -41,10 +58,26 @@ static void headstone(float x,float z,int style)
             vec(x+.23f,.46f+i*.14f,z-.135f),vec(x-.23f,.46f+i*.14f,z-.135f),TRIM,vec(0,0,-1));
     }
     quad(vec(x-.45f,.012f,z+.25f),vec(x+.45f,.012f,z+.25f),vec(x+.45f,.012f,z+1.9f),vec(x-.45f,.012f,z+1.9f),STONE,vec(0,1,0));
+    fog_register(first,face_count);
+    fine_group=fog_group_count-1;first=face_count;
+    /* Thin inscriptions and slab sides are subpixel from the nave. */
+    if(style%4==0) {
+        for(i=-1;i<=1;i+=2) {
+            float depth=z+i*.12f;Vec n=vec(0,0,(float)i);
+            quad(vec(x-.12f,.12f,depth),vec(x+.12f,.12f,depth),vec(x+.12f,h+.6f,depth),vec(x-.12f,h+.6f,depth),STONE,n);
+            quad(vec(x-.43f,h,depth),vec(x+.43f,h,depth),vec(x+.43f,h+.22f,depth),vec(x-.43f,h+.22f,depth),STONE,n);
+        }
+    } else box(x-w,.12f,z-.12f,x+w,h+.25f,z+.12f,STONE);
+    quad(vec(x-.52f,.12f,z-.32f),vec(x+.52f,.12f,z-.32f),vec(x+.52f,.12f,z+.32f),vec(x-.52f,.12f,z+.32f),STONE,vec(0,1,0));
+    quad(vec(x-.45f,.012f,z+.25f),vec(x+.45f,.012f,z+.25f),vec(x+.45f,.012f,z+1.9f),vec(x-.45f,.012f,z+1.9f),STONE,vec(0,1,0));
+    fog_register(first,face_count);
+    fog_groups[fine_group].lod=1;fog_groups[fog_group_count-1].lod=2;
+    fog_groups[fine_group].lod_center=fog_groups[fog_group_count-1].lod_center=vec(x,.8f,z);
+    fog_groups[fine_group].lod_distance=fog_groups[fog_group_count-1].lod_distance=22*22;
 }
 static void tree(float x,float z,float height,int seed)
 {
-    int ring,i,start=vertex_count;float radius=height*.32f;
+    int ring,i,start=vertex_count,first=face_count;float radius=height*.32f;
     cylinder(x,z,0,height*.72f,.22f,STONE);
     for(ring=0;ring<3;++ring)for(i=0;i<8;++i) {
         float a=i*6.2831853f/8,b=(i+1)*6.2831853f/8;
@@ -59,23 +92,29 @@ static void tree(float x,float z,float height,int seed)
     for(i=start;i<vertex_count;++i) {
         vertices[i].r*=.56f;vertices[i].g*=.83f;vertices[i].b*=.68f;
     }
+    fog_register(first,face_count);
 }
 static void build_graveyard(void)
 {
-    int i,j,side,start=vertex_count;
-    fog_nave_faces=face_count;
+    int i,j,side,start=vertex_count,first;
+    fog_nave_faces=face_count;fog_group_count=0;
+    for(i=0;i<face_count;i+=8)fog_register(i,i+8<face_count?i+8:face_count);
+    first=face_count;
     quad(vec(-25,-.025f,-62),vec(25,-.025f,-62),vec(25,-.025f,-14.18f),vec(-25,-.025f,-14.18f),GRASS,vec(0,1,0));
     quad(vec(-1.35f,.005f,-55),vec(1.35f,.005f,-55),vec(1.35f,.005f,-14),vec(-1.35f,.005f,-14),PAVING,vec(0,1,0));
+    fog_register(first,face_count);
     for(side=-1;side<=1;side+=2) {
         for(j=0;j<5;++j)for(i=0;i<3;++i)headstone(side*(6+i*4.2f),-23-j*7.0f,(i+j*3+(side+1)*2));
         for(j=0;j<5;++j)tree(side*(19+(j%2)*2),-20-j*8.0f,7.2f+(j%3)*1.1f,j+side);
         /* Exterior nave walls and pitched roof make the return view solid. */
+        first=face_count;
         quad(vec(side*5.13f,0,-14.18f),vec(side*5.13f,0,14),vec(side*5.13f,4.55f,14),vec(side*5.13f,4.55f,-14.18f),STONE,vec((float)side,0,0));
         quad(vec(side*5.3f,4.55f,-14.2f),vec(0,8.2f,-14.2f),vec(0,8.2f,14.2f),vec(side*5.3f,4.55f,14.2f),STONE,vec((float)side,1,0));
         box(side<0?-24:23,0,-62,side<0?-23:24,1.1f,-14.2f,STONE);
+        fog_register(first,face_count);
     }
     for(i=0;i<5;++i)tree(-20+i*10,-59,8+(i%2),i+11);
-    box(-24,0,-62,24,1.1f,-61,STONE);
+    first=face_count;box(-24,0,-62,24,1.1f,-61,STONE);fog_register(first,face_count);
     for(i=start;i<vertex_count;++i) {
         vertices[i].r*=2.6f;vertices[i].g*=3.1f;vertices[i].b*=3.9f;
     }

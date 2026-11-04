@@ -52,27 +52,73 @@ static int journey_clear(Camera p)
         if(fabs(p.eye.x-side*(6+i*4.2f))<.85f && p.eye.z> -23-j*7-.7f && p.eye.z< -23-j*7+2.3f)return 0;
     return 1;
 }
+#ifdef LIGHTMAP_DEMO
+#include "../lightmap/tests.h"
+#endif
+static int submission_comparisons(FILE *log)
+{
+    int pose,mode,ok=1;unsigned short *a,*b;
+    for(pose=0;pose<4;++pose)for(mode=0;mode<2;++mode) {
+        int pixel;unsigned long significant=0;
+        current_camera=path_at(pose==0?0:pose==1?3:pose==2?8:14);
+        flat_enabled=quad_enabled=1;render(0,1);a=capture("OPT.PPM");
+        if(mode==0)flat_enabled=0;else quad_enabled=0;
+        render(0,1);b=capture("REF.PPM");flat_enabled=quad_enabled=1;
+        if(a && b)for(pixel=88*640;pixel<432*640;++pixel) {
+            int r=abs((int)(a[pixel]>>11)-(int)(b[pixel]>>11))*255/31;
+            int g=abs((int)((a[pixel]>>5)&63)-(int)((b[pixel]>>5)&63))*255/63;
+            int blue=abs((int)(a[pixel]&31)-(int)(b[pixel]&31))*255/31;
+            if(r>16 || g>16 || blue>16)++significant;
+        }
+        /* Allow subpixel edge/diagonal rounding, never missing surfaces. */
+        if(!a || !b || significant>220)ok=0;
+        if(log)fprintf(log,"Submission %s pose %d: %lu pixels over 16/255; %s\n",mode?"quad/triangle":"constant/iterated",pose,significant,ok?"PASS":"FAIL");
+        free(a);free(b);
+    }
+    return ok;
+}
 static int run_tests(FILE *log,int soak)
 {
-    int ok=1,i,count=soak?1440:360,slow=0,inside=0,outside=0,portal=0;
+    int ok=1,i,count=soak==2?6000:soak?1440:360,slow=0,inside=0,outside=0,portal=0;
     float max_ms=0,sum=0;unsigned short *a,*b;
     if(!soak) {
-        ok=fog_controls(log);if(blend_control){test_frames=16;return ok;}
+        ok=fog_controls(log);
+#ifdef LIGHTMAP_DEMO
+        if(!lightmap_controls(log))ok=0;
+#endif
+        if(blend_control){
+#ifdef LIGHTMAP_DEMO
+            test_frames=20;
+#else
+            test_frames=16;
+#endif
+            return ok;
+        }
+#ifdef LIGHTMAP_DEMO
+        if(!lightmap_scene_check(log))ok=0;
+#endif
+        if(!submission_comparisons(log))ok=0;
         flying=0;camera_home();if(!camera_switch_test())ok=0;
         for(i=0;i<3;++i) {
             const char *name=i==0?"NAVE.PPM":i==1?"PORTAL.PPM":"YARD.PPM";
             unsigned long changed=0;int pixel;
             current_camera.eye=i==0?vec(0,1.9f,4):i==1?vec(0,1.9f,-12):vec(-3,2.8f,-33);
             current_camera.look=i==2?vec(-14,2,-47):vec(0,2,-30);
-            fog_enabled=1;render(0,1);a=capture(name);fog_enabled=0;render(0,1);b=capture(i==2?"CLEAR.PPM":"NOFOG.PPM");fog_enabled=1;
+            fog_enabled=1;render(0,1);
+            if(log) {
+                int n,transformed=0,eligible=0;for(n=0;n<vertex_count;++n)if(used[n])++transformed;
+                for(n=0;n<MATERIALS;++n)eligible+=visible_count[n];
+                fprintf(log,"Work %s: %d transformed vertices, %d eligible faces, %d drawn, %d clipped; %d apertures\n",name,transformed,eligible,drawn,clipped,fog_portal_count);
+            }
+            a=capture(name);fog_enabled=0;render(0,1);b=capture(i==2?"CLEAR.PPM":"NOFOG.PPM");fog_enabled=1;
             if(a && b)for(pixel=88*640;pixel<432*640;++pixel)if(a[pixel]!=b[pixel])++changed;
             if(!a || !b || changed<100)ok=0;
             if(log)fprintf(log,"Scene %s fog toggle: %lu changed pixels\n",name,changed);free(a);free(b);
         }
         for(i=0;i<16;++i) {
             int pixel;unsigned long changes=0;current_camera=path_at((float)i);
-            fog_culling_enabled=1;render(0,1);a=capture("CULLED.PPM");
-            fog_culling_enabled=0;render(0,1);b=capture("FULL.PPM");fog_culling_enabled=1;
+            fog_culling_enabled=1;render(0,1);a=capture(i==8?"CULL8.PPM":"CULLED.PPM");
+            fog_culling_enabled=0;render(0,1);b=capture(i==8?"FULL8.PPM":"FULL.PPM");fog_culling_enabled=1;
             if(a && b)for(pixel=88*640;pixel<432*640;++pixel)if(a[pixel]!=b[pixel])++changes;
             if(!a || !b || changes){ok=0;if(log)fprintf(log,"Culling comparison shot %d: %lu changed pixels\n",i,changes);}
             free(a);free(b);
@@ -97,7 +143,7 @@ static int run_tests(FILE *log,int soak)
     test_frames=count;flying=1;transition=1;fog_enabled=1;current_camera=drone_pose(0);render(0,0);render(0,0);profile_reset();profiler.measure=1;
     if(soak){FILE *f=fopen("SOAKSTAR.MRK","w");if(f)fclose(f);else ok=0;}
     for(i=0;i<count;++i) {
-        float ms;current_camera=drone_pose(i*(FLIGHT_SECONDS/count));
+        float ms;profile_begin();current_camera=drone_pose(i*(FLIGHT_SECONDS/count));profile_stage(P_INPUT);
         if(i==count/2){profile_toggle();profiler_dirty=1;}
         render(profiler.average>0?(int)(1000/profiler.average+.5f):0,0);
         ms=profiler.frame[(profiler.next+PROFILE_HISTORY-1)%PROFILE_HISTORY];sum+=ms;if(ms>max_ms)max_ms=ms;
@@ -111,5 +157,6 @@ static int run_tests(FILE *log,int soak)
     }
     if(soak){FILE *f=fopen("SOAKEND.MRK","w");if(f)fclose(f);else ok=0;}
     if(log){fprintf(log,"Journey: %d frames, %.2f guest FPS, max %.3f ms, %d over 18 ms\n",count,count*1000/sum,max_ms,slow);log_profile(log);}
+    if(soak && slow)ok=0;
     return ok && !finite_error;
 }

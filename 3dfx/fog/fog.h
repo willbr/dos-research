@@ -1,3 +1,6 @@
+#ifdef LIGHTMAP_DEMO
+static int lightmaps_enabled=1;
+#endif
 static int fog_enabled=1,fog_curve=2,fog_color;
 static float fog_density=.035f;
 static GrFog_t fog_table[GR_FOG_TABLE_SIZE];
@@ -35,9 +38,17 @@ static void fog_sky(GrVertex *sky)
 static void fog_hud(int fps)
 {
     char line[90];
+#ifdef LIGHTMAP_DEMO
+    text(21,19,"3DFX / LIGHTMAPS AND FOG",1,176,157,122);
+#else
     text(21,19,"3DFX / NATIVE DISTANCE FOG",1,176,157,122);
+#endif
     text(21,39,"NAVE TO GRAVEYARD",2.5f,233,224,202);
+#ifdef LIGHTMAP_DEMO
+    text(480,20,lightmaps_enabled?"B LIGHTMAPS ON":"B BASE ONLY",1,135,209,202);
+#else
     text(480,20,fog_enabled?"H FOG ON":"H FOG OFF",1,135,209,202);
+#endif
     text(480,36,flying?"F JOURNEY":"F MANUAL LOOK",1,176,188,190);
     if(fps>0)sprintf(line,"FPS %d",fps);else strcpy(line,"FPS --");text(480,53,line,1,176,157,122);
     sprintf(line,"%s  DENSITY %.3f  %s  /  %s",fog_curve==0?"LINEAR":fog_curve==1?"EXP":"EXP2",fog_density,

@@ -51,6 +51,7 @@ refresh pacing, but does not independently establish every setting's behavior.
 | [ ] | `depth` | Z and W buffers | Intersecting geometry; compare depth off/on, Z/W modes, comparison functions and depth writes. |
 | [ ] | [`fog`](fog/README.md) / nave to graveyard | Fog color and lookup table | Reuses the candlelit nave, with an open doorway and a continuous tour among headstones and trees. Linear/exp/exp2 table fog, density/color controls, alpha and additive attenuation. Native pixel controls pass on OpenGL and software Voodoo; interactive review and vertex-alpha comparison remain. |
 | [ ] | `combiners` | Fixed-function color/alpha operations | One textured object with replace, modulate, add and interpolate modes; label the equation used. |
+| [ ] | [`lightmap`](lightmap/README.md) / nave and graveyard | Multipass lightmapping on one TMU | Independent base/light UVs, equal-depth multiplication, B on/off, warm candle pools, stained-glass floor patterns and moonlit ground shadows. Fog resolves once in a third raster pass; native PREFOG_COLOR works in software Voodoo but fails in OpenGL. Pixel/reference checks implemented; interactive review pending. |
 | [ ] | `texture-combine` | Two-texture effects; TMU-dependent | Base texture plus lightmap; compare multiple passes with a single pass when two TMUs are available. |
 
 Entries without links are proposed folder names, not demos that already

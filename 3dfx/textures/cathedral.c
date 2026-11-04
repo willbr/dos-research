@@ -47,7 +47,9 @@ static float profiler_refresh;
 static int affine,compare,checker,finite_error,drawn,clipped,test_frames;
 static FxU32 texture_bytes;
 static float focal=520,frustum_x=320.0f/520;
-#ifdef BLEND_DEMO
+#ifdef LIGHTMAP_DEMO
+static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait"};
+#elif defined(BLEND_DEMO)
 static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","State","HUD","Profiler","Present/wait"};
 #else
 static const char *stage_names[P_STAGES]={"Input","Sky","Transform/cull","Scene","Comparison","Extra","HUD","Profiler","Present/wait"};
@@ -63,6 +65,9 @@ static void local_color(void)
 #endif
 #ifdef FOG_DEMO
 #include "../fog/fog.h"
+#endif
+#ifdef LIGHTMAP_DEMO
+#include "../lightmap/lightmap.h"
 #endif
 #ifdef MIPMAP_DEMO
 #include "../mipmaps/mipmap.h"
@@ -139,6 +144,9 @@ static int load_textures(void)
     if(!mip_debug_download(pixels,&next)){free(rgb);free(font);free(pixels);return 0;}
     grHints(GR_HINT_ALLOW_MIPMAP_DITHER,1);
 #endif
+#ifdef LIGHTMAP_DEMO
+    if(!lightmap_load(&next,pixels)){free(rgb);free(font);free(pixels);return 0;}
+#endif
     profiler_tex.smallLod=profiler_tex.largeLod=GR_LOD_256;profiler_tex.aspectRatio=GR_ASPECT_1x2;
     profiler_tex.format=GR_TEXFMT_RGB_565;profiler_tex.data=profiler_pixels;
     for(t=0;t<2;++t) {
@@ -151,7 +159,12 @@ static int load_textures(void)
     grTexMipMapMode(GR_TMU0,GR_MIPMAP_DISABLE,FXFALSE);
     /* SDK test29: keep texture reciprocal W separate from depth reciprocal W.
        TMU oow=1 with raw s,t gives affine interpolation; depth is unchanged. */
+#ifdef FOG_DEMO
+    /* Fog and TMU0 use identical reciprocal depth in this perspective scene. */
+    grHints(GR_HINT_STWHINT,0);
+#else
     grHints(GR_HINT_STWHINT,GR_STWHINT_W_DIFF_TMU0);
+#endif
     free(rgb);free(font);free(pixels);return 1;
 }
 typedef struct { float x,y,z,u,v,r,g,b;unsigned char code; } ViewVertex;
@@ -160,7 +173,10 @@ static GrVertex projected[2][MAX_VERTS];
 static int visible[MATERIALS][MAX_FACES],visible_count[MATERIALS];
 static unsigned char used[MAX_VERTS];
 #ifdef FOG_DEMO
+static int active_vertices[MAX_VERTS],active_count;
+#define MARK_ACTIVE(v) do {int index=(v);if(!used[index]){used[index]=1;active_vertices[active_count++]=index;}} while(0)
 #include "../fog/culling.h"
+#include "../fog/flat.h"
 #endif
 static float plane_distance(ViewVertex *v,int plane)
 {
@@ -179,30 +195,57 @@ static void project(ViewVertex *s,GrVertex *v,int affine_mode,float center)
     v->tmuvtx[0].sow=s->u*w;v->tmuvtx[0].tow=s->v*w;v->tmuvtx[0].oow=w;
     if(v->x!=v->x || v->y!=v->y || fabs(v->x)>32760 || fabs(v->y)>32760)finite_error=1;
 }
+#ifdef FOG_DEMO
+#include "../fog/transform.h"
+#endif
 static void prepare(void)
 {
     Vec forward=unit(sub(current_camera.look,current_camera.eye)),right=unit(cross(forward,vec(0,1,0))),up=cross(right,forward);
     float ex=current_camera.eye.x,ey=current_camera.eye.y,ez=current_camera.eye.z;
     float bx,by;int i;
 #ifdef FOG_DEMO
-    float rx,ry;
+    float rx,ry;int group=0;
 #endif
     focal=compare?400:520;bx=(compare?160.0f:320.0f)/focal;frustum_x=bx;by=172/focal;
 #ifdef FOG_DEMO
     rx=(float)sqrt(1+bx*bx);ry=(float)sqrt(1+by*by);
-    fog_portal_prepare();
+    fog_portal_prepare(forward,right,up,bx,by,rx,ry);
 #endif
     memset(visible_count,0,sizeof(visible_count));memset(used,0,vertex_count);
+#ifdef FOG_DEMO
+    active_count=0;
+    for(i=0;i<flat_count;++i)flat_head[i]=-1;
+#endif
     for(i=0;i<face_count;++i) {
         Face *f=&faces[i];
 #ifdef FOG_DEMO
-        if(i%FOG_CHUNK==0 && !fog_chunk_visible(i,forward,right,up,bx,by,rx,ry)){i+=FOG_CHUNK-1;continue;}
+        if(i==fog_groups[group].first) {
+            int end=fog_groups[group].last,visible_group=fog_group_visible(group,forward,right,up,bx,by,rx,ry);++group;
+            if(!visible_group){i=end-1;continue;}
+        }
 #endif
         if(f->normal.x*ex+f->normal.y*ey+f->normal.z*ez>f->plane) {
+#ifdef FOG_DEMO
+            flat_next[i]=flat_head[flat_id[i]];flat_head[flat_id[i]]=i;
+#else
             visible[f->mat][visible_count[f->mat]++]=i;
+#endif
+#ifdef FOG_DEMO
+            MARK_ACTIVE(f->v[0]);MARK_ACTIVE(f->v[1]);MARK_ACTIVE(f->v[2]);
+#else
             used[f->v[0]]=used[f->v[1]]=used[f->v[2]]=1;
+#endif
         }
     }
+#ifdef FOG_DEMO
+    for(i=0;i<flat_count;++i) {
+        int face=flat_head[i],mat=flat_material[i];
+        while(face>=0){visible[mat][visible_count[mat]++]=face;face=flat_next[face];}
+    }
+#endif
+#ifdef FOG_DEMO
+    position_transform(forward,right,up,bx,by);
+#else
     for(i=0;i<vertex_count;++i) {
         Vertex *s=&vertices[i];ViewVertex *v=&view[i];
         float x,y,z,xx,yy,zz,xb,yb;
@@ -230,6 +273,7 @@ static void prepare(void)
             }
         }
     }
+#endif
 }
 static void prepare_constants(void)
 {
@@ -247,6 +291,9 @@ static void interpolate(const ViewVertex *a,const ViewVertex *b,float t,ViewVert
     r->u=a->u+(b->u-a->u)*t;r->v=a->v+(b->v-a->v)*t;
     r->r=a->r+(b->r-a->r)*t;r->g=a->g+(b->g-a->g)*t;r->b=a->b+(b->b-a->b)*t;r->code=0;
 }
+#ifdef FOG_DEMO
+#include "../fog/quad.h"
+#endif
 static void clipped_triangle(Face *f,int pass)
 {
     ViewVertex a[12],b[12];GrVertex q[12];int count=3,plane,i,j;unsigned char mask=0;
@@ -264,7 +311,12 @@ static void clipped_triangle(Face *f,int pass)
         if(n<3)return;count=n;for(i=0;i<count;++i)a[i]=b[i];
     }
     for(i=0;i<count;++i)project(&a[i],&q[i],compare?pass:affine,compare?(pass?480:160):320);
-    for(j=1;j<count-1;++j){grDrawTriangle(&q[0],&q[j],&q[j+1]);++drawn;}
+    for(j=1;j<count-1;++j){
+        grDrawTriangle(&q[0],&q[j],&q[j+1]);++drawn;
+#ifdef LIGHTMAP_DEMO
+        lightmap_record(f,&q[0],&q[j],&q[j+1]);
+#endif
+    }
     ++clipped;
 }
 static void scene(int pass)
@@ -274,13 +326,22 @@ static void scene(int pass)
 #else
     static const int source[MATERIALS]={0,1,2,4,5,6,0,2,7};int mat,i;
 #endif
+#ifdef FOG_DEMO
+    FxU32 last_color=0;
+#endif
     grClipWindow(compare?(pass?320:0):0,88,compare?(pass?640:320):640,432);
     grDepthBufferMode(GR_DEPTHBUFFER_ZBUFFER);grDepthBufferFunction(GR_CMP_GREATER);grDepthMask(FXTRUE);
     grAlphaBlendFunction(GR_BLEND_ONE,GR_BLEND_ZERO,GR_BLEND_ONE,GR_BLEND_ZERO);
     grTexFilterMode(GR_TMU0,GR_TEXTUREFILTER_BILINEAR,GR_TEXTUREFILTER_BILINEAR);
     grColorCombine(GR_COMBINE_FUNCTION_SCALE_OTHER,GR_COMBINE_FACTOR_LOCAL,GR_COMBINE_LOCAL_ITERATED,GR_COMBINE_OTHER_TEXTURE,FXFALSE);
+#ifdef FOG_DEMO
+    if(flat_enabled)grColorCombine(GR_COMBINE_FUNCTION_SCALE_OTHER,GR_COMBINE_FACTOR_LOCAL,GR_COMBINE_LOCAL_CONSTANT,GR_COMBINE_OTHER_TEXTURE,FXFALSE);
+#endif
     for(mat=0;mat<MATERIALS;++mat) {
         int cutout=mat==WINDOW || mat==DOOR;
+#ifdef LIGHTMAP_DEMO
+        int last_receiver=-1;
+#endif
         int texture=checker && (mat==STONE || mat==ROOF || mat==PAVING || mat==TRIM)?7:source[mat];
 #ifdef MIPMAP_DEMO
         mip_source(texture,pass);
@@ -295,9 +356,33 @@ static void scene(int pass)
             cutout?GR_COMBINE_LOCAL_NONE:GR_COMBINE_LOCAL_ITERATED,cutout?GR_COMBINE_OTHER_TEXTURE:GR_COMBINE_OTHER_NONE,FXFALSE);
         for(i=0;i<visible_count[mat];++i) {
             Face *f=&faces[visible[mat][i]];unsigned char a=view[f->v[0]].code,b=view[f->v[1]].code,c=view[f->v[2]].code;
+#ifdef FOG_DEMO
+            if(quad_enabled && quad_kind[f-faces]==2)continue;
+#endif
+#ifdef FOG_DEMO
+            if((!quad_enabled || quad_kind[f-faces]!=1) && (a&b&c))continue;
+#else
             if(a&b&c)continue;
+#endif
+#ifdef LIGHTMAP_DEMO
+            {
+                int receiver=lightmaps_enabled && lightmap_face[f-faces];
+                if(receiver!=last_receiver){fog_apply(receiver);last_receiver=receiver;}
+            }
+#endif
+#ifdef FOG_DEMO
+            if(flat_enabled && flat_color[f-faces]!=last_color){last_color=flat_color[f-faces];grConstantColorValue(last_color);}
+#endif
+#ifdef FOG_DEMO
+            if(quad_enabled && quad_kind[f-faces]==1){quad_draw(f,quad_vertices[f-faces]);continue;}
+#endif
             if(a|b|c)clipped_triangle(f,pass);
-            else {grDrawTriangle(&projected[pass][f->v[0]],&projected[pass][f->v[1]],&projected[pass][f->v[2]]);++drawn;}
+            else {
+                grDrawTriangle(&projected[pass][f->v[0]],&projected[pass][f->v[1]],&projected[pass][f->v[2]]);++drawn;
+#ifdef LIGHTMAP_DEMO
+                lightmap_record(f,&projected[pass][f->v[0]],&projected[pass][f->v[1]],&projected[pass][f->v[2]]);
+#endif
+            }
         }
     }
 }
@@ -327,7 +412,13 @@ static void render(int fps,int paused)
 #ifdef FOG_DEMO
     fog_apply(0);
 #endif
+#ifdef LIGHTMAP_DEMO
+    lightmap_count=0;
+#endif
     scene(0);profile_stage(P_OPAQUE);
+#ifdef LIGHTMAP_DEMO
+    lightmap_draw();profile_stage(P_SPECULAR);
+#endif
 #ifdef BLEND_DEMO
     blending_effects(paused);
 #else
@@ -342,7 +433,9 @@ static void render(int fps,int paused)
 #endif
     grClipWindow(0,0,640,480);grDepthBiasLevel(0);grDepthBufferMode(GR_DEPTHBUFFER_DISABLE);grDepthMask(FXFALSE);grAlphaTestFunction(GR_CMP_ALWAYS);
 #ifdef BLEND_DEMO
+#ifndef LIGHTMAP_DEMO
     profile_stage(P_SPECULAR);
+#endif
 #ifdef FOG_DEMO
     fog_hud(fps);
 #else
@@ -359,7 +452,10 @@ static void render(int fps,int paused)
     if(compare){color_quad(319,88,2,344,30,40,40);text(18,96,"PERSPECTIVE",1,245,231,184);text(338,96,"AFFINE",1,245,231,184);}
 #endif
     if(paused)text(290,416,"PAUSED",1,240,215,154);
-#ifdef FOG_DEMO
+#ifdef LIGHTMAP_DEMO
+    text(21,452,"B LIGHTMAPS  H FOG  F JOURNEY  SPACE PAUSE  LMB LOOK  WHEEL DOLLY",1,176,188,190);
+    text(21,466,"1/2/3 FOG CURVE  [ ] DENSITY  Q COLOR  TAB PROFILER  ESC EXIT",1,116,140,148);
+#elif defined(FOG_DEMO)
     text(21,452,"F JOURNEY  SPACE PAUSE  LMB LOOK  WHEEL/RMB DOLLY  TAB PROFILER",1,176,188,190);
     text(21,466,"H FOG  1 LINEAR  2 EXP  3 EXP2  [ ] DENSITY  Q COLOR  ESC EXIT",1,116,140,148);
 #elif defined(BLEND_DEMO)
@@ -407,6 +503,7 @@ int main(int argc,char **argv)
     GrHwConfiguration hw;int key,paused=0,fps=0,frames=0,sample=0,second,synced=0,ok=1;
     int test=argc>1 && !strcmp(argv[1],"/test"),soak=argc>1 && !strcmp(argv[1],"/soak");
     FILE *log=fopen(DEMO_LOG,"w");
+    if(argc>1 && !strcmp(argv[1],"/tour"))soak=2;
 #ifdef MIPMAP_DEMO
     mip_quick=argc>1 && !strcmp(argv[1],"/check");if(mip_quick)test=1;
     mip_bench=argc>1 && !strcmp(argv[1],"/bench");if(mip_bench)test=1;
@@ -415,8 +512,12 @@ int main(int argc,char **argv)
     blend_control=argc>1 && !strcmp(argv[1],"/control");if(blend_control)test=1;
 #endif
     if(!build_cathedral()){puts("Mesh capacity error");if(log)fclose(log);return 1;}
+#ifdef LIGHTMAP_DEMO
+    lightmap_mesh_init();
+#endif
 #ifdef FOG_DEMO
-    fog_bounds_init();
+    position_init();flat_init();
+    quad_init();
 #endif
     prepare_constants();path_init();current_camera=orbit_pose();transition_from=current_camera;
 #ifdef BLEND_DEMO
@@ -433,6 +534,9 @@ int main(int argc,char **argv)
     profile_init();mouse_init();
 #ifdef FOG_DEMO
     mist_enabled=0;fog_update();
+#ifdef LIGHTMAP_DEMO
+    light_enabled=0;
+#endif
 #endif
     if(log){fprintf(log,"TMU0 start-address bounds %lu..%lu; textures used %lu bytes; mouse %d wheel %d timer %d\n",(unsigned long)grTexMinAddress(GR_TMU0),(unsigned long)grTexMaxAddress(GR_TMU0),(unsigned long)texture_bytes,mouse_present,wheel_present,profiler.available);fflush(log);}
     if(test || soak){
@@ -449,6 +553,9 @@ int main(int argc,char **argv)
             key=getch();if(key==27)goto done;
 #ifdef FOG_DEMO
             fog_key(key);
+#ifdef LIGHTMAP_DEMO
+            if(key=='b'||key=='B')lightmaps_enabled=!lightmaps_enabled;
+#endif
 #endif
             if(key==9){profile_toggle();profiler_dirty=1;}
             if(key=='f'||key=='F'){fly_mode(!flying);paused=0;}
