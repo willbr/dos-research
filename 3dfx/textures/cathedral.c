@@ -30,7 +30,9 @@ static void fly_mode(int enabled);
 static void camera_home(void);
 #endif
 #include "controls.h"
-#ifdef BLEND_DEMO
+#ifdef FOG_DEMO
+#include "../fog/camera.h"
+#elif defined(BLEND_DEMO)
 #include "../blending/camera.h"
 #else
 #include "camera.h"
@@ -59,6 +61,9 @@ static void local_color(void)
 #ifdef BLEND_DEMO
 #include "../blending/appearance.h"
 #endif
+#ifdef FOG_DEMO
+#include "../fog/fog.h"
+#endif
 #ifdef MIPMAP_DEMO
 #include "../mipmaps/mipmap.h"
 #endif
@@ -67,6 +72,9 @@ static int load_textures(void)
     static const char *paths[8]={MATERIAL_ROOT "STONE.RGB",MATERIAL_ROOT "ROOF.RGB",MATERIAL_ROOT "GRASS.RGB",NULL,MATERIAL_ROOT "PAVING.RGB",NULL,NULL,NULL};
     unsigned char *rgb=malloc(256UL*256*3),*font=calloc(8192,1);
     unsigned short *pixels=malloc(256UL*256*2);FxU32 next=grTexMinAddress(GR_TMU0);int t,i,x,y;
+#ifdef FOG_DEMO
+    paths[1]=MATERIAL_ROOT "GRASS.RGB";
+#endif
     if(!rgb || !font || !pixels){free(rgb);free(font);free(pixels);return 0;}
     for(i=0;i<(int)(sizeof(glyphs)/sizeof(glyphs[0]));++i) {
         int slot=glyphs[i].c-32;memcpy(panel_glyph[slot],glyphs[i].row,7);
@@ -151,6 +159,9 @@ static ViewVertex view[MAX_VERTS];
 static GrVertex projected[2][MAX_VERTS];
 static int visible[MATERIALS][MAX_FACES],visible_count[MATERIALS];
 static unsigned char used[MAX_VERTS];
+#ifdef FOG_DEMO
+#include "../fog/culling.h"
+#endif
 static float plane_distance(ViewVertex *v,int plane)
 {
     switch(plane) {
@@ -173,10 +184,20 @@ static void prepare(void)
     Vec forward=unit(sub(current_camera.look,current_camera.eye)),right=unit(cross(forward,vec(0,1,0))),up=cross(right,forward);
     float ex=current_camera.eye.x,ey=current_camera.eye.y,ez=current_camera.eye.z;
     float bx,by;int i;
+#ifdef FOG_DEMO
+    float rx,ry;
+#endif
     focal=compare?400:520;bx=(compare?160.0f:320.0f)/focal;frustum_x=bx;by=172/focal;
+#ifdef FOG_DEMO
+    rx=(float)sqrt(1+bx*bx);ry=(float)sqrt(1+by*by);
+    fog_portal_prepare();
+#endif
     memset(visible_count,0,sizeof(visible_count));memset(used,0,vertex_count);
     for(i=0;i<face_count;++i) {
         Face *f=&faces[i];
+#ifdef FOG_DEMO
+        if(i%FOG_CHUNK==0 && !fog_chunk_visible(i,forward,right,up,bx,by,rx,ry)){i+=FOG_CHUNK-1;continue;}
+#endif
         if(f->normal.x*ex+f->normal.y*ey+f->normal.z*ez>f->plane) {
             visible[f->mat][visible_count[f->mat]++]=i;
             used[f->v[0]]=used[f->v[1]]=used[f->v[2]]=1;
@@ -248,7 +269,11 @@ static void clipped_triangle(Face *f,int pass)
 }
 static void scene(int pass)
 {
+#ifdef FOG_DEMO
+    static const int source[MATERIALS]={0,1,1,4,5,6,0,1,7};int mat,i;
+#else
     static const int source[MATERIALS]={0,1,2,4,5,6,0,2,7};int mat,i;
+#endif
     grClipWindow(compare?(pass?320:0):0,88,compare?(pass?640:320):640,432);
     grDepthBufferMode(GR_DEPTHBUFFER_ZBUFFER);grDepthBufferFunction(GR_CMP_GREATER);grDepthMask(FXTRUE);
     grAlphaBlendFunction(GR_BLEND_ONE,GR_BLEND_ZERO,GR_BLEND_ONE,GR_BLEND_ZERO);
@@ -283,6 +308,9 @@ static void render(int fps,int paused)
 {
     char line[80];GrVertex sky[4];int i;
     if(!profiler.active){profile_begin();profile_stage(P_INPUT);}
+#ifdef FOG_DEMO
+    grFogMode(GR_FOG_DISABLE);
+#endif
     grClipWindow(0,0,640,480);grDepthMask(FXTRUE);grBufferClear(0x0018140d,0,0);
     background();
     memset(sky,0,sizeof(sky));
@@ -290,9 +318,15 @@ static void render(int fps,int paused)
 #ifdef BLEND_DEMO
     for(i=0;i<4;++i){sky[i].r=i<2?10:30;sky[i].g=i<2?16:39;sky[i].b=i<2?27:58;}
 #endif
+#ifdef FOG_DEMO
+    fog_sky(sky);
+#endif
     grDrawTriangle(&sky[0],&sky[1],&sky[2]);grDrawTriangle(&sky[0],&sky[2],&sky[3]);
     profile_stage(P_BACKGROUND);
     drawn=clipped=0;prepare();profile_stage(P_TRANSFORM);
+#ifdef FOG_DEMO
+    fog_apply(0);
+#endif
     scene(0);profile_stage(P_OPAQUE);
 #ifdef BLEND_DEMO
     blending_effects(paused);
@@ -303,10 +337,17 @@ static void render(int fps,int paused)
 #ifndef BLEND_DEMO
     profile_stage(P_SPECULAR);
 #endif
+#ifdef FOG_DEMO
+    grFogMode(GR_FOG_DISABLE);
+#endif
     grClipWindow(0,0,640,480);grDepthBiasLevel(0);grDepthBufferMode(GR_DEPTHBUFFER_DISABLE);grDepthMask(FXFALSE);grAlphaTestFunction(GR_CMP_ALWAYS);
 #ifdef BLEND_DEMO
     profile_stage(P_SPECULAR);
+#ifdef FOG_DEMO
+    fog_hud(fps);
+#else
     blending_hud(fps);
+#endif
 #elif defined(MIPMAP_DEMO)
     mip_hud(fps);
 #else
@@ -318,7 +359,10 @@ static void render(int fps,int paused)
     if(compare){color_quad(319,88,2,344,30,40,40);text(18,96,"PERSPECTIVE",1,245,231,184);text(338,96,"AFFINE",1,245,231,184);}
 #endif
     if(paused)text(290,416,"PAUSED",1,240,215,154);
-#ifdef BLEND_DEMO
+#ifdef FOG_DEMO
+    text(21,452,"F JOURNEY  SPACE PAUSE  LMB LOOK  WHEEL/RMB DOLLY  TAB PROFILER",1,176,188,190);
+    text(21,466,"H FOG  1 LINEAR  2 EXP  3 EXP2  [ ] DENSITY  Q COLOR  ESC EXIT",1,116,140,148);
+#elif defined(BLEND_DEMO)
     text(21,452,"LMB LOOK  WHEEL/RMB DOLLY  ARROWS TURN  F NAVE TOUR  SPACE PAUSE",1,176,188,190);
     text(21,466,"G GLASS  C CANDLES  M MIST  L LIGHT PATCHES  S SORTING  TAB PROFILER  ESC EXIT",1,116,140,148);
 #else
@@ -349,7 +393,9 @@ static void log_profile(FILE *log)
 }
 static int rtc_seconds(void)
 { int sec,mode;outp(0x70,11);mode=inp(0x71);outp(0x70,0);sec=inp(0x71);return mode&4?sec:(sec>>4)*10+(sec&15); }
-#ifdef BLEND_DEMO
+#ifdef FOG_DEMO
+#include "../fog/tests.h"
+#elif defined(BLEND_DEMO)
 #include "../blending/tests.h"
 #elif defined(MIPMAP_DEMO)
 #include "../mipmaps/tests.h"
@@ -369,6 +415,9 @@ int main(int argc,char **argv)
     blend_control=argc>1 && !strcmp(argv[1],"/control");if(blend_control)test=1;
 #endif
     if(!build_cathedral()){puts("Mesh capacity error");if(log)fclose(log);return 1;}
+#ifdef FOG_DEMO
+    fog_bounds_init();
+#endif
     prepare_constants();path_init();current_camera=orbit_pose();transition_from=current_camera;
 #ifdef BLEND_DEMO
     flying=1;transition=1;current_camera=drone_pose(0);transition_from=current_camera;
@@ -382,6 +431,9 @@ int main(int argc,char **argv)
     grCullMode(GR_CULL_DISABLE);grDitherMode(GR_DITHER_4x4);
     if(!load_textures()){grGlideShutdown();puts("Cannot load material textures / texture memory exhausted");if(log)fclose(log);return 1;}
     profile_init();mouse_init();
+#ifdef FOG_DEMO
+    mist_enabled=0;fog_update();
+#endif
     if(log){fprintf(log,"TMU0 start-address bounds %lu..%lu; textures used %lu bytes; mouse %d wheel %d timer %d\n",(unsigned long)grTexMinAddress(GR_TMU0),(unsigned long)grTexMaxAddress(GR_TMU0),(unsigned long)texture_bytes,mouse_present,wheel_present,profiler.available);fflush(log);}
     if(test || soak){
 #ifdef MIPMAP_DEMO
@@ -395,6 +447,9 @@ int main(int argc,char **argv)
         profile_begin();
         while(kbhit()) {
             key=getch();if(key==27)goto done;
+#ifdef FOG_DEMO
+            fog_key(key);
+#endif
             if(key==9){profile_toggle();profiler_dirty=1;}
             if(key=='f'||key=='F'){fly_mode(!flying);paused=0;}
 #ifdef BLEND_DEMO

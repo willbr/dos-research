@@ -25,6 +25,9 @@ with interactive Glide graphics.
 - [blending](blending/README.md): candlelit nave with stained glass, additive
   flames/halos and colored floor patterns, translucent mist, and a sorting
   comparison. Launch with `blending/run.cmd` or `./blending/run.ps1`.
+- [fog](fog/README.md): continuous journey from the nave through its doorway
+  into a graveyard with headstones and trees; native linear, exponential and
+  exponential-squared distance fog. Launch with `fog/run.cmd` or `./fog/run.ps1`.
 - [sectorforth](sectorforth/README.md): 32-bit assembly Forth port with Glide
   words and an RGB triangle defined in Forth. Launch with `sectorforth/run.cmd`
   or `./sectorforth/run.ps1`.

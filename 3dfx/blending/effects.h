@@ -99,7 +99,11 @@ static void blending_effects(int paused)
                 q->texture==7?GR_COMBINE_OTHER_NONE:GR_COMBINE_OTHER_TEXTURE,FXFALSE);
             last_texture=q->texture;
         }
-        if(q->add!=last_add){grAlphaBlendFunction(GR_BLEND_SRC_ALPHA,q->add?GR_BLEND_ONE:GR_BLEND_ONE_MINUS_SRC_ALPHA,GR_BLEND_ONE,GR_BLEND_ZERO);last_add=q->add;}
+        if(q->add!=last_add){
+#ifdef FOG_DEMO
+            fog_apply(q->add);
+#endif
+            grAlphaBlendFunction(GR_BLEND_SRC_ALPHA,q->add?GR_BLEND_ONE:GR_BLEND_ONE_MINUS_SRC_ALPHA,GR_BLEND_ONE,GR_BLEND_ZERO);last_add=q->add;}
         if(q->bias!=last_bias){grDepthBiasLevel(q->bias);last_bias=q->bias;}
         draw_effect(q);
     }

@@ -49,7 +49,7 @@ refresh pacing, but does not independently establish every setting's behavior.
 | [ ] | [`mipmaps`](mipmaps/README.md) / cathedral | Mipmapping and LOD bias | Native off/on comparison, nine colored levels, bias and nearest/dither toggles. Software Voodoo framebuffer checks pass; OpenGL regenerates host mips and fails the custom-level/bias diagnostic on DOSBox-X 2026.01.02. Review moving shimmer/transitions interactively. |
 | [ ] | [`blending`](blending/README.md) / candlelit nave | Alpha and additive blending | Stained glass, candle glows, colored floor patterns and mist, with independent toggles and reversed-order control. Six pixel controls pass on OpenGL and software Voodoo; scene comparisons and tour implemented. Review visually before completing the item. |
 | [ ] | `depth` | Z and W buffers | Intersecting geometry; compare depth off/on, Z/W modes, comparison functions and depth writes. |
-| [ ] | `fog` | Fog color and lookup table | Objects receding into fog; compare table-based depth fog and vertex-alpha fog. |
+| [ ] | [`fog`](fog/README.md) / nave to graveyard | Fog color and lookup table | Reuses the candlelit nave, with an open doorway and a continuous tour among headstones and trees. Linear/exp/exp2 table fog, density/color controls, alpha and additive attenuation. Native pixel controls pass on OpenGL and software Voodoo; interactive review and vertex-alpha comparison remain. |
 | [ ] | `combiners` | Fixed-function color/alpha operations | One textured object with replace, modulate, add and interpolate modes; label the equation used. |
 | [ ] | `texture-combine` | Two-texture effects; TMU-dependent | Base texture plus lightmap; compare multiple passes with a single pass when two TMUs are available. |
 

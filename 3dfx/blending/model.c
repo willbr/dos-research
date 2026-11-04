@@ -105,6 +105,9 @@ static void glass_window(float x,float y,float z,float width,float height,int si
 }
 static float vault_height(float x)
 { return 4.7f+3.1f*(float)pow(1-fabs(x)/3.1f,.64f); }
+#ifdef FOG_WORLD
+#include "../fog/outside.h"
+#endif
 int build_cathedral(void)
 {
     int i,j,side;vertex_count=face_count=failed=glass_count=0;
@@ -160,7 +163,11 @@ int build_cathedral(void)
     quad(vec(2,1.9f,14),vec(5.1f,1.9f,14),vec(5.1f,7.8f,14),vec(2,7.8f,14),STONE,vec(0,0,-1));
     quad(vec(-2,7.3f,14),vec(2,7.3f,14),vec(2,7.8f,14),vec(-2,7.8f,14),STONE,vec(0,0,-1));
     glass_window(0,1.9f,13.98f,4.0f,5.4f,0);
+#ifdef FOG_WORLD
+    west_portal();
+#else
     quad(vec(-5.1f,0,-14),vec(5.1f,0,-14),vec(5.1f,7.8f,-14),vec(-5.1f,7.8f,-14),STONE,vec(0,0,1));
+#endif
     /* Opaque wax and brass stands remain when the flame/glow switch is off. */
     for(i=0;i<12;++i) {
         Vec p=candle_positions[i];
@@ -168,5 +175,8 @@ int build_cathedral(void)
         cylinder(p.x,p.z,.64f,.72f,.16f,TRIM);
         cylinder(p.x,p.z,.72f,p.y,.065f,TRIM);
     }
+#ifdef FOG_WORLD
+    build_graveyard();
+#endif
     return !failed && face_count>0;
 }
