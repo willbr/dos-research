@@ -109,7 +109,9 @@ static void panel_graph(int y,int fps_graph)
 }
 static void profiler_panel(void)
 {
-#ifdef PROJECTOR_DEMO
+#ifdef SHADOW_DEMO
+    static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW"};
+#elif defined(PROJECTOR_DEMO)
     static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT"};
 #elif defined(LIGHTMAP_DEMO)
     static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT"};
@@ -130,7 +132,21 @@ static void profiler_panel(void)
        dashboard in one frame can itself cause the frame-time spike. */
     if(profiler_build) {
         char line[48];int j,phase=profiler_build;
-#ifdef PROJECTOR_DEMO
+#ifdef SHADOW_DEMO
+        /* Four clear slices and four row slices leave room for moving shadows. */
+        if(phase<=4) {
+            unsigned short clear_color=rgb565(8,16,22);
+            int start=(phase-1)*8192;
+            for(i=start;i<start+8192;i+=8) {
+                profiler_pixels[i]=clear_color;profiler_pixels[i+1]=clear_color;
+                profiler_pixels[i+2]=clear_color;profiler_pixels[i+3]=clear_color;
+                profiler_pixels[i+4]=clear_color;profiler_pixels[i+5]=clear_color;
+                profiler_pixels[i+6]=clear_color;profiler_pixels[i+7]=clear_color;
+            }
+            ++profiler_build;goto profiler_publish;
+        }
+        phase=phase==5?1:phase<=8?phase-4:phase==9?4:phase-5;
+#elif defined(PROJECTOR_DEMO)
         if(phase==1) {
             unsigned short clear_color=rgb565(8,16,22);
             for(i=0;i<128*128;i+=8) {
@@ -151,12 +167,14 @@ static void profiler_panel(void)
 #endif
             /* Keep the dashboard's largest raster job below the frame
                budget on the Pentium target; eight stores per loop. */
+#ifndef SHADOW_DEMO
             for(i=clear_start;i<128*256;i+=8) {
                 profiler_pixels[i]=background_color;profiler_pixels[i+1]=background_color;
                 profiler_pixels[i+2]=background_color;profiler_pixels[i+3]=background_color;
                 profiler_pixels[i+4]=background_color;profiler_pixels[i+5]=background_color;
                 profiler_pixels[i+6]=background_color;profiler_pixels[i+7]=background_color;
             }
+#endif
             panel_line(0,0,127,0,muted);panel_line(0,255,127,255,muted);
             panel_line(0,0,0,255,muted);panel_line(127,0,127,255,muted);
             panel_text(4,5,"FRAME PROFILER",gold);panel_text(4,16,"EMU MS / TAB CLOSE",muted);
@@ -169,17 +187,26 @@ static void profiler_panel(void)
             } else panel_text(4,29,"COLLECTING FRAMES",ink);
         } else if(phase>=2 && phase<=4 && panel_snapshot.available) {
             int first=(phase-2)*3;
-            int end=first+3,row_step=10;
+            int end=first+3,row_step=10,bar_step=8;
 #ifdef PROJECTOR_DEMO
             if(phase==4)end=P_STAGES;row_step=9;
+#ifdef SHADOW_DEMO
+            row_step=8;bar_step=7;
+            if(profiler_build==9)first=9;
+            end=first+3;
+#endif
 #endif
             for(i=first;i<end && i<P_STAGES;++i) {
                 int y=42+i*row_step,width=panel_snapshot.average>0?(int)(panel_snapshot.mean[i]/panel_snapshot.average*116):0;
                 int value=(int)(panel_snapshot.mean[i]*100+.5f);
                 panel_text(4,y,labels[i],muted);sprintf(line,"%2d.%02d",value/100,value%100);panel_text(80,y,line,ink);
-                for(j=0;j<width && j<116;++j) panel_pixel(4+j,y+8,i==P_PRESENT?muted:gold);
+                for(j=0;j<width && j<116;++j) panel_pixel(4+j,y+bar_step,i==P_PRESENT?muted:gold);
             }
-            if(phase==4) {
+            if(phase==4
+#ifdef SHADOW_DEMO
+                && profiler_build==9
+#endif
+            ) {
                 int p=(int)(panel_snapshot.p95*10+.5f),m=(int)(panel_snapshot.max*10+.5f);
                 sprintf(line,"P95 %d.%d MAX %d.%d",p/10,p%10,m/10,m%10);panel_text(4,135,line,ink);
             }
@@ -189,7 +216,13 @@ static void profiler_panel(void)
             panel_graph(207,0);panel_text(4,245,"16.7 MS = 60 FPS",gold);
         }
         ++profiler_build;
-        if(profiler_build==8) { profiler_build=0;profiler_row=0;profiler_upload=1; }
+        if(profiler_build==
+#ifdef SHADOW_DEMO
+            12
+#else
+            8
+#endif
+        ) { profiler_build=0;profiler_row=0;profiler_upload=1; }
     }
 #ifdef PROJECTOR_DEMO
 profiler_publish:

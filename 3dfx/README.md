@@ -35,6 +35,9 @@ with interactive Glide graphics.
 - [project](project/README.md): moving projected lantern over the lightmapped
   nave and graveyard. **P** toggles it, **O** holds it in the world, and **X**
   shows the projection grid. Launch with `project/run.cmd` or `./project/run.ps1`.
+- [shadows](shadows/README.md): moving lantern ground shadows from pillars,
+  headstones and crosses, preserving baked lighting. **S** toggles shadows.
+  Launch with `shadows/run.cmd` or `./shadows/run.ps1`.
 - [sectorforth](sectorforth/README.md): 32-bit assembly Forth port with Glide
   words and an RGB triangle defined in Forth. Launch with `sectorforth/run.cmd`
   or `./sectorforth/run.ps1`.

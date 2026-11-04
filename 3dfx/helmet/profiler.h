@@ -5,6 +5,9 @@ enum { P_INPUT,P_BACKGROUND,P_TRANSFORM,P_OPAQUE,P_AA,P_SPECULAR,P_HUD,P_OVERLAY
 #ifdef PROJECTOR_DEMO
     P_PROJECTOR,
 #endif
+#ifdef SHADOW_DEMO
+    P_SHADOWS,
+#endif
     P_STAGES };
 typedef struct {
     int available,show,measure,count,next,active;

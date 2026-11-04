@@ -90,6 +90,9 @@ void profile_log(void *file)
 #ifdef PROJECTOR_DEMO
         ,"Projector"
 #endif
+#ifdef SHADOW_DEMO
+        ,"Shadows"
+#endif
     };
     FILE *f=(FILE *)file;int i;
     if(!f) return;

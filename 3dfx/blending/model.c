@@ -105,18 +105,27 @@ static void glass_window(float x,float y,float z,float width,float height,int si
 }
 static float vault_height(float x)
 { return 4.7f+3.1f*(float)pow(1-fabs(x)/3.1f,.64f); }
+#ifdef SHADOW_DEMO
+#include "../shadows/castmesh.h"
+#endif
 #ifdef FOG_WORLD
 #include "../fog/outside.h"
 #endif
 int build_cathedral(void)
 {
     int i,j,side;vertex_count=face_count=failed=glass_count=0;
+#ifdef SHADOW_DEMO
+    shadow_caster_count=0;
+#endif
     quad(vec(-5.3f,0,-14),vec(5.3f,0,-14),vec(5.3f,0,14),vec(-5.3f,0,14),PAVING,vec(0,1,0));
     /* Paired stone piers, capitals and transverse pointed vault ribs. */
     for(j=0;j<7;++j) {
         float z=-12+j*4.0f;
         for(side=-1;side<=1;side+=2) {
             float x=side*3.1f;
+#ifdef SHADOW_DEMO
+            shadow_pier(x,z);
+#endif
             box(x-.38f,0,z-.38f,x+.38f,.22f,z+.38f,STONE);
             cylinder(x,z,.22f,4.7f,.25f,STONE);
             box(x-.35f,4.5f,z-.35f,x+.35f,4.8f,z+.35f,TRIM);

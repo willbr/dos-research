@@ -39,6 +39,9 @@ static void west_portal(void)
 static void headstone(float x,float z,int style)
 {
     int i,first=face_count,fine_group;float w=.38f,h=.9f+(style%3)*.14f;
+#ifdef SHADOW_DEMO
+    shadow_headstone(x,z,style);
+#endif
     box(x-.52f,0,z-.32f,x+.52f,.12f,z+.32f,STONE);
     if(style%4==0) {
         box(x-.12f,.12f,z-.12f,x+.12f,h+.6f,z+.12f,STONE);

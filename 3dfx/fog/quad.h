@@ -1,7 +1,4 @@
 /* Clip each coplanar quad once, then use the regular native polygon API. */
-static int quad_vertices[MAX_FACES][4];
-static unsigned char quad_kind[MAX_FACES];
-static int quad_enabled=1;
 static void quad_init(void)
 {
     int i,j,k,group=0;

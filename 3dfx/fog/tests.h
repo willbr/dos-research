@@ -58,6 +58,9 @@ static int journey_clear(Camera p)
 #ifdef PROJECTOR_DEMO
 #include "../project/tests.h"
 #endif
+#ifdef SHADOW_DEMO
+#include "../shadows/tests.h"
+#endif
 static int submission_comparisons(FILE *log)
 {
     int pose,mode,ok=1;unsigned short *a,*b;
@@ -102,11 +105,17 @@ static int run_tests(FILE *log,int soak)
 #ifdef PROJECTOR_DEMO
         if(!projector_controls(log))ok=0;
 #endif
+#ifdef SHADOW_DEMO
+        if(!shadow_controls(log))ok=0;
+#endif
         if(blend_control){
 #ifdef LIGHTMAP_DEMO
             test_frames=20;
 #ifdef PROJECTOR_DEMO
             test_frames+=7;
+#ifdef SHADOW_DEMO
+            test_frames+=4;
+#endif
 #endif
 #else
             test_frames=16;
@@ -118,6 +127,9 @@ static int run_tests(FILE *log,int soak)
 #endif
 #ifdef PROJECTOR_DEMO
         if(!projector_scene_checks(log))ok=0;
+#endif
+#ifdef SHADOW_DEMO
+        if(!shadow_scene_checks(log))ok=0;
 #endif
         if(!submission_comparisons(log))ok=0;
         flying=0;camera_home();{
@@ -165,8 +177,16 @@ static int run_tests(FILE *log,int soak)
     }
     if(!inside || !outside || !portal)ok=0;
     if(log)fprintf(log,"Path samples: nave %d, doorway %d, graveyard %d; %s\n",inside,portal,outside,ok?"PASS":"FAIL");
-    test_frames=count;flying=1;transition=1;fog_enabled=1;current_camera=drone_pose(0);render(0,0);render(0,0);profile_reset();profiler.measure=1;
+#ifdef SHADOW_DEMO
+    /* Marker disk I/O must precede the existing two retrace warmup frames.
+       Include that warmup in the host interval, rather than disturbing the
+       first measured guest frame after it has synchronized to retrace. */
     if(soak){FILE *f=fopen("SOAKSTAR.MRK","w");if(f)fclose(f);else ok=0;}
+#endif
+    test_frames=count;flying=1;transition=1;fog_enabled=1;current_camera=drone_pose(0);render(0,0);render(0,0);profile_reset();profiler.measure=1;
+#ifndef SHADOW_DEMO
+    if(soak){FILE *f=fopen("SOAKSTAR.MRK","w");if(f)fclose(f);else ok=0;}
+#endif
     for(i=0;i<count;++i) {
         float ms,seconds=soak==3?94+i*(6.0f/count):i*(FLIGHT_SECONDS/count);profile_begin();current_camera=drone_pose(seconds);profile_stage(P_INPUT);
 #ifdef PROJECTOR_DEMO
@@ -188,6 +208,9 @@ static int run_tests(FILE *log,int soak)
     if(log){fprintf(log,"Journey: %d frames, %.2f guest FPS, max %.3f ms, %d over 18 ms\n",count,count*1000/sum,max_ms,slow);log_profile(log);}
 #ifdef PROJECTOR_DEMO
     if(log)fprintf(log,"Projector final frame: %d cached polygons, %d clipped intersections, %d beam triangles\n",projector_count,projector_intersections,projector_triangles);
+#endif
+#ifdef SHADOW_DEMO
+    if(log)fprintf(log,"Shadow volumes %d; final frame: %d polygons, %d triangles, piers %d graves %d\n",shadow_caster_count,shadow_polygons,shadow_triangles,shadow_pier_hits,shadow_grave_hits);
 #endif
     if(soak && slow)ok=0;
     return ok && !finite_error;

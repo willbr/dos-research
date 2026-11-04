@@ -47,7 +47,9 @@ static float profiler_refresh;
 static int affine,compare,checker,finite_error,drawn,clipped,test_frames;
 static FxU32 texture_bytes;
 static float focal=520,frustum_x=320.0f/520;
-#ifdef PROJECTOR_DEMO
+#ifdef SHADOW_DEMO
+static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait","Projector","Shadows"};
+#elif defined(PROJECTOR_DEMO)
 static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait","Projector"};
 #elif defined(LIGHTMAP_DEMO)
 static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait"};
@@ -68,8 +70,14 @@ static void local_color(void)
 #ifdef FOG_DEMO
 #include "../fog/fog.h"
 #endif
+#ifdef SHADOW_DEMO
+static int shadows_enabled=1;
+#endif
 #ifdef PROJECTOR_DEMO
 #include "../project/projector.h"
+#endif
+#ifdef SHADOW_DEMO
+#include "../shadows/ground.h"
 #endif
 #ifdef LIGHTMAP_DEMO
 #include "../lightmap/lightmap.h"
@@ -206,6 +214,9 @@ static void project(ViewVertex *s,GrVertex *v,int affine_mode,float center)
 }
 #ifdef FOG_DEMO
 #include "../fog/transform.h"
+static int quad_vertices[MAX_FACES][4];
+static unsigned char quad_kind[MAX_FACES];
+static int quad_enabled=1;
 #endif
 static void prepare(void)
 {
@@ -232,6 +243,11 @@ static void prepare(void)
             int end=fog_groups[group].last,visible_group=fog_group_visible(group,forward,right,up,bx,by,rx,ry);++group;
             if(!visible_group){i=end-1;continue;}
         }
+#ifdef SHADOW_DEMO
+        /* The second triangle is submitted as part of its coplanar quad.
+           Cull and queue that surface once; retain all four vertex inputs. */
+        if(quad_enabled && quad_kind[i]==2)continue;
+#endif
 #endif
         if(f->normal.x*ex+f->normal.y*ey+f->normal.z*ez>f->plane) {
 #ifdef FOG_DEMO
@@ -241,6 +257,11 @@ static void prepare(void)
 #endif
 #ifdef FOG_DEMO
             MARK_ACTIVE(f->v[0]);MARK_ACTIVE(f->v[1]);MARK_ACTIVE(f->v[2]);
+#ifdef SHADOW_DEMO
+            if(quad_enabled && quad_kind[i]==1) {
+                int corner;for(corner=0;corner<4;++corner)MARK_ACTIVE(quad_vertices[i][corner]);
+            }
+#endif
 #else
             used[f->v[0]]=used[f->v[1]]=used[f->v[2]]=1;
 #endif
@@ -438,6 +459,9 @@ static void render(int fps,int paused)
 #ifdef LIGHTMAP_DEMO
     lightmap_draw();profile_stage(P_SPECULAR);
 #endif
+#ifdef SHADOW_DEMO
+    shadow_draw();profile_stage(P_SHADOWS);
+#endif
 #ifdef PROJECTOR_DEMO
     projector_draw();profile_stage(P_PROJECTOR);
 #endif
@@ -586,6 +610,9 @@ int main(int argc,char **argv)
 #ifdef FOG_DEMO
             fog_key(key);
 #ifdef PROJECTOR_DEMO
+#ifdef SHADOW_DEMO
+            if(key=='s'||key=='S')shadows_enabled=!shadows_enabled;
+#endif
             if(key=='p'||key=='P')projector_enabled=!projector_enabled;
             if(key=='o'||key=='O')projector_locked=!projector_locked;
             if(key=='x'||key=='X')projector_grid=!projector_grid;
@@ -601,7 +628,9 @@ int main(int argc,char **argv)
             if(key=='c'||key=='C')candles_enabled=!candles_enabled;
             if(key=='m'||key=='M')mist_enabled=!mist_enabled;
             if(key=='l'||key=='L')light_enabled=!light_enabled;
+#ifndef SHADOW_DEMO
             if(key=='s'||key=='S')sorted_blending=!sorted_blending;
+#endif
 #else
             if(key=='c'||key=='C')compare=!compare;
 #ifndef MIPMAP_DEMO
