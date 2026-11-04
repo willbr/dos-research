@@ -14,6 +14,10 @@ with interactive Glide graphics.
   Winchester photograph, with silhouette-edge anti-aliasing, inertial mouse
   controls, and a Tab profiler with FPS/frame-time graphs.
   Launch with `helmet/run.cmd` or `./helmet/run.ps1`.
+- [textures](textures/README.md): Winchester Cathedral exterior with smooth
+  orbit controls, an automatic drone flight, perspective/affine texture
+  comparison and the Tab profiler. Launch with `textures/run.cmd` or
+  `./textures/run.ps1`.
 - [sectorforth](sectorforth/README.md): 32-bit assembly Forth port with Glide
   words and an RGB triangle defined in Forth. Launch with `sectorforth/run.cmd`
   or `./sectorforth/run.ps1`.
