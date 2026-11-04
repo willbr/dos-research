@@ -34,10 +34,15 @@ static void position_transform(Vec forward,Vec right,Vec up,float bx,float by)
             if(c->x< -xb)code|=4;if(c->x>xb)code|=8;if(c->y< -yb)code|=16;if(c->y>yb)code|=32;c->code=code;
             if(!code){c->inv=1/c->z;c->sx=320+c->x*focal*c->inv;c->sy=260-c->y*focal*c->inv;c->depth=65535*.45f*c->inv;}
         }
-        v->x=c->x;v->y=c->y;v->z=c->z;v->code=c->code;
+        v->code=c->code;
         if(!c->code) {
             GrVertex *p=&projected[0][i];p->x=c->sx;p->y=c->sy;p->oow=c->inv;p->ooz=c->depth;
             p->tmuvtx[0].sow=s->u*c->inv;p->tmuvtx[0].tow=s->v*c->inv;p->tmuvtx[0].oow=c->inv;
         }
     }
+}
+static void cached_view(int index,ViewVertex *v)
+{
+    PositionCache *p=&position_cache[position_id[index]];
+    *v=view[index];v->x=p->x;v->y=p->y;v->z=p->z;
 }

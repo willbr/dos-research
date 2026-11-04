@@ -86,7 +86,11 @@ void profile_end(void)
 }
 void profile_log(void *file)
 {
-    static const char *name[P_STAGES]={"Input","Background","Transform/cull","Opaque","Edge AA","Highlights","HUD","Profiler","Present/wait"};
+    static const char *name[P_STAGES]={"Input","Background","Transform/cull","Opaque","Edge AA","Highlights","HUD","Profiler","Present/wait"
+#ifdef PROJECTOR_DEMO
+        ,"Projector"
+#endif
+    };
     FILE *f=(FILE *)file;int i;
     if(!f) return;
     fprintf(f,"Profiler: %s; %d frames; average %.3f ms, p95 %.3f, max %.3f\n",

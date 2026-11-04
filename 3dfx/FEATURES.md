@@ -53,6 +53,7 @@ refresh pacing, but does not independently establish every setting's behavior.
 | [ ] | `combiners` | Fixed-function color/alpha operations | One textured object with replace, modulate, add and interpolate modes; label the equation used. |
 | [ ] | [`lightmap`](lightmap/README.md) / nave and graveyard | Multipass lightmapping on one TMU | Independent base/light UVs, equal-depth multiplication, B on/off, warm candle pools, stained-glass floor patterns and moonlit ground shadows. Fog resolves once in a third raster pass; native PREFOG_COLOR works in software Voodoo but fails in OpenGL. Pixel/reference checks implemented; interactive review pending. |
 | [ ] | `texture-combine` | Two-texture effects; TMU-dependent | Base texture plus lightmap; compare multiple passes with a single pass when two TMUs are available. |
+| [ ] | [`project`](project/README.md) / moving lantern | Projected textures with independent projector W | Lantern/grid projected across the nave and gravestones over existing lightmaps. P toggle, O held-world projector, X diagnostic grid; native camera fog remains separate from projector Q. One additional additive pass on a single TMU; pixel and moving-camera checks implemented, interactive review pending. |
 
 Entries without links are proposed folder names, not demos that already
 exist. Continue the anti-aliasing comparisons in `helmet`, then work down

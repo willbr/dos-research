@@ -30,13 +30,19 @@ static void quad_draw(Face *face,int *ids)
     if(common)return;
     if(!mask) {
         grDrawPolygon(4,ids,projected[0]);drawn+=2;
+#ifdef PROJECTOR_DEMO
+        projector_record_polygon(face,projected[0],ids,4);projector_in_quad=1;
+#endif
 #ifdef LIGHTMAP_DEMO
         lightmap_record(face,&projected[0][ids[0]],&projected[0][ids[1]],&projected[0][ids[2]]);
         lightmap_record(face,&projected[0][ids[0]],&projected[0][ids[2]],&projected[0][ids[3]]);
 #endif
+#ifdef PROJECTOR_DEMO
+        projector_in_quad=0;
+#endif
         return;
     }
-    for(i=0;i<4;++i)a[i]=view[ids[i]];
+    for(i=0;i<4;++i)cached_view(ids[i],&a[i]);
     for(plane=0;plane<6;++plane)if(mask&(1<<plane)) {
         int n=0;
         for(i=0;i<count;++i) {
@@ -48,7 +54,13 @@ static void quad_draw(Face *face,int *ids)
     }
     for(i=0;i<count;++i)project(&a[i],&q[i],0,320);
     grDrawPolygonVertexList(count,q);drawn+=count-2;++clipped;
+#ifdef PROJECTOR_DEMO
+    projector_record_polygon(face,q,NULL,count);projector_in_quad=1;
+#endif
 #ifdef LIGHTMAP_DEMO
     for(j=1;j<count-1;++j)lightmap_record(face,&q[0],&q[j],&q[j+1]);
+#endif
+#ifdef PROJECTOR_DEMO
+    projector_in_quad=0;
 #endif
 }

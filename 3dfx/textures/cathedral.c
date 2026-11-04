@@ -47,7 +47,9 @@ static float profiler_refresh;
 static int affine,compare,checker,finite_error,drawn,clipped,test_frames;
 static FxU32 texture_bytes;
 static float focal=520,frustum_x=320.0f/520;
-#ifdef LIGHTMAP_DEMO
+#ifdef PROJECTOR_DEMO
+static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait","Projector"};
+#elif defined(LIGHTMAP_DEMO)
 static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait"};
 #elif defined(BLEND_DEMO)
 static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","State","HUD","Profiler","Present/wait"};
@@ -65,6 +67,9 @@ static void local_color(void)
 #endif
 #ifdef FOG_DEMO
 #include "../fog/fog.h"
+#endif
+#ifdef PROJECTOR_DEMO
+#include "../project/projector.h"
 #endif
 #ifdef LIGHTMAP_DEMO
 #include "../lightmap/lightmap.h"
@@ -146,6 +151,10 @@ static int load_textures(void)
 #endif
 #ifdef LIGHTMAP_DEMO
     if(!lightmap_load(&next,pixels)){free(rgb);free(font);free(pixels);return 0;}
+#endif
+#ifdef PROJECTOR_DEMO
+    if(!projector_hud_load(&next)) {free(rgb);free(font);free(pixels);return 0;}
+    if(!projector_load(&next,pixels)){free(rgb);free(font);free(pixels);return 0;}
 #endif
     profiler_tex.smallLod=profiler_tex.largeLod=GR_LOD_256;profiler_tex.aspectRatio=GR_ASPECT_1x2;
     profiler_tex.format=GR_TEXFMT_RGB_565;profiler_tex.data=profiler_pixels;
@@ -297,7 +306,14 @@ static void interpolate(const ViewVertex *a,const ViewVertex *b,float t,ViewVert
 static void clipped_triangle(Face *f,int pass)
 {
     ViewVertex a[12],b[12];GrVertex q[12];int count=3,plane,i,j;unsigned char mask=0;
-    for(i=0;i<3;++i){a[i]=view[f->v[i]];mask|=a[i].code;}
+    for(i=0;i<3;++i){
+#ifdef FOG_DEMO
+        cached_view(f->v[i],&a[i]);
+#else
+        a[i]=view[f->v[i]];
+#endif
+        mask|=a[i].code;
+    }
     for(plane=0;plane<6;++plane) {
         int n=0;
         /* A convex interpolation cannot leave a halfspace containing all
@@ -408,6 +424,9 @@ static void render(int fps,int paused)
 #endif
     grDrawTriangle(&sky[0],&sky[1],&sky[2]);grDrawTriangle(&sky[0],&sky[2],&sky[3]);
     profile_stage(P_BACKGROUND);
+#ifdef PROJECTOR_DEMO
+    projector_prepare(paused);
+#endif
     drawn=clipped=0;prepare();profile_stage(P_TRANSFORM);
 #ifdef FOG_DEMO
     fog_apply(0);
@@ -418,6 +437,9 @@ static void render(int fps,int paused)
     scene(0);profile_stage(P_OPAQUE);
 #ifdef LIGHTMAP_DEMO
     lightmap_draw();profile_stage(P_SPECULAR);
+#endif
+#ifdef PROJECTOR_DEMO
+    projector_draw();profile_stage(P_PROJECTOR);
 #endif
 #ifdef BLEND_DEMO
     blending_effects(paused);
@@ -436,7 +458,9 @@ static void render(int fps,int paused)
 #ifndef LIGHTMAP_DEMO
     profile_stage(P_SPECULAR);
 #endif
-#ifdef FOG_DEMO
+#ifdef PROJECTOR_DEMO
+    projector_hud(fps);
+#elif defined(FOG_DEMO)
     fog_hud(fps);
 #else
     blending_hud(fps);
@@ -452,7 +476,9 @@ static void render(int fps,int paused)
     if(compare){color_quad(319,88,2,344,30,40,40);text(18,96,"PERSPECTIVE",1,245,231,184);text(338,96,"AFFINE",1,245,231,184);}
 #endif
     if(paused)text(290,416,"PAUSED",1,240,215,154);
-#ifdef LIGHTMAP_DEMO
+#ifdef PROJECTOR_DEMO
+    /* Projector HUD includes the cached footer. */
+#elif defined(LIGHTMAP_DEMO)
     text(21,452,"B LIGHTMAPS  H FOG  F JOURNEY  SPACE PAUSE  LMB LOOK  WHEEL DOLLY",1,176,188,190);
     text(21,466,"1/2/3 FOG CURVE  [ ] DENSITY  Q COLOR  TAB PROFILER  ESC EXIT",1,116,140,148);
 #elif defined(FOG_DEMO)
@@ -504,6 +530,9 @@ int main(int argc,char **argv)
     int test=argc>1 && !strcmp(argv[1],"/test"),soak=argc>1 && !strcmp(argv[1],"/soak");
     FILE *log=fopen(DEMO_LOG,"w");
     if(argc>1 && !strcmp(argv[1],"/tour"))soak=2;
+#ifdef PROJECTOR_DEMO
+    if(argc>1 && !strcmp(argv[1],"/stress"))soak=3;
+#endif
 #ifdef MIPMAP_DEMO
     mip_quick=argc>1 && !strcmp(argv[1],"/check");if(mip_quick)test=1;
     mip_bench=argc>1 && !strcmp(argv[1],"/bench");if(mip_bench)test=1;
@@ -518,6 +547,9 @@ int main(int argc,char **argv)
 #ifdef FOG_DEMO
     position_init();flat_init();
     quad_init();
+#endif
+#ifdef PROJECTOR_DEMO
+    projector_mesh_init();
 #endif
     prepare_constants();path_init();current_camera=orbit_pose();transition_from=current_camera;
 #ifdef BLEND_DEMO
@@ -553,6 +585,11 @@ int main(int argc,char **argv)
             key=getch();if(key==27)goto done;
 #ifdef FOG_DEMO
             fog_key(key);
+#ifdef PROJECTOR_DEMO
+            if(key=='p'||key=='P')projector_enabled=!projector_enabled;
+            if(key=='o'||key=='O')projector_locked=!projector_locked;
+            if(key=='x'||key=='X')projector_grid=!projector_grid;
+#endif
 #ifdef LIGHTMAP_DEMO
             if(key=='b'||key=='B')lightmaps_enabled=!lightmaps_enabled;
 #endif

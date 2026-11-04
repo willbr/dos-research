@@ -109,7 +109,9 @@ static void panel_graph(int y,int fps_graph)
 }
 static void profiler_panel(void)
 {
-#ifdef LIGHTMAP_DEMO
+#ifdef PROJECTOR_DEMO
+    static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT"};
+#elif defined(LIGHTMAP_DEMO)
     static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT"};
 #elif defined(BLEND_DEMO)
     static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","STATE","HUD","PROF","WAIT"};
@@ -128,11 +130,28 @@ static void profiler_panel(void)
        dashboard in one frame can itself cause the frame-time spike. */
     if(profiler_build) {
         char line[48];int j,phase=profiler_build;
+#ifdef PROJECTOR_DEMO
+        if(phase==1) {
+            unsigned short clear_color=rgb565(8,16,22);
+            for(i=0;i<128*128;i+=8) {
+                profiler_pixels[i]=clear_color;profiler_pixels[i+1]=clear_color;
+                profiler_pixels[i+2]=clear_color;profiler_pixels[i+3]=clear_color;
+                profiler_pixels[i+4]=clear_color;profiler_pixels[i+5]=clear_color;
+                profiler_pixels[i+6]=clear_color;profiler_pixels[i+7]=clear_color;
+            }
+            ++profiler_build;goto profiler_publish;
+        }
+        --phase;
+#endif
         if(phase==1) {
             unsigned short background_color=rgb565(8,16,22);
+            int clear_start=0;
+#ifdef PROJECTOR_DEMO
+            clear_start=128*128;
+#endif
             /* Keep the dashboard's largest raster job below the frame
                budget on the Pentium target; eight stores per loop. */
-            for(i=0;i<128*256;i+=8) {
+            for(i=clear_start;i<128*256;i+=8) {
                 profiler_pixels[i]=background_color;profiler_pixels[i+1]=background_color;
                 profiler_pixels[i+2]=background_color;profiler_pixels[i+3]=background_color;
                 profiler_pixels[i+4]=background_color;profiler_pixels[i+5]=background_color;
@@ -150,8 +169,12 @@ static void profiler_panel(void)
             } else panel_text(4,29,"COLLECTING FRAMES",ink);
         } else if(phase>=2 && phase<=4 && panel_snapshot.available) {
             int first=(phase-2)*3;
-            for(i=first;i<first+3 && i<P_STAGES;++i) {
-                int y=42+i*10,width=panel_snapshot.average>0?(int)(panel_snapshot.mean[i]/panel_snapshot.average*116):0;
+            int end=first+3,row_step=10;
+#ifdef PROJECTOR_DEMO
+            if(phase==4)end=P_STAGES;row_step=9;
+#endif
+            for(i=first;i<end && i<P_STAGES;++i) {
+                int y=42+i*row_step,width=panel_snapshot.average>0?(int)(panel_snapshot.mean[i]/panel_snapshot.average*116):0;
                 int value=(int)(panel_snapshot.mean[i]*100+.5f);
                 panel_text(4,y,labels[i],muted);sprintf(line,"%2d.%02d",value/100,value%100);panel_text(80,y,line,ink);
                 for(j=0;j<width && j<116;++j) panel_pixel(4+j,y+8,i==P_PRESENT?muted:gold);
@@ -168,6 +191,9 @@ static void profiler_panel(void)
         ++profiler_build;
         if(profiler_build==8) { profiler_build=0;profiler_row=0;profiler_upload=1; }
     }
+#ifdef PROJECTOR_DEMO
+profiler_publish:
+#endif
     if(profiler_upload) {
         /* Publish a complete new dashboard only after its incremental upload.
            4 KiB per frame avoids a 64 KiB burst that could miss retrace. */

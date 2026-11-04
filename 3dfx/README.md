@@ -32,6 +32,9 @@ with interactive Glide graphics.
   light textures, candle pools, stained-glass floor patterns and moonlit
   graveyard shadows. **B** compares lightmaps with base textures alone.
   Launch with `lightmap/run.cmd` or `./lightmap/run.ps1`.
+- [project](project/README.md): moving projected lantern over the lightmapped
+  nave and graveyard. **P** toggles it, **O** holds it in the world, and **X**
+  shows the projection grid. Launch with `project/run.cmd` or `./project/run.ps1`.
 - [sectorforth](sectorforth/README.md): 32-bit assembly Forth port with Glide
   words and an RGB triangle defined in Forth. Launch with `sectorforth/run.cmd`
   or `./sectorforth/run.ps1`.

@@ -55,15 +55,25 @@ static int journey_clear(Camera p)
 #ifdef LIGHTMAP_DEMO
 #include "../lightmap/tests.h"
 #endif
+#ifdef PROJECTOR_DEMO
+#include "../project/tests.h"
+#endif
 static int submission_comparisons(FILE *log)
 {
     int pose,mode,ok=1;unsigned short *a,*b;
+#ifdef PROJECTOR_DEMO
+    int old_grid=projector_grid;projector_grid=1;
+#endif
     for(pose=0;pose<4;++pose)for(mode=0;mode<2;++mode) {
-        int pixel;unsigned long significant=0;
+        int pixel,allowed=220;unsigned long significant=0;
+#ifdef PROJECTOR_DEMO
+        /* Projective grid edges amplify native fixed-point gradient rounding. */
+        if(mode==1)allowed=660;
+#endif
         current_camera=path_at(pose==0?0:pose==1?3:pose==2?8:14);
-        flat_enabled=quad_enabled=1;render(0,1);a=capture("OPT.PPM");
+        flat_enabled=quad_enabled=1;render(0,1);a=capture(pose==0 && mode==1?"OPT0.PPM":"OPT.PPM");
         if(mode==0)flat_enabled=0;else quad_enabled=0;
-        render(0,1);b=capture("REF.PPM");flat_enabled=quad_enabled=1;
+        render(0,1);b=capture(pose==0 && mode==1?"REF0.PPM":"REF.PPM");flat_enabled=quad_enabled=1;
         if(a && b)for(pixel=88*640;pixel<432*640;++pixel) {
             int r=abs((int)(a[pixel]>>11)-(int)(b[pixel]>>11))*255/31;
             int g=abs((int)((a[pixel]>>5)&63)-(int)((b[pixel]>>5)&63))*255/63;
@@ -71,24 +81,33 @@ static int submission_comparisons(FILE *log)
             if(r>16 || g>16 || blue>16)++significant;
         }
         /* Allow subpixel edge/diagonal rounding, never missing surfaces. */
-        if(!a || !b || significant>220)ok=0;
+        if(!a || !b || significant>(unsigned long)allowed)ok=0;
         if(log)fprintf(log,"Submission %s pose %d: %lu pixels over 16/255; %s\n",mode?"quad/triangle":"constant/iterated",pose,significant,ok?"PASS":"FAIL");
         free(a);free(b);
     }
+#ifdef PROJECTOR_DEMO
+    projector_grid=old_grid;
+#endif
     return ok;
 }
 static int run_tests(FILE *log,int soak)
 {
-    int ok=1,i,count=soak==2?6000:soak?1440:360,slow=0,inside=0,outside=0,portal=0;
+    int ok=1,i,count=soak==3?600:soak==2?6000:soak?1440:360,slow=0,inside=0,outside=0,portal=0;
     float max_ms=0,sum=0;unsigned short *a,*b;
     if(!soak) {
         ok=fog_controls(log);
 #ifdef LIGHTMAP_DEMO
         if(!lightmap_controls(log))ok=0;
 #endif
+#ifdef PROJECTOR_DEMO
+        if(!projector_controls(log))ok=0;
+#endif
         if(blend_control){
 #ifdef LIGHTMAP_DEMO
             test_frames=20;
+#ifdef PROJECTOR_DEMO
+            test_frames+=7;
+#endif
 #else
             test_frames=16;
 #endif
@@ -97,8 +116,14 @@ static int run_tests(FILE *log,int soak)
 #ifdef LIGHTMAP_DEMO
         if(!lightmap_scene_check(log))ok=0;
 #endif
+#ifdef PROJECTOR_DEMO
+        if(!projector_scene_checks(log))ok=0;
+#endif
         if(!submission_comparisons(log))ok=0;
-        flying=0;camera_home();if(!camera_switch_test())ok=0;
+        flying=0;camera_home();{
+            int camera_ok=camera_switch_test();if(!camera_ok)ok=0;
+            if(log)fprintf(log,"Camera switch/pause continuity: %s\n",camera_ok?"PASS":"FAIL");
+        }
         for(i=0;i<3;++i) {
             const char *name=i==0?"NAVE.PPM":i==1?"PORTAL.PPM":"YARD.PPM";
             unsigned long changed=0;int pixel;
@@ -143,9 +168,13 @@ static int run_tests(FILE *log,int soak)
     test_frames=count;flying=1;transition=1;fog_enabled=1;current_camera=drone_pose(0);render(0,0);render(0,0);profile_reset();profiler.measure=1;
     if(soak){FILE *f=fopen("SOAKSTAR.MRK","w");if(f)fclose(f);else ok=0;}
     for(i=0;i<count;++i) {
-        float ms;profile_begin();current_camera=drone_pose(i*(FLIGHT_SECONDS/count));profile_stage(P_INPUT);
+        float ms,seconds=soak==3?94+i*(6.0f/count):i*(FLIGHT_SECONDS/count);profile_begin();current_camera=drone_pose(seconds);profile_stage(P_INPUT);
+#ifdef PROJECTOR_DEMO
+        projector_time=seconds;
+#endif
         if(i==count/2){profile_toggle();profiler_dirty=1;}
         render(profiler.average>0?(int)(1000/profiler.average+.5f):0,0);
+
         ms=profiler.frame[(profiler.next+PROFILE_HISTORY-1)%PROFILE_HISTORY];sum+=ms;if(ms>max_ms)max_ms=ms;
         if(ms>18) {
             ++slow;if(log && soak && slow<=12) {
@@ -157,6 +186,9 @@ static int run_tests(FILE *log,int soak)
     }
     if(soak){FILE *f=fopen("SOAKEND.MRK","w");if(f)fclose(f);else ok=0;}
     if(log){fprintf(log,"Journey: %d frames, %.2f guest FPS, max %.3f ms, %d over 18 ms\n",count,count*1000/sum,max_ms,slow);log_profile(log);}
+#ifdef PROJECTOR_DEMO
+    if(log)fprintf(log,"Projector final frame: %d cached polygons, %d clipped intersections, %d beam triangles\n",projector_count,projector_intersections,projector_triangles);
+#endif
     if(soak && slow)ok=0;
     return ok && !finite_error;
 }

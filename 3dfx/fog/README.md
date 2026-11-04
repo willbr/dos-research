@@ -64,8 +64,8 @@ door. Exact clipping handles partially visible quads. Distant headstones use
 coarse geometry, including simpler caps and no tiny inscription bars.
 
 Coincident positions share one transform per moving frame while keeping their
-separate UVs and colors. Only referenced vertices are visited. Constant face
-colors are batched through the color combiner instead of calculating RGB
+separate UVs and colors. Only referenced vertices are visited. Camera coordinates are copied from
+the shared position cache only when clipping needs them. Constant face colors are batched through the color combiner instead of calculating RGB
 triangle gradients. Coplanar pairs share quad clipping and the regular native
 polygon API. Fog and the single TMU share identical reciprocal depth, avoiding
 redundant W gradients. The HUD also uses constant-color text. CPU cycles,

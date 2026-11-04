@@ -75,6 +75,9 @@ static void lightmap_mesh_init(void)
 static void lightmap_record(Face *f,const GrVertex *a,const GrVertex *b,const GrVertex *c)
 {
     int i,id=lightmap_face[f-faces];LightTriangle *t;const GrVertex *src[3];
+#ifdef PROJECTOR_DEMO
+    if(!projector_in_quad)projector_record(f,a,b,c);
+#endif
     if(!lightmaps_enabled || !id)return;
     if(lightmap_count==1024){finite_error=1;return;}
     t=&lightmap_cache[lightmap_count++];src[0]=a;src[1]=b;src[2]=c;
