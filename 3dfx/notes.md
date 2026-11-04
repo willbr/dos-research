@@ -44,6 +44,13 @@ explicit memory model make a small native bridge straightforward to design.
 Build a small interactive Lisp graphics environment derived from
 [sectorlisp](https://github.com/jart/sectorlisp).
 
+Initial implementation: [`sectorlisp/`](sectorlisp/README.md) now ports the
+upstream C reference evaluator to DOS/4GW, with integer arithmetic,
+persistent definitions, stable cons handles with mark/sweep collection,
+native Glide functions and the RGB triangle in `TRIANGLE.LSP`. It shares
+the tested graphics bridge with sectorforth. Porting the boot-sector
+assembly, floating-point values and richer scene descriptions remain future work.
+
 Port the interpreter to the same 32-bit DOS/4GW host. Adapt its object
 representation, pointers, heap/garbage collector and console handling;
 account for the original implementation's compact encoding rather than

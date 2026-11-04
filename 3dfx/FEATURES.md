@@ -42,7 +42,8 @@ refresh pacing, but does not independently establish every setting's behavior.
 | --- | --- | --- | --- |
 | [x] | [`cube`](cube/README.md) | Basic triangle rendering and smooth color interpolation | Rotating rainbow cube, hidden surfaces, readable FPS; baseline passed in DOSBox-X. |
 | [x] | [`sectorforth`](sectorforth/README.md) | Native language binding to Glide | 32-bit assembly Forth compiles definitions that populate RGB vertices and draw the classic triangle; interpreter and framebuffer checks passed in DOSBox-X. |
-| [ ] | `anti-aliasing` | Edge AA: supported through `grAADraw*` | Toggle AA on slow rotating lines and a triangle; then compare a cube silhouette without introducing seams on shared edges. |
+| [x] | [`sectorlisp`](sectorlisp/README.md) | Lisp binding to Glide | 32-bit DOS C-reference port evaluates a Lisp-defined RGB triangle; recursive evaluation, persistent definitions, garbage collection and three graphics visits pass in DOSBox-X. |
+| [ ] | [`helmet`](helmet/README.md) / anti-aliasing | Textured diving-helmet silhouette AA demo implemented in C. | Fixed-pose AA on/off framebuffer comparison and front/side visual checks pass in DOSBox-X. Review interactively before completing this item; near-horizontal lines and a minimal triangle control are still follow-up checks. Shared internal mesh edges are excluded. |
 | [ ] | `textures` | Perspective-correct texture mapping | Checkerboard on a tilted quad; CPU-generated affine version beside Glide's perspective-correct result. |
 | [ ] | `filtering` | Nearest and bilinear filtering | Magnify the same checkerboard with both filters; compare pixel edges and blur. |
 | [ ] | `mipmaps` | Mipmapping and LOD bias | Receding checkerboard floor, mipmaps on/off, colored mip levels, adjustable LOD bias; inspect shimmer and transitions. |
@@ -52,9 +53,9 @@ refresh pacing, but does not independently establish every setting's behavior.
 | [ ] | `combiners` | Fixed-function color/alpha operations | One textured object with replace, modulate, add and interpolate modes; label the equation used. |
 | [ ] | `texture-combine` | Two-texture effects; TMU-dependent | Base texture plus lightmap; compare multiple passes with a single pass when two TMUs are available. |
 
-These are proposed folder names, not demos that already exist. Start with
-`anti-aliasing`, then work down the list; each demo should remain runnable
-on its own.
+Entries without links are proposed folder names, not demos that already
+exist. Continue the anti-aliasing comparisons in `helmet`, then work down
+the list; each demo should remain runnable on its own.
 
 ## Effects and experiments found in the manuals
 

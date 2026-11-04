@@ -4,6 +4,8 @@ A 32-bit assembly port of Cesar Blum's sectorforth, hosted by DOS/4GW,
 with native Glide words. `TRIANGLE.F` compiles Forth definitions that supply
 three colored vertices and draw the classic RGB triangle. Geometry and
 the draw sequence live in Forth; `host.c` provides the DOS/Glide bridge.
+The graphics implementation is shared with sectorlisp in
+[`../common/`](../common/README.md); `host.c` retains the Forth console host.
 
 ## Run
 

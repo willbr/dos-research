@@ -10,9 +10,16 @@ with interactive Glide graphics.
 - [cube](cube/README.md): rotating rainbow cube using DOS Glide, with a live
   FPS counter and 60 Hz frame pacing. Launch with `cube/run.cmd` or
   `./cube/run.ps1`.
+- [helmet](helmet/README.md): textured C diving helmet inspired by the user's
+  Winchester photograph, with silhouette-edge anti-aliasing, inertial mouse
+  controls, and a Tab profiler with FPS/frame-time graphs.
+  Launch with `helmet/run.cmd` or `./helmet/run.ps1`.
 - [sectorforth](sectorforth/README.md): 32-bit assembly Forth port with Glide
   words and an RGB triangle defined in Forth. Launch with `sectorforth/run.cmd`
   or `./sectorforth/run.ps1`.
+- [sectorlisp](sectorlisp/README.md): DOS port of sectorlisp's C reference
+  evaluator with native Glide functions and an RGB triangle defined in Lisp.
+  Launch with `sectorlisp/run.cmd` or `./sectorlisp/run.ps1`.
 
 ## Manuals
 

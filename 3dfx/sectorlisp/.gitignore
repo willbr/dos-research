@@ -1,0 +1,7 @@
+DOS4GW.EXE
+GLIDE2X.OVL
+*.LOG
+*.PPM
+*.png
+!SL3DFX.EXE
+!run.cmd
