@@ -61,6 +61,9 @@ static int journey_clear(Camera p)
 #ifdef SHADOW_DEMO
 #include "../shadows/tests.h"
 #endif
+#ifdef REFLECTION_DEMO
+#include "../reflect/tests.h"
+#endif
 static int submission_comparisons(FILE *log)
 {
     int pose,mode,ok=1;unsigned short *a,*b;
@@ -97,6 +100,9 @@ static int run_tests(FILE *log,int soak)
 {
     int ok=1,i,count=soak==3?600:soak==2?6000:soak?1440:360,slow=0,inside=0,outside=0,portal=0;
     float max_ms=0,sum=0;unsigned short *a,*b;
+#ifdef REFLECTION_DEMO
+    if(reflection_quick){test_frames=12;return reflection_controls(log) && reflection_scene_checks(log) && !finite_error;}
+#endif
     if(!soak) {
         ok=fog_controls(log);
 #ifdef LIGHTMAP_DEMO
@@ -108,6 +114,9 @@ static int run_tests(FILE *log,int soak)
 #ifdef SHADOW_DEMO
         if(!shadow_controls(log))ok=0;
 #endif
+#ifdef REFLECTION_DEMO
+        if(!reflection_controls(log))ok=0;
+#endif
         if(blend_control){
 #ifdef LIGHTMAP_DEMO
             test_frames=20;
@@ -115,6 +124,9 @@ static int run_tests(FILE *log,int soak)
             test_frames+=7;
 #ifdef SHADOW_DEMO
             test_frames+=4;
+#ifdef REFLECTION_DEMO
+            test_frames+=4;
+#endif
 #endif
 #endif
 #else
@@ -130,6 +142,9 @@ static int run_tests(FILE *log,int soak)
 #endif
 #ifdef SHADOW_DEMO
         if(!shadow_scene_checks(log))ok=0;
+#endif
+#ifdef REFLECTION_DEMO
+        if(!reflection_scene_checks(log))ok=0;
 #endif
         if(!submission_comparisons(log))ok=0;
         flying=0;camera_home();{
@@ -211,6 +226,9 @@ static int run_tests(FILE *log,int soak)
 #endif
 #ifdef SHADOW_DEMO
     if(log)fprintf(log,"Shadow volumes %d; final frame: %d polygons, %d triangles, piers %d graves %d\n",shadow_caster_count,shadow_polygons,shadow_triangles,shadow_pier_hits,shadow_grave_hits);
+#endif
+#ifdef REFLECTION_DEMO
+    if(log)fprintf(log,"Reflection mesh %d surfaces; final frame: %d candidates, %d polygons, %d triangles\n",reflect_count,reflect_visible,reflect_polygons,reflect_triangles);
 #endif
     if(soak && slow)ok=0;
     return ok && !finite_error;

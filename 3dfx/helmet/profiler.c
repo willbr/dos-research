@@ -93,6 +93,9 @@ void profile_log(void *file)
 #ifdef SHADOW_DEMO
         ,"Shadows"
 #endif
+#ifdef REFLECTION_DEMO
+        ,"Reflection"
+#endif
     };
     FILE *f=(FILE *)file;int i;
     if(!f) return;

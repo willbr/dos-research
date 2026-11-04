@@ -38,6 +38,9 @@ with interactive Glide graphics.
 - [shadows](shadows/README.md): moving lantern ground shadows from pillars,
   headstones and crosses, preserving baked lighting. **S** toggles shadows.
   Launch with `shadows/run.cmd` or `./shadows/run.ps1`.
+- [reflect](reflect/README.md): a still-water graveyard puddle with mirrored
+  geometry, native depth occlusion and alpha water tint. **R** compares the
+  reflection with plain water. Launch with `reflect/run.cmd` or `./reflect/run.ps1`.
 - [sectorforth](sectorforth/README.md): 32-bit assembly Forth port with Glide
   words and an RGB triangle defined in Forth. Launch with `sectorforth/run.cmd`
   or `./sectorforth/run.ps1`.

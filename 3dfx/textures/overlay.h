@@ -109,7 +109,9 @@ static void panel_graph(int y,int fps_graph)
 }
 static void profiler_panel(void)
 {
-#ifdef SHADOW_DEMO
+#ifdef REFLECTION_DEMO
+    static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW","REFLECT"};
+#elif defined(SHADOW_DEMO)
     static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW"};
 #elif defined(PROJECTOR_DEMO)
     static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT"};
@@ -208,7 +210,12 @@ static void profiler_panel(void)
 #endif
             ) {
                 int p=(int)(panel_snapshot.p95*10+.5f),m=(int)(panel_snapshot.max*10+.5f);
-                sprintf(line,"P95 %d.%d MAX %d.%d",p/10,p%10,m/10,m%10);panel_text(4,135,line,ink);
+                sprintf(line,"P95 %d.%d MAX %d.%d",p/10,p%10,m/10,m%10);
+#ifdef REFLECTION_DEMO
+                panel_text(4,139,line,ink);
+#else
+                panel_text(4,135,line,ink);
+#endif
             }
         } else if(phase==5 && panel_snapshot.available) {
             panel_text(4,148,"FPS 0-90 / 60",muted);panel_graph(159,1);

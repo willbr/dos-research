@@ -48,7 +48,11 @@ static int affine,compare,checker,finite_error,drawn,clipped,test_frames;
 static FxU32 texture_bytes;
 static float focal=520,frustum_x=320.0f/520;
 #ifdef SHADOW_DEMO
+#ifdef REFLECTION_DEMO
+static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait","Projector","Shadows","Reflection"};
+#else
 static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait","Projector","Shadows"};
+#endif
 #elif defined(PROJECTOR_DEMO)
 static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait","Projector"};
 #elif defined(LIGHTMAP_DEMO)
@@ -72,6 +76,9 @@ static void local_color(void)
 #endif
 #ifdef SHADOW_DEMO
 static int shadows_enabled=1;
+#ifdef REFLECTION_DEMO
+static int reflections_enabled=1;
+#endif
 #endif
 #ifdef PROJECTOR_DEMO
 #include "../project/projector.h"
@@ -426,6 +433,9 @@ static void scene(int pass)
 #ifdef BLEND_DEMO
 #include "../blending/effects.h"
 #endif
+#ifdef REFLECTION_DEMO
+#include "../reflect/reflection.h"
+#endif
 static void render(int fps,int paused)
 {
     char line[80];GrVertex sky[4];int i;
@@ -458,6 +468,9 @@ static void render(int fps,int paused)
     scene(0);profile_stage(P_OPAQUE);
 #ifdef LIGHTMAP_DEMO
     lightmap_draw();profile_stage(P_SPECULAR);
+#endif
+#ifdef REFLECTION_DEMO
+    reflection_draw();profile_stage(P_REFLECTION);
 #endif
 #ifdef SHADOW_DEMO
     shadow_draw();profile_stage(P_SHADOWS);
@@ -553,6 +566,9 @@ int main(int argc,char **argv)
     GrHwConfiguration hw;int key,paused=0,fps=0,frames=0,sample=0,second,synced=0,ok=1;
     int test=argc>1 && !strcmp(argv[1],"/test"),soak=argc>1 && !strcmp(argv[1],"/soak");
     FILE *log=fopen(DEMO_LOG,"w");
+#ifdef REFLECTION_DEMO
+    reflection_quick=argc>1 && !strcmp(argv[1],"/water");if(reflection_quick)test=1;
+#endif
     if(argc>1 && !strcmp(argv[1],"/tour"))soak=2;
 #ifdef PROJECTOR_DEMO
     if(argc>1 && !strcmp(argv[1],"/stress"))soak=3;
@@ -575,9 +591,19 @@ int main(int argc,char **argv)
 #ifdef PROJECTOR_DEMO
     projector_mesh_init();
 #endif
+#ifdef REFLECTION_DEMO
+    reflection_init();
+#endif
     prepare_constants();path_init();current_camera=orbit_pose();transition_from=current_camera;
 #ifdef BLEND_DEMO
     flying=1;transition=1;current_camera=drone_pose(0);transition_from=current_camera;
+#ifdef REFLECTION_DEMO
+    if(!test && !soak) {
+        /* Open on the new effect; continue the same complete loop afterward. */
+        drone_seconds=FLIGHT_SECONDS*path_distance[PATH_SAMPLES/4]/path_distance[PATH_SAMPLES];
+        current_camera=drone_pose(drone_seconds);transition_from=current_camera;
+    }
+#endif
 #endif
     if(log){fprintf(log,"Mesh: %d vertices, %d faces\n",vertex_count,face_count);fflush(log);}
     grGlideInit();
@@ -612,6 +638,9 @@ int main(int argc,char **argv)
 #ifdef PROJECTOR_DEMO
 #ifdef SHADOW_DEMO
             if(key=='s'||key=='S')shadows_enabled=!shadows_enabled;
+#ifdef REFLECTION_DEMO
+            if(key=='r'||key=='R')reflections_enabled=!reflections_enabled;
+#endif
 #endif
             if(key=='p'||key=='P')projector_enabled=!projector_enabled;
             if(key=='o'||key=='O')projector_locked=!projector_locked;
