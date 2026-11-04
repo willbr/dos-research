@@ -20,4 +20,3 @@ do {
 } while ($result -notmatch '(?m)^(PASS|FAIL):' -and $timer.Elapsed.TotalSeconds -lt 10)
 $result
 if ($result -notmatch '(?m)^PASS:') { throw 'Rotation test failed; see CATHEDRL.LOG' }
-

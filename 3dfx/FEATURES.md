@@ -46,7 +46,7 @@ refresh pacing, but does not independently establish every setting's behavior.
 | [ ] | [`helmet`](helmet/README.md) / anti-aliasing | Textured diving-helmet silhouette AA demo implemented in C. | Fixed-pose AA on/off framebuffer comparison and front/side visual checks pass in DOSBox-X. Review interactively before completing this item; near-horizontal lines and a minimal triangle control are still follow-up checks. Shared internal mesh edges are excluded. |
 | [ ] | [`textures`](textures/README.md) / Winchester Cathedral | Perspective-correct versus affine texture mapping | C exterior model, orbit and smooth drone route; toggle native perspective/affine texture W or compare side by side, with optional checkerboard. Same-camera framebuffer and clipping/path checks implemented; interactive comparison awaits review. |
 | [ ] | `filtering` | Nearest and bilinear filtering | Magnify the same checkerboard with both filters; compare pixel edges and blur. |
-| [ ] | `mipmaps` | Mipmapping and LOD bias | Receding checkerboard floor, mipmaps on/off, colored mip levels, adjustable LOD bias; inspect shimmer and transitions. |
+| [ ] | [`mipmaps`](mipmaps/README.md) / cathedral | Mipmapping and LOD bias | Native off/on comparison, nine colored levels, bias and nearest/dither toggles. Software Voodoo framebuffer checks pass; OpenGL regenerates host mips and fails the custom-level/bias diagnostic on DOSBox-X 2026.01.02. Review moving shimmer/transitions interactively. |
 | [ ] | `blending` | Alpha and additive blending | Overlapping translucent quads and glowing particles; compare blend factors and drawing orders. |
 | [ ] | `depth` | Z and W buffers | Intersecting geometry; compare depth off/on, Z/W modes, comparison functions and depth writes. |
 | [ ] | `fog` | Fog color and lookup table | Objects receding into fog; compare table-based depth fog and vertex-alpha fog. |
@@ -56,6 +56,11 @@ refresh pacing, but does not independently establish every setting's behavior.
 Entries without links are proposed folder names, not demos that already
 exist. Continue the anti-aliasing comparisons in `helmet`, then work down
 the list; each demo should remain runnable on its own.
+
+For mipmap correctness, use the dedicated demo's software Voodoo config.
+Our OpenGL-backed demos remain useful for other mechanisms, but that backend
+does not establish native mip-chain, LOD-bias or dither behavior. The mipmap
+demo's Windows-clock benchmark also separates actual host FPS from guest time.
 
 ## Effects and experiments found in the manuals
 

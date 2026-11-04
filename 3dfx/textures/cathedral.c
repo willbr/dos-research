@@ -8,6 +8,20 @@
 #include <glide.h>
 #include "model.h"
 #include "../helmet/profiler.h"
+#ifndef MATERIAL_ROOT
+#define MATERIAL_ROOT "assets/"
+#endif
+#ifndef DEMO_LOG
+#define DEMO_LOG "CATHEDRL.LOG"
+#endif
+#ifndef DEMO_NAME
+#define DEMO_NAME "Winchester Cathedral, textures"
+#endif
+#ifdef MIPMAP_DEMO
+#define TEXTURE_W(inv,mode) (inv)
+#else
+#define TEXTURE_W(inv,mode) ((mode)?1:(inv))
+#endif
 static float yaw=-.6f,pitch=-.12f,zoom=1,target_yaw=-.6f,target_pitch=-.12f,target_zoom=1;
 static float yaw_speed,pitch_speed,zoom_speed,drag_yaw_speed,drag_pitch_speed,inertia_yaw,inertia_pitch;
 static int previous_buttons,mouse_present,wheel_present;
@@ -31,9 +45,12 @@ static void local_color(void)
     grAlphaCombine(GR_COMBINE_FUNCTION_LOCAL,GR_COMBINE_FACTOR_NONE,GR_COMBINE_LOCAL_ITERATED,GR_COMBINE_OTHER_NONE,FXFALSE);
 }
 #include "overlay.h"
+#ifdef MIPMAP_DEMO
+#include "../mipmaps/mipmap.h"
+#endif
 static int load_textures(void)
 {
-    static const char *paths[8]={"assets/STONE.RGB","assets/ROOF.RGB","assets/GRASS.RGB",NULL,"assets/PAVING.RGB",NULL,NULL,NULL};
+    static const char *paths[8]={MATERIAL_ROOT "STONE.RGB",MATERIAL_ROOT "ROOF.RGB",MATERIAL_ROOT "GRASS.RGB",NULL,MATERIAL_ROOT "PAVING.RGB",NULL,NULL,NULL};
     unsigned char *rgb=malloc(256UL*256*3),*font=calloc(8192,1);
     unsigned short *pixels=malloc(256UL*256*2);FxU32 next=grTexMinAddress(GR_TMU0);int t,i,x,y;
     if(!rgb || !font || !pixels){free(rgb);free(font);free(pixels);return 0;}
@@ -77,10 +94,21 @@ static int load_textures(void)
         }
         tex[t].smallLod=tex[t].largeLod=GR_LOD_256;tex[t].aspectRatio=t==3?GR_ASPECT_8x1:GR_ASPECT_1x1;
         tex[t].format=t==3?GR_TEXFMT_ALPHA_8:(t==5||t==6)?GR_TEXFMT_ARGB_1555:GR_TEXFMT_RGB_565;
-        tex[t].data=t==3?(void *)font:(void *)pixels;bytes=grTexTextureMemRequired(GR_MIPMAPLEVELMASK_BOTH,&tex[t]);
+        tex[t].data=t==3?(void *)font:(void *)pixels;
+#ifdef MIPMAP_DEMO
+        if(t!=3 && t!=5 && t!=6) {
+            if(!mip_download(t,pixels,&next)){free(rgb);free(font);free(pixels);return 0;}
+            continue;
+        }
+#endif
+        bytes=grTexTextureMemRequired(GR_MIPMAPLEVELMASK_BOTH,&tex[t]);
         if(next+bytes>grTexMaxAddress(GR_TMU0)+1){free(rgb);free(font);free(pixels);return 0;}
         address[t]=next;grTexDownloadMipMap(GR_TMU0,next,GR_MIPMAPLEVELMASK_BOTH,&tex[t]);next+=bytes;tex[t].data=NULL;
     }
+#ifdef MIPMAP_DEMO
+    if(!mip_debug_download(pixels,&next)){free(rgb);free(font);free(pixels);return 0;}
+    grHints(GR_HINT_ALLOW_MIPMAP_DITHER,1);
+#endif
     profiler_tex.smallLod=profiler_tex.largeLod=GR_LOD_256;profiler_tex.aspectRatio=GR_ASPECT_1x2;
     profiler_tex.format=GR_TEXFMT_RGB_565;profiler_tex.data=profiler_pixels;
     for(t=0;t<2;++t) {
@@ -111,7 +139,7 @@ static float plane_distance(ViewVertex *v,int plane)
 }
 static void project(ViewVertex *s,GrVertex *v,int affine_mode,float center)
 {
-    float inv=1/s->z,w=affine_mode?1:inv;
+    float inv=1/s->z,w=TEXTURE_W(inv,affine_mode);
     v->x=center+s->x*focal*inv;v->y=260-s->y*focal*inv;
     v->oow=inv;v->ooz=65535*.45f*inv;v->a=255;
     v->r=s->r;v->g=s->g;v->b=s->b;
@@ -145,13 +173,17 @@ static void prepare(void)
         if(zz<.45f)code|=1;if(zz>160)code|=2;
         if(xx < -xb)code|=4;if(xx>xb)code|=8;if(yy < -yb)code|=16;if(yy>yb)code|=32;v->code=code;
         if(!code) {
-            GrVertex *p=&projected[0][i];float inv=1/zz,w=(!compare && affine)?1:inv;
+            GrVertex *p=&projected[0][i];float inv=1/zz,w=TEXTURE_W(inv,!compare && affine);
             p->x=(compare?160:320)+xx*focal*inv;p->y=260-yy*focal*inv;
             p->oow=inv;p->ooz=65535*.45f*inv;
             p->tmuvtx[0].sow=s->u*w;p->tmuvtx[0].tow=s->v*w;p->tmuvtx[0].oow=w;
             if(compare) {
                 GrVertex *q=&projected[1][i];q->x=p->x+320;q->y=p->y;q->oow=inv;q->ooz=p->ooz;
+#ifdef MIPMAP_DEMO
+                q->tmuvtx[0].sow=p->tmuvtx[0].sow;q->tmuvtx[0].tow=p->tmuvtx[0].tow;q->tmuvtx[0].oow=inv;
+#else
                 q->tmuvtx[0].sow=s->u;q->tmuvtx[0].tow=s->v;q->tmuvtx[0].oow=1;
+#endif
             }
         }
     }
@@ -203,7 +235,11 @@ static void scene(int pass)
     for(mat=0;mat<MATERIALS;++mat) {
         int cutout=mat==WINDOW || mat==DOOR;
         int texture=checker && (mat==STONE || mat==ROOF || mat==PAVING || mat==TRIM)?7:source[mat];
+#ifdef MIPMAP_DEMO
+        mip_source(texture,pass);
+#else
         grTexSource(GR_TMU0,address[texture],GR_MIPMAPLEVELMASK_BOTH,&tex[texture]);
+#endif
         /* Keep ground/paving and surface-detail cards stable in 16-bit Z. */
         grDepthBiasLevel(mat==GRASS?-4:mat==PAVING?-2:cutout?2:0);
         grTexClampMode(GR_TMU0,cutout?GR_TEXTURECLAMP_CLAMP:GR_TEXTURECLAMP_WRAP,cutout?GR_TEXTURECLAMP_CLAMP:GR_TEXTURECLAMP_WRAP);
@@ -231,15 +267,23 @@ static void render(int fps,int paused)
     drawn=clipped=0;prepare();profile_stage(P_TRANSFORM);
     scene(0);profile_stage(P_OPAQUE);if(compare)scene(1);profile_stage(P_AA);profile_stage(P_SPECULAR);
     grClipWindow(0,0,640,480);grDepthBiasLevel(0);grDepthBufferMode(GR_DEPTHBUFFER_DISABLE);grDepthMask(FXFALSE);grAlphaTestFunction(GR_CMP_ALWAYS);
+#ifdef MIPMAP_DEMO
+    mip_hud(fps);
+#else
     text(21,19,"3DFX / TEXTURE PERSPECTIVE STUDY",1,176,157,122);
     text(21,39,"WINCHESTER CATHEDRAL",2.6f,233,224,202);
     text(480,20,compare?"SIDE BY SIDE":affine?"AFFINE":"PERSPECTIVE",1,135,209,202);
     text(480,36,flying?"F DRONE FLIGHT":"F ORBIT CAMERA",1,176,188,190);
     if(fps>0)sprintf(line,"FPS %d",fps);else strcpy(line,"FPS --");text(480,53,line,1,176,157,122);
     if(compare){color_quad(319,88,2,344,30,40,40);text(18,96,"PERSPECTIVE",1,245,231,184);text(338,96,"AFFINE",1,245,231,184);}
+#endif
     if(paused)text(290,416,"PAUSED",1,240,215,154);
     text(21,452,"LMB ORBIT   WHEEL/RMB ZOOM   F DRONE FLIGHT   SPACE PAUSE",1,176,188,190);
+#ifdef MIPMAP_DEMO
+    text(21,466,"M MIPS C COMPARE G LEVELS [ ] BIAS N DITHER K CHECKER TAB PROFILER ESC EXIT",1,116,140,148);
+#else
     text(21,466,"C COMPARE   P PERSPECTIVE/AFFINE   K CHECKER   TAB PROFILER   ESC EXIT",1,116,140,148);
+#endif
     profile_stage(P_HUD);profiler_panel();profile_stage(P_OVERLAY);
     while(grSstVRetraceOn()){}while(!grSstVRetraceOn()){}
     grBufferSwap(1);while(grBufferNumPending()>0){}grSstIdle();profile_stage(P_PRESENT);profile_end();
@@ -260,12 +304,20 @@ static void log_profile(FILE *log)
 }
 static int rtc_seconds(void)
 { int sec,mode;outp(0x70,11);mode=inp(0x71);outp(0x70,0);sec=inp(0x71);return mode&4?sec:(sec>>4)*10+(sec&15); }
+#ifdef MIPMAP_DEMO
+#include "../mipmaps/tests.h"
+#else
 #include "tests.h"
+#endif
 int main(int argc,char **argv)
 {
     GrHwConfiguration hw;int key,paused=0,fps=0,frames=0,sample=0,second,synced=0,ok=1;
     int test=argc>1 && !strcmp(argv[1],"/test"),soak=argc>1 && !strcmp(argv[1],"/soak");
-    FILE *log=fopen("CATHEDRL.LOG","w");
+    FILE *log=fopen(DEMO_LOG,"w");
+#ifdef MIPMAP_DEMO
+    mip_quick=argc>1 && !strcmp(argv[1],"/check");if(mip_quick)test=1;
+    mip_bench=argc>1 && !strcmp(argv[1],"/bench");if(mip_bench)test=1;
+#endif
     if(!build_cathedral()){puts("Mesh capacity error");if(log)fclose(log);return 1;}
     prepare_constants();path_init();current_camera=orbit_pose();transition_from=current_camera;
     if(log){fprintf(log,"Mesh: %d vertices, %d faces\n",vertex_count,face_count);fflush(log);}
@@ -278,7 +330,12 @@ int main(int argc,char **argv)
     if(!load_textures()){grGlideShutdown();puts("Cannot load material textures / texture memory exhausted");if(log)fclose(log);return 1;}
     profile_init();mouse_init();
     if(log){fprintf(log,"TMU0 start-address bounds %lu..%lu; textures used %lu bytes; mouse %d wheel %d timer %d\n",(unsigned long)grTexMinAddress(GR_TMU0),(unsigned long)grTexMaxAddress(GR_TMU0),(unsigned long)texture_bytes,mouse_present,wheel_present,profiler.available);fflush(log);}
-    if(test || soak){ok=run_tests(log,soak);frames=test_frames;goto done;}
+    if(test || soak){
+#ifdef MIPMAP_DEMO
+        if(mip_bench)ok=run_mip_benchmark(log);else
+#endif
+        ok=run_tests(log,soak);frames=test_frames;goto done;
+    }
     second=rtc_seconds();
     for(;;) {
         float dt=profiler.available && profiler.count?clamp(profiler.frame[(profiler.next+PROFILE_HISTORY-1)%PROFILE_HISTORY]/1000,.004f,.1f):1/60.0f;
@@ -288,7 +345,16 @@ int main(int argc,char **argv)
             if(key==9){profile_toggle();profiler_dirty=1;}
             if(key=='f'||key=='F'){fly_mode(!flying);paused=0;}
             if(key=='c'||key=='C')compare=!compare;
+#ifndef MIPMAP_DEMO
             if(key=='p'||key=='P')affine=!affine;
+#else
+            if(key=='m'||key=='M')mip_enabled=!mip_enabled;
+            if(key=='g'||key=='G')mip_colored=!mip_colored;
+            if(key=='n'||key=='N')mip_dither=!mip_dither;
+            if(key=='[')lod_bias=clamp(lod_bias-.25f,-4,4);
+            if(key==']')lod_bias=clamp(lod_bias+.25f,-4,4);
+            if(key=='0')lod_bias=.5f;
+#endif
             if(key=='k'||key=='K')checker=!checker;
             if(key==' ')paused=!paused;
             if(key=='r'||key=='R'){fly_mode(0);reset_target();}
@@ -306,5 +372,5 @@ int main(int argc,char **argv)
         {int now=rtc_seconds(),elapsed=(now-second+60)%60;if(elapsed){if(synced)fps=sample/elapsed;synced=1;sample=0;second=now;}}
     }
 done:
-    grGlideShutdown();if(log){fprintf(log,"%s: Winchester Cathedral, textures, orbit + drone camera, %d frames\n",ok&&!finite_error?"PASS":"FAIL",frames);fclose(log);}return ok&&!finite_error?0:1;
+    grGlideShutdown();if(log){fprintf(log,"%s: %s, orbit + drone camera, %d frames\n",ok&&!finite_error?"PASS":"FAIL",DEMO_NAME,frames);fclose(log);}return ok&&!finite_error?0:1;
 }

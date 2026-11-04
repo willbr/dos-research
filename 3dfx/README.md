@@ -18,6 +18,10 @@ with interactive Glide graphics.
   orbit controls, an automatic drone flight, perspective/affine texture
   comparison and the Tab profiler. Launch with `textures/run.cmd` or
   `./textures/run.ps1`.
+- [mipmaps](mipmaps/README.md): cathedral mipmapping comparison, colored mip
+  levels, LOD bias and dithered transitions. Uses the software Voodoo backend
+  to honor uploaded levels; see its measured host FPS and backend notes.
+  Launch with `mipmaps/run.cmd` or `./mipmaps/run.ps1`.
 - [sectorforth](sectorforth/README.md): 32-bit assembly Forth port with Glide
   words and an RGB triangle defined in Forth. Launch with `sectorforth/run.cmd`
   or `./sectorforth/run.ps1`.
