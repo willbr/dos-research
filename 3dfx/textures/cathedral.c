@@ -17,7 +17,7 @@
 #ifndef DEMO_NAME
 #define DEMO_NAME "Winchester Cathedral, textures"
 #endif
-#ifdef MIPMAP_DEMO
+#if defined(MIPMAP_DEMO) || defined(BLEND_DEMO)
 #define TEXTURE_W(inv,mode) (inv)
 #else
 #define TEXTURE_W(inv,mode) ((mode)?1:(inv))
@@ -26,8 +26,15 @@ static float yaw=-.6f,pitch=-.12f,zoom=1,target_yaw=-.6f,target_pitch=-.12f,targ
 static float yaw_speed,pitch_speed,zoom_speed,drag_yaw_speed,drag_pitch_speed,inertia_yaw,inertia_pitch;
 static int previous_buttons,mouse_present,wheel_present;
 static void fly_mode(int enabled);
+#ifdef BLEND_DEMO
+static void camera_home(void);
+#endif
 #include "controls.h"
+#ifdef BLEND_DEMO
+#include "../blending/camera.h"
+#else
 #include "camera.h"
+#endif
 static GrTexInfo tex[8],profiler_tex;
 static FxU32 address[8],profiler_address[2];
 static unsigned short profiler_pixels[128*256];
@@ -38,13 +45,20 @@ static float profiler_refresh;
 static int affine,compare,checker,finite_error,drawn,clipped,test_frames;
 static FxU32 texture_bytes;
 static float focal=520,frustum_x=320.0f/520;
+#ifdef BLEND_DEMO
+static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","State","HUD","Profiler","Present/wait"};
+#else
 static const char *stage_names[P_STAGES]={"Input","Sky","Transform/cull","Scene","Comparison","Extra","HUD","Profiler","Present/wait"};
+#endif
 static void local_color(void)
 {
     grColorCombine(GR_COMBINE_FUNCTION_LOCAL,GR_COMBINE_FACTOR_NONE,GR_COMBINE_LOCAL_ITERATED,GR_COMBINE_OTHER_NONE,FXFALSE);
     grAlphaCombine(GR_COMBINE_FUNCTION_LOCAL,GR_COMBINE_FACTOR_NONE,GR_COMBINE_LOCAL_ITERATED,GR_COMBINE_OTHER_NONE,FXFALSE);
 }
 #include "overlay.h"
+#ifdef BLEND_DEMO
+#include "../blending/appearance.h"
+#endif
 #ifdef MIPMAP_DEMO
 #include "../mipmaps/mipmap.h"
 #endif
@@ -67,6 +81,10 @@ static int load_textures(void)
         if(t!=3)for(y=0;y<256;++y)for(x=0;x<256;++x) {
             int r,g,b;unsigned short alpha=0x8000;
             i=y*256+x;
+#ifdef BLEND_DEMO
+            if(t==2 || t==5 || t==6){pixels[i]=blend_texel(t,x,y);continue;}
+            if(t==7){((unsigned char *)pixels)[i]=soft_alpha(x,y);continue;}
+#endif
             if(paths[t]) {
                 r=rgb[i*3];g=rgb[i*3+1];b=rgb[i*3+2];
                 if(t==2){r=(r+3*89)/4;g=(g+3*110)/4;b=(b+3*70)/4;}
@@ -94,6 +112,10 @@ static int load_textures(void)
         }
         tex[t].smallLod=tex[t].largeLod=GR_LOD_256;tex[t].aspectRatio=t==3?GR_ASPECT_8x1:GR_ASPECT_1x1;
         tex[t].format=t==3?GR_TEXFMT_ALPHA_8:(t==5||t==6)?GR_TEXFMT_ARGB_1555:GR_TEXFMT_RGB_565;
+#ifdef BLEND_DEMO
+        if(t==2 || t==5 || t==6)tex[t].format=GR_TEXFMT_ARGB_4444;
+        if(t==7)tex[t].format=GR_TEXFMT_ALPHA_8;
+#endif
         tex[t].data=t==3?(void *)font:(void *)pixels;
 #ifdef MIPMAP_DEMO
         if(t!=3 && t!=5 && t!=6) {
@@ -179,7 +201,7 @@ static void prepare(void)
             p->tmuvtx[0].sow=s->u*w;p->tmuvtx[0].tow=s->v*w;p->tmuvtx[0].oow=w;
             if(compare) {
                 GrVertex *q=&projected[1][i];q->x=p->x+320;q->y=p->y;q->oow=inv;q->ooz=p->ooz;
-#ifdef MIPMAP_DEMO
+#if defined(MIPMAP_DEMO) || defined(BLEND_DEMO)
                 q->tmuvtx[0].sow=p->tmuvtx[0].sow;q->tmuvtx[0].tow=p->tmuvtx[0].tow;q->tmuvtx[0].oow=inv;
 #else
                 q->tmuvtx[0].sow=s->u;q->tmuvtx[0].tow=s->v;q->tmuvtx[0].oow=1;
@@ -254,6 +276,9 @@ static void scene(int pass)
         }
     }
 }
+#ifdef BLEND_DEMO
+#include "../blending/effects.h"
+#endif
 static void render(int fps,int paused)
 {
     char line[80];GrVertex sky[4];int i;
@@ -262,12 +287,27 @@ static void render(int fps,int paused)
     background();
     memset(sky,0,sizeof(sky));
     for(i=0;i<4;++i){sky[i].x=(i==1||i==2)?640:0;sky[i].y=i<2?88:432;sky[i].a=255;sky[i].r=i<2?78:184;sky[i].g=i<2?111:197;sky[i].b=i<2?139:200;}
+#ifdef BLEND_DEMO
+    for(i=0;i<4;++i){sky[i].r=i<2?10:30;sky[i].g=i<2?16:39;sky[i].b=i<2?27:58;}
+#endif
     grDrawTriangle(&sky[0],&sky[1],&sky[2]);grDrawTriangle(&sky[0],&sky[2],&sky[3]);
     profile_stage(P_BACKGROUND);
     drawn=clipped=0;prepare();profile_stage(P_TRANSFORM);
-    scene(0);profile_stage(P_OPAQUE);if(compare)scene(1);profile_stage(P_AA);profile_stage(P_SPECULAR);
+    scene(0);profile_stage(P_OPAQUE);
+#ifdef BLEND_DEMO
+    blending_effects(paused);
+#else
+    if(compare)scene(1);
+#endif
+    profile_stage(P_AA);
+#ifndef BLEND_DEMO
+    profile_stage(P_SPECULAR);
+#endif
     grClipWindow(0,0,640,480);grDepthBiasLevel(0);grDepthBufferMode(GR_DEPTHBUFFER_DISABLE);grDepthMask(FXFALSE);grAlphaTestFunction(GR_CMP_ALWAYS);
-#ifdef MIPMAP_DEMO
+#ifdef BLEND_DEMO
+    profile_stage(P_SPECULAR);
+    blending_hud(fps);
+#elif defined(MIPMAP_DEMO)
     mip_hud(fps);
 #else
     text(21,19,"3DFX / TEXTURE PERSPECTIVE STUDY",1,176,157,122);
@@ -278,11 +318,16 @@ static void render(int fps,int paused)
     if(compare){color_quad(319,88,2,344,30,40,40);text(18,96,"PERSPECTIVE",1,245,231,184);text(338,96,"AFFINE",1,245,231,184);}
 #endif
     if(paused)text(290,416,"PAUSED",1,240,215,154);
+#ifdef BLEND_DEMO
+    text(21,452,"LMB LOOK  WHEEL/RMB DOLLY  ARROWS TURN  F NAVE TOUR  SPACE PAUSE",1,176,188,190);
+    text(21,466,"G GLASS  C CANDLES  M MIST  L LIGHT PATCHES  S SORTING  TAB PROFILER  ESC EXIT",1,116,140,148);
+#else
     text(21,452,"LMB ORBIT   WHEEL/RMB ZOOM   F DRONE FLIGHT   SPACE PAUSE",1,176,188,190);
 #ifdef MIPMAP_DEMO
     text(21,466,"M MIPS C COMPARE G LEVELS [ ] BIAS N DITHER K CHECKER TAB PROFILER ESC EXIT",1,116,140,148);
 #else
     text(21,466,"C COMPARE   P PERSPECTIVE/AFFINE   K CHECKER   TAB PROFILER   ESC EXIT",1,116,140,148);
+#endif
 #endif
     profile_stage(P_HUD);profiler_panel();profile_stage(P_OVERLAY);
     while(grSstVRetraceOn()){}while(!grSstVRetraceOn()){}
@@ -304,7 +349,9 @@ static void log_profile(FILE *log)
 }
 static int rtc_seconds(void)
 { int sec,mode;outp(0x70,11);mode=inp(0x71);outp(0x70,0);sec=inp(0x71);return mode&4?sec:(sec>>4)*10+(sec&15); }
-#ifdef MIPMAP_DEMO
+#ifdef BLEND_DEMO
+#include "../blending/tests.h"
+#elif defined(MIPMAP_DEMO)
 #include "../mipmaps/tests.h"
 #else
 #include "tests.h"
@@ -318,8 +365,14 @@ int main(int argc,char **argv)
     mip_quick=argc>1 && !strcmp(argv[1],"/check");if(mip_quick)test=1;
     mip_bench=argc>1 && !strcmp(argv[1],"/bench");if(mip_bench)test=1;
 #endif
+#ifdef BLEND_DEMO
+    blend_control=argc>1 && !strcmp(argv[1],"/control");if(blend_control)test=1;
+#endif
     if(!build_cathedral()){puts("Mesh capacity error");if(log)fclose(log);return 1;}
     prepare_constants();path_init();current_camera=orbit_pose();transition_from=current_camera;
+#ifdef BLEND_DEMO
+    flying=1;transition=1;current_camera=drone_pose(0);transition_from=current_camera;
+#endif
     if(log){fprintf(log,"Mesh: %d vertices, %d faces\n",vertex_count,face_count);fflush(log);}
     grGlideInit();
     if(!grSstQueryHardware(&hw) || hw.num_sst<1){grGlideShutdown();if(log)fclose(log);return 1;}
@@ -344,6 +397,13 @@ int main(int argc,char **argv)
             key=getch();if(key==27)goto done;
             if(key==9){profile_toggle();profiler_dirty=1;}
             if(key=='f'||key=='F'){fly_mode(!flying);paused=0;}
+#ifdef BLEND_DEMO
+            if(key=='g'||key=='G')glass_enabled=!glass_enabled;
+            if(key=='c'||key=='C')candles_enabled=!candles_enabled;
+            if(key=='m'||key=='M')mist_enabled=!mist_enabled;
+            if(key=='l'||key=='L')light_enabled=!light_enabled;
+            if(key=='s'||key=='S')sorted_blending=!sorted_blending;
+#else
             if(key=='c'||key=='C')compare=!compare;
 #ifndef MIPMAP_DEMO
             if(key=='p'||key=='P')affine=!affine;
@@ -356,6 +416,7 @@ int main(int argc,char **argv)
             if(key=='0')lod_bias=.5f;
 #endif
             if(key=='k'||key=='K')checker=!checker;
+#endif
             if(key==' ')paused=!paused;
             if(key=='r'||key=='R'){fly_mode(0);reset_target();}
             if(key=='+'||key=='='){fly_mode(0);target_zoom=clamp(target_zoom+.05f,.65f,1.3f);}
@@ -366,7 +427,10 @@ int main(int argc,char **argv)
                 if(key==72)target_pitch=clamp(target_pitch-.05f,-.55f,.45f);if(key==80)target_pitch=clamp(target_pitch+.05f,-.55f,.45f);
             }
         }
-        mouse_poll(dt,&paused);if(!flying && !paused)target_yaw+=.12f*dt;
+        mouse_poll(dt,&paused);
+#ifndef BLEND_DEMO
+        if(!flying && !paused)target_yaw+=.12f*dt;
+#endif
         camera_step(dt);update_camera(dt,paused);profile_stage(P_INPUT);render(fps,paused);++frames;++sample;
         if(finite_error){ok=0;goto done;}
         {int now=rtc_seconds(),elapsed=(now-second+60)%60;if(elapsed){if(synced)fps=sample/elapsed;synced=1;sample=0;second=now;}}

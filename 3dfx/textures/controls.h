@@ -29,6 +29,9 @@ static void camera_step(float dt)
 }
 static void reset_target(void)
 {
+#ifdef BLEND_DEMO
+    camera_home();
+#endif
     target_yaw=-.6f;target_pitch=-.12f;target_zoom=1;
     inertia_yaw=inertia_pitch=drag_yaw_speed=drag_pitch_speed=0;
 }

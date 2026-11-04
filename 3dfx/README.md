@@ -22,6 +22,9 @@ with interactive Glide graphics.
   levels, LOD bias and dithered transitions. Uses the software Voodoo backend
   to honor uploaded levels; see its measured host FPS and backend notes.
   Launch with `mipmaps/run.cmd` or `./mipmaps/run.ps1`.
+- [blending](blending/README.md): candlelit nave with stained glass, additive
+  flames/halos and colored floor patterns, translucent mist, and a sorting
+  comparison. Launch with `blending/run.cmd` or `./blending/run.ps1`.
 - [sectorforth](sectorforth/README.md): 32-bit assembly Forth port with Glide
   words and an RGB triangle defined in Forth. Launch with `sectorforth/run.cmd`
   or `./sectorforth/run.ps1`.

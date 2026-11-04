@@ -41,20 +41,21 @@ static void background(void)
 }
 static void text(float x,float y,const char *s,float size,float r,float g,float b)
 {
+    GrVertex q[4];int i;
     grTexSource(GR_TMU0,address[3],GR_MIPMAPLEVELMASK_BOTH,&tex[3]);
     grTexFilterMode(GR_TMU0,GR_TEXTUREFILTER_POINT_SAMPLED,GR_TEXTUREFILTER_POINT_SAMPLED);
     local_color();
     grAlphaCombine(GR_COMBINE_FUNCTION_SCALE_OTHER,GR_COMBINE_FACTOR_ONE,
         GR_COMBINE_LOCAL_NONE,GR_COMBINE_OTHER_TEXTURE,FXFALSE);
     grAlphaBlendFunction(GR_BLEND_SRC_ALPHA,GR_BLEND_ONE_MINUS_SRC_ALPHA,GR_BLEND_ONE,GR_BLEND_ZERO);
+    /* Color, depth and row bounds are constant for the whole string. */
+    memset(q,0,sizeof(q));
+    for(i=0;i<4;++i) { q[i].r=r;q[i].g=g;q[i].b=b;q[i].a=255;q[i].oow=1;q[i].tmuvtx[0].oow=1; }
+    q[0].y=q[1].y=y;q[2].y=q[3].y=y+7*size;
     for(;*s;++s,x+=6*size) {
-        int index=*s-32,i;float u=(float)(index%32*8),v=(float)(index/32*8);
-        GrVertex q[4];
+        int index=*s-32;float u=(float)(index%32*8),v=(float)(index/32*8);
         if(index<0 || index>95 || *s==' ') continue;
-        memset(q,0,sizeof(q));
-        for(i=0;i<4;++i) { q[i].r=r;q[i].g=g;q[i].b=b;q[i].a=255;q[i].oow=1;q[i].tmuvtx[0].oow=1; }
-        q[0].x=x;q[0].y=y;q[1].x=x+5*size;q[1].y=y;
-        q[2].x=x+5*size;q[2].y=y+7*size;q[3].x=x;q[3].y=y+7*size;
+        q[0].x=q[3].x=x;q[1].x=q[2].x=x+5*size;
         q[0].tmuvtx[0].sow=q[3].tmuvtx[0].sow=u;
         q[1].tmuvtx[0].sow=q[2].tmuvtx[0].sow=u+5;
         q[0].tmuvtx[0].tow=q[1].tmuvtx[0].tow=v;
@@ -106,7 +107,11 @@ static void panel_graph(int y,int fps_graph)
 }
 static void profiler_panel(void)
 {
+#ifdef BLEND_DEMO
+    static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","STATE","HUD","PROF","WAIT"};
+#else
     static const char *labels[P_STAGES]={"INPUT","SKY","XFORM","DRAW","COMPARE","EXTRA","HUD","PROF","WAIT"};
+#endif
     unsigned short ink=rgb565(214,219,206),muted=rgb565(131,164,169),gold=rgb565(200,167,104);
     GrVertex q[4];int i;
     if(!profiler.show) return;
@@ -121,7 +126,14 @@ static void profiler_panel(void)
         char line[48];int j,phase=profiler_build;
         if(phase==1) {
             unsigned short background_color=rgb565(8,16,22);
-            for(i=0;i<128*256;++i) profiler_pixels[i]=background_color;
+            /* Keep the dashboard's largest raster job below the frame
+               budget on the Pentium target; eight stores per loop. */
+            for(i=0;i<128*256;i+=8) {
+                profiler_pixels[i]=background_color;profiler_pixels[i+1]=background_color;
+                profiler_pixels[i+2]=background_color;profiler_pixels[i+3]=background_color;
+                profiler_pixels[i+4]=background_color;profiler_pixels[i+5]=background_color;
+                profiler_pixels[i+6]=background_color;profiler_pixels[i+7]=background_color;
+            }
             panel_line(0,0,127,0,muted);panel_line(0,255,127,255,muted);
             panel_line(0,0,0,255,muted);panel_line(127,0,127,255,muted);
             panel_text(4,5,"FRAME PROFILER",gold);panel_text(4,16,"EMU MS / TAB CLOSE",muted);
