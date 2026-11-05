@@ -49,6 +49,10 @@ down/up. See [camera controls](fog/README.md) for collisions and feature keys.
   and interpolate modes, with labeled RGB/alpha equations and pixel controls.
   **1-4** mode, **C** gallery, **A** alpha equation, **B** source-alpha blending.
   Launch with `combiners/run.cmd` or `./combiners/run.ps1`.
+- [specular-paint](specular-paint/README.md): moving highlights on curved metal,
+  masked away from chipped blue paint and lettering by the native alpha selector
+  in one pass. **E** paint mask, **G** specular, **C** split, **N** gloss.
+  Launch with `specular-paint/run.cmd` or `./specular-paint/run.ps1`.
 - [fog](fog/README.md): continuous journey from the nave through its doorway
   into a graveyard with headstones and trees; native linear, exponential and
   exponential-squared distance fog. Launch with `fog/run.cmd` or `./fog/run.ps1`.
