@@ -1,7 +1,7 @@
 # Wind-rippled graveyard water
 
 C89 / Glide 2.43 demo combining the graveyard's planar puddle reflection with
-two scrolling ripple textures, wind-driven roughness and floating leaves.
+two scrolling samples of a green ripple tile, wind-driven roughness and floating leaves.
 The standard target remains native emulated Voodoo Graphics, 640x480 at 60 Hz,
 2 MB framebuffer plus one 2 MB TMU, `voodoo_maxmem=false`, no Glide wrapper.
 
@@ -47,12 +47,13 @@ geometry clipping.
 
 A grazing-angle reflection approximation varies the water tint across the
 plane: shallow sight lines show stronger reflections than a downward view.
-Two 256x256 ALPHA8 textures provide visible, contrasting patches of water detail
-without narrow bright lines. The layers have different color and strength. Each draws
-in a separate additive pass on the single TMU. World-space UVs give the layers
-different tiling, rotation and scroll direction; only coordinates change each
-frame. Textures upload once at startup, adding 131,072 bytes for total TMU use
-of **1,761,280 bytes**. The ripple effect needs no framebuffer readback,
+One original 32x32 ARGB4444 tile provides mottled green patches and irregular,
+branching bright ridges. Both layers reuse that tile in separate passes on the
+single TMU, with SRC_ALPHA / ONE_MINUS_SRC_ALPHA blending over the reflection.
+World-space UVs give the layers opposite horizontal ripple motion and a common
+vertical flow; only coordinates change each frame. The tile uploads once at
+startup, adding 2,048 bytes for total TMU use of **1,632,256 bytes**.
+The ripple effect needs no framebuffer readback,
 texture re-upload or expanded Voodoo configuration.
 
 Local gust strength feeds a damped water-roughness value: it builds quickly,
@@ -60,7 +61,7 @@ then eases back toward calm. Roughness modulates texture opacity, scrolling spee
 Scrolling phases are integrated over time so gust-speed changes stay continuous.
 UV drift is derived from world-space velocity (with the required negative sign),
 so stronger gusts carry both patterns along the leaves' +X/-Z wind direction.
-The layers keep different small base drifts; gust speed grows with wind strength.
+The layers keep opposing small crosswind drifts; gust speed grows with wind strength.
 The direction regression checks recover world velocity from the measured UV
 change, and verify that strong gusts increase the flow rather than reverse it.
 The water plane and reflected geometry remain flat: these are animated surface
@@ -69,10 +70,15 @@ of the reflected scene. Still mode removes the two highlight passes; zero
 strength gives the same scene pixels as still mode.
 
 The layers share the reflection's CPU clipping and foreground depth rejection,
-keep depth writes off, and use `GR_FOG_ADD2` so highlights fade away in fog
-without adding another copy of fog color. The existing lantern/lightmap passes
+keep depth writes off, and fog each colored water layer before alpha blending.
+The existing lantern/lightmap passes
 and alpha-tested vegetation remain enabled. The stone-detail pass starts off;
 this variant shares foliage's cheaper nave curves to keep CPU headroom.
+
+The two scrolling samples follow the general technique documented for
+[Ocarina of Time water](https://dsll32.github.io/nviewer/wiki/OCARINA_OF_TIME.html).
+This demo uses its own procedural tile and Glide blending, rather than original
+Nintendo assets or the N64 color combiner.
 
 Leaves retain the fixed 60 Hz bounded-pool simulation. A descending leaf over
 exposed water catches the surface and becomes a floater. Floaters drift with
@@ -89,7 +95,7 @@ layout retains both history graphs and uses the existing texture allocation.
 ## Validation
 
 `./verify.ps1` runs native OpenGL and software Voodoo pixel controls for reflection,
-texture-alpha highlights, foreground rejection, preserved depth, additive fog,
+textured color/alpha blending, foreground rejection, preserved depth, colored fog,
 zero alpha, both layers and foliage cutouts. Additional native tests check direct
 FPS controls, floating/ground contact, drift, stranding, gust rise/decay and bounds.
 Fixed-camera captures check clipping, still/zero-strength equality, repeatability,
@@ -108,8 +114,8 @@ The profiler opens halfway through each run. The checks require at least
 foliage with optional stone detail off. Unrestricted free flight and the heavier
 blended-foliage comparison are outside that performance claim.
 
-The latest simplified 600-frame close-puddle test at 128 leaves measures
-**59.74 Windows FPS**, max guest frame **17.198 ms**, **zero over 18 ms**.
+The latest 600-frame close-puddle test at 128 leaves measures
+**59.67 Windows FPS**, max guest frame **17.203 ms**, **zero over 18 ms**.
 Native OpenGL and software Voodoo pixel/reflection checks pass.
 
 The previous full-tour baseline with DOSBox-X 2026.01.02 on this machine at

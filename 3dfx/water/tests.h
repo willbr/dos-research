@@ -22,8 +22,8 @@ static int water_controls(FILE *log)
             water_state(i);grTexFilterMode(GR_TMU0,GR_TEXTUREFILTER_POINT_SAMPLED,GR_TEXTUREFILTER_POINT_SAMPLED);
             water_control_probe(i,alpha,20000);
             {
-                int channel;float amount=water_probe[i]/255.0f*alpha/255.0f*(mode==3?0:mode==4?127/255.0f:1);
-                for(channel=0;channel<3;++channel)expected[channel]+=water_light[i][channel]*amount;
+                int channel;float amount=water_probe[i]/255.0f*alpha/255.0f,f=mode==3?1:mode==4?128/255.0f:0;
+                for(channel=0;channel<3;++channel)expected[channel]=expected[channel]*(1-amount)+(water_probe_rgb[channel]*(1-f)+fog_colors[fog_color][channel]*f)*amount;
             }
         }
         if(mode==2) {
@@ -33,7 +33,7 @@ static int water_controls(FILE *log)
         }
         er=(int)clamp(expected[0],0,255);eg=(int)clamp(expected[1],0,255);eb=(int)clamp(expected[2],0,255);
         if(mode==1){er=eb=0;eg=200;}if(mode==2){er=eg=0;eb=200;}
-        if(!control_sample(log,mode==0?"ripple adds texture-modulated highlight":mode==1?"foreground rejects ripple":mode==2?"ripple preserves scene depth":mode==3?"full fog removes ripple light":mode==4?"half fog attenuates ripple":mode==5?"zero ripple alpha":"two independent ripple textures",er,eg,eb))ok=0;
+        if(!control_sample(log,mode==0?"green ripple texture alpha blend":mode==1?"foreground rejects ripple":mode==2?"ripple preserves scene depth":mode==3?"full fog colors textured water":mode==4?"half fog colors textured water":mode==5?"zero ripple alpha":"two samples of shared ripple tile",er,eg,eb))ok=0;
     }
     fog_enabled=1;fog_update();grFogMode(GR_FOG_DISABLE);grDepthBiasLevel(0);return ok;
 }
@@ -146,6 +146,9 @@ static int water_scroll_checks(FILE *log)
         if(world_x<=0 || world_z>=0)ok=0;
         if(log)fprintf(log,"Water layer %d: calm %.3f m/s, gust %.3f m/s; measured drift +X %.3f -Z %.3f; %s\n",layer,slow_x,fast_x,world_x,world_z,ok?"PASS":"FAIL");
     }
+    water_scroll_u[0]=water_scroll_u[1]=water_scroll_v[0]=water_scroll_v[1]=128;water_energy=.9f;water_tick(1/60.0f);
+    if(water_scroll_u[0]>=128 || water_scroll_u[1]<=128 || fabs(water_scroll_v[0]-water_scroll_v[1])>.0001f || water_address[0]!=water_address[1])ok=0;
+    if(log)fprintf(log,"Shared tile: opposing horizontal ripple offsets, common vertical flow: %s\n",ok?"PASS":"FAIL");
     water_energy=saved;water_init();return ok;
 }
 static int water_tests(FILE *log,int controls_only)
