@@ -5,9 +5,14 @@
 #include "model.h"
 #define PI 3.14159265358979323846
 #define MAX_SEG 32
-static int segment_count=16,full_detail,want_distant;
+#ifdef ENVIRONMENT_DEMO
+#define FAST_SEGMENTS 12
+#else
+#define FAST_SEGMENTS 16
+#endif
+static int segment_count=FAST_SEGMENTS,full_detail,want_distant;
 #define SEG segment_count
-void model_detail(int detailed) { full_detail=detailed;segment_count=detailed?32:16; }
+void model_detail(int detailed) { full_detail=detailed;segment_count=detailed?32:FAST_SEGMENTS; }
 void model_distance(int distant) { want_distant=distant; }
 #define HASH_SIZE 65536
 static Vertex build_vertices[MAX_VERTS];
@@ -109,6 +114,9 @@ static void torus(Vec center,Vec axis,float ru,float rv,float tube,int mat,int s
     int grid[65][9],i,j;
     Vec u,v;
     if(!full_detail) { if(segments>16)segments=16;if(sides>4)sides=4; }
+#ifdef ENVIRONMENT_DEMO
+    if(!full_detail && segments>10)segments=10;
+#endif
     if(!full_detail && want_distant && ru<.25f && segments>8)segments=8;
     axis=unit(axis);basis(axis,&u,&v);
     for(i=0;i<=segments;++i) for(j=0;j<=sides;++j) {
@@ -125,6 +133,9 @@ static void cylinder(Vec a,Vec b,float radius,int mat,int segments)
     int side[2][33],cap[2][33],centers[2],i,j;
     Vec axis=unit(add(b,mul(a,-1))),u,v;
     if(!full_detail && segments>6) segments=6;
+#ifdef ENVIRONMENT_DEMO
+    if(!full_detail && segments>4)segments=4;
+#endif
     if(!full_detail && want_distant && radius<=.085f && segments>4)segments=4;
     basis(axis,&u,&v);
     for(j=0;j<2;++j) {

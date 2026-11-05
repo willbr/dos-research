@@ -1,5 +1,9 @@
 # Diving helmet / edge anti-aliasing
 
+For the separate environment-reflection demo, see
+[`../envmap`](../envmap/README.md). This demo retains its original Fast meshes
+and keyboard zoom controls.
+
 A procedural C model inspired by the user's diving-helmet photograph from
 Winchester Cathedral: an aged copper dome and breastplate, collar rings,
 brass/metal window bezels, dark glass, front grille, side locking pins,

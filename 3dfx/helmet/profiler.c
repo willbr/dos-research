@@ -96,6 +96,9 @@ void profile_log(void *file)
 #ifdef REFLECTION_DEMO
         ,"Reflection"
 #endif
+#ifdef ENVIRONMENT_DEMO
+        ,"Environment"
+#endif
     };
     FILE *f=(FILE *)file;int i;
     if(!f) return;

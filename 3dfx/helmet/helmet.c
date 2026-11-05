@@ -8,6 +8,12 @@
 #include <glide.h>
 #include "model.h"
 #include "profiler.h"
+#ifndef HELMET_MATERIAL_ROOT
+#define HELMET_MATERIAL_ROOT "assets/"
+#endif
+#ifndef HELMET_LOG
+#define HELMET_LOG "HELMET.LOG"
+#endif
 
 static GrVertex projected[MAX_VERTS];
 static int visible_faces[MATERIALS][MAX_FACES],visible_per_mat[MATERIALS];
@@ -194,11 +200,14 @@ static void local_color(void)
     grAlphaCombine(GR_COMBINE_FUNCTION_LOCAL,GR_COMBINE_FACTOR_NONE,
         GR_COMBINE_LOCAL_ITERATED,GR_COMBINE_OTHER_NONE,FXFALSE);
 }
+#ifdef ENVIRONMENT_DEMO
+#include "../envmap/environment.h"
+#endif
 static int load_textures(void)
 {
     unsigned char *rgb=malloc(256UL*256*3),*font=calloc(256UL*32,1);
     unsigned short *pixels=malloc(256UL*256*2);
-    FILE *f=fopen("assets/COPPER.RGB","rb");
+    FILE *f=fopen(HELMET_MATERIAL_ROOT "COPPER.RGB","rb");
     FxU32 next=grTexMinAddress(GR_TMU0);
     int t,i,x,y;
     if(!rgb || !font || !pixels || !f) { if(f) fclose(f);free(rgb);free(font);free(pixels);return 0; }
@@ -242,6 +251,10 @@ static int load_textures(void)
     }
     grTexDownloadMipMap(GR_TMU0,profiler_address[0],GR_MIPMAPLEVELMASK_BOTH,&profiler_tex);
     grTexDownloadMipMap(GR_TMU0,profiler_address[1],GR_MIPMAPLEVELMASK_BOTH,&profiler_tex);
+#ifdef ENVIRONMENT_DEMO
+    next=profiler_address[1]+grTexTextureMemRequired(GR_MIPMAPLEVELMASK_BOTH,&profiler_tex);
+    if(!environment_load(&next,pixels)){free(rgb);free(font);free(pixels);return 0;}
+#endif
     grTexCombine(GR_TMU0,GR_COMBINE_FUNCTION_LOCAL,GR_COMBINE_FACTOR_NONE,
         GR_COMBINE_FUNCTION_LOCAL,GR_COMBINE_FACTOR_NONE,FXFALSE,FXFALSE);
     grTexMipMapMode(GR_TMU0,GR_MIPMAP_DISABLE,FXFALSE);
@@ -442,7 +455,11 @@ static void panel_graph(int y,int fps_graph)
 }
 static void profiler_panel(void)
 {
+#ifdef ENVIRONMENT_DEMO
+    static const char *labels[P_STAGES]={"INPUT","CLEAR","XFORM","OPAQUE","AA","SPEC","HUD","PROF","WAIT","ENVMAP"};
+#else
     static const char *labels[P_STAGES]={"INPUT","CLEAR","XFORM","OPAQUE","AA","SPEC","HUD","PROF","WAIT"};
+#endif
     unsigned short ink=rgb565(214,219,206),muted=rgb565(131,164,169),gold=rgb565(200,167,104);
     GrVertex q[4];int i;
     if(!profiler.show) return;
@@ -455,9 +472,22 @@ static void profiler_panel(void)
        dashboard in one frame can itself cause the frame-time spike. */
     if(profiler_build) {
         char line[48];int j,phase=profiler_build;
+#ifdef ENVIRONMENT_DEMO
+        if(phase<=4) {
+            unsigned short clear_color=rgb565(8,16,22);int start=(phase-1)*8192;
+            for(i=start;i<start+8192;i+=8) {
+                profiler_pixels[i]=clear_color;profiler_pixels[i+1]=clear_color;profiler_pixels[i+2]=clear_color;profiler_pixels[i+3]=clear_color;
+                profiler_pixels[i+4]=clear_color;profiler_pixels[i+5]=clear_color;profiler_pixels[i+6]=clear_color;profiler_pixels[i+7]=clear_color;
+            }
+            ++profiler_build;goto environment_profiler_publish;
+        }
+        phase-=4;
+#endif
         if(phase==1) {
             unsigned short background_color=rgb565(8,16,22);
+#ifndef ENVIRONMENT_DEMO
             for(i=0;i<128*256;++i) profiler_pixels[i]=background_color;
+#endif
             panel_line(0,0,127,0,muted);panel_line(0,255,127,255,muted);
             panel_line(0,0,0,255,muted);panel_line(127,0,127,255,muted);
             panel_text(4,5,"FRAME PROFILER",gold);panel_text(4,16,"EMU MS / TAB CLOSE",muted);
@@ -470,8 +500,12 @@ static void profiler_panel(void)
             } else panel_text(4,29,"COLLECTING FRAMES",ink);
         } else if(phase>=2 && phase<=4 && panel_snapshot.available) {
             int first=(phase-2)*3;
-            for(i=first;i<first+3 && i<P_STAGES;++i) {
-                int y=42+i*10,width=panel_snapshot.average>0?(int)(panel_snapshot.mean[i]/panel_snapshot.average*116):0;
+            int end=first+3,step=10;
+#ifdef ENVIRONMENT_DEMO
+            if(phase==4)end=P_STAGES;step=9;
+#endif
+            for(i=first;i<end && i<P_STAGES;++i) {
+                int y=42+i*step,width=panel_snapshot.average>0?(int)(panel_snapshot.mean[i]/panel_snapshot.average*116):0;
                 int value=(int)(panel_snapshot.mean[i]*100+.5f);
                 panel_text(4,y,labels[i],muted);sprintf(line,"%2d.%02d",value/100,value%100);panel_text(80,y,line,ink);
                 for(j=0;j<width && j<116;++j) panel_pixel(4+j,y+8,i==P_PRESENT?muted:gold);
@@ -486,8 +520,17 @@ static void profiler_panel(void)
             panel_graph(207,0);panel_text(4,245,"16.7 MS = 60 FPS",gold);
         }
         ++profiler_build;
-        if(profiler_build==8) { profiler_build=0;profiler_row=0;profiler_upload=1; }
+        if(profiler_build==
+#ifdef ENVIRONMENT_DEMO
+            12
+#else
+            8
+#endif
+        ) { profiler_build=0;profiler_row=0;profiler_upload=1; }
     }
+#ifdef ENVIRONMENT_DEMO
+environment_profiler_publish:
+#endif
     if(profiler_upload) {
         /* Publish a complete new dashboard only after its incremental upload.
            4 KiB per frame avoids a 64 KiB burst that could miss retrace. */
@@ -527,7 +570,13 @@ static void render(int fps,int paused)
     background();profile_stage(P_BACKGROUND);
     if(automatic_lod && !select_view_mesh()) { mesh_error=1;return; }
     prepare();profile_stage(P_TRANSFORM);model();
+#ifdef ENVIRONMENT_DEMO
+    environment_draw();profile_stage(P_ENVIRONMENT);
+#endif
     grDepthBufferMode(GR_DEPTHBUFFER_DISABLE);grDepthMask(FXFALSE);
+#ifdef ENVIRONMENT_DEMO
+    environment_hud(fps);
+#else
     text(22,19,"WINCHESTER / HELMET STUDY",1,176,157,122);
     text(21,39,"DIVING HELMET",3,233,224,202);
     text(510,22,antialias?"AA ON":"AA OFF",2,135,209,202);
@@ -536,6 +585,7 @@ static void render(int fps,int paused)
     text(510,63,detailed?"Q DETAIL":model_distant?"Q FAST FAR":"Q FAST",1,176,157,122);
     text(22,452,"LMB DRAG  TURN    WHEEL/RMB DRAG  ZOOM    A  EDGE AA",1,176,188,190);
     text(22,466,"SPACE PAUSE   ARROWS TURN   T TEXTURE   TAB PROFILER   ESC EXIT",1,116,140,148);
+#endif
     if(paused) text(274,417,"PAUSED",1,194,164,104);
     profile_stage(P_HUD);
     profiler_panel();
@@ -557,6 +607,9 @@ static unsigned short *capture(const char *path)
 }
 #include "experiments.h"
 #include "lod-test.h"
+#ifdef ENVIRONMENT_DEMO
+#include "../envmap/tests.h"
+#endif
 
 int main(int argc,char **argv)
 {
@@ -570,7 +623,11 @@ int main(int argc,char **argv)
     int experiments=argc>1 && !strcmp(argv[1],"/optbench");
     int shared_test=argc>1 && !strcmp(argv[1],"/sharedtest");
     int lod_test=argc>1 && !strcmp(argv[1],"/lodtest");
-    FILE *log=fopen("HELMET.LOG","w");
+    FILE *log=fopen(HELMET_LOG,"w");
+#ifdef ENVIRONMENT_DEMO
+    int environment_control=argc>1 && !strcmp(argv[1],"/envcontrol");
+    if(argc>1 && !strcmp(argv[1],"/envstress"))soak=2;
+#endif
     if(detail_test) { detailed=1;model_detail(1); }
     if(!build_helmet()) { puts("Mesh capacity or topology error");if(log)fclose(log);return 1; }
     if(!detailed) {
@@ -589,6 +646,12 @@ int main(int argc,char **argv)
     profile_init();
     mouse_init();
     if(log) { fprintf(log,"DOS mouse: %s; WheelAPI: %s\n",mouse_present?"present":"absent",wheel_present?"present":"absent");fflush(log); }
+#ifdef ENVIRONMENT_DEMO
+    if(log && hw.SSTs[0].type==GR_SSTTYPE_VOODOO) {
+        fprintf(log,"Voodoo framebuffer %d MB, %d TMU(s), TMU0 %d MB; environment %lu bytes, total textures %lu bytes\n",hw.SSTs[0].sstBoard.VoodooConfig.fbRam,hw.SSTs[0].sstBoard.VoodooConfig.nTexelfx,hw.SSTs[0].sstBoard.VoodooConfig.tmuConfig[0].tmuRam,(unsigned long)environment_bytes,(unsigned long)(environment_address+environment_bytes+32768));fflush(log);
+    }
+    if(environment_control){ok=environment_controls(log);goto done;}
+#endif
     if(experiments || shared_test) { automatic_lod=0;ok=run_experiments(log,shared_test);goto done; }
     if(lod_test) { ok=run_lod_test(log);goto done; }
     if(test) {
@@ -609,6 +672,9 @@ int main(int argc,char **argv)
         if(log) fprintf(log,"Same-pose AA: %lu changed pixels, %lu lit pixels, %d silhouette edges, %d visible faces\n",
             changes,lit,silhouette_count,visible_count);
         yaw=1.1f;render(0,1);b=capture("SIDE.PPM");if(!b)ok=0;free(b);
+#ifdef ENVIRONMENT_DEMO
+        if(!environment_checks(log))ok=0;
+#endif
         if(profile_test) {
             int n;profile_toggle();yaw=-.6f;
             for(n=0;n<120;++n) { render(60,1);yaw+=.001f; }
@@ -619,18 +685,37 @@ int main(int argc,char **argv)
     }
     if(soak) {
         int n;float min_ms=10000,max_ms=0,sum=0;int misses=0;
+#ifdef ENVIRONMENT_DEMO
+        int count=soak==2?240:1440;
+#else
+        int count=1440;
+#endif
         FILE *mark=fopen("SOAKSTAR.MRK","w");if(mark)fclose(mark);else ok=0;
+#ifdef ENVIRONMENT_DEMO
+        render(60,0);render(60,0);profile_reset();
+#endif
         profiler.measure=1;
-        for(n=0;n<1440;++n) {
+        for(n=0;n<count;++n) {
             float ms;
+#ifdef ENVIRONMENT_DEMO
+            float sample=n*(1440.0f/count);
+            yaw=-.6f+sample*(6.2831853f/720);
+            if(n==count/2){profile_toggle();profiler_dirty=1;}
+            if(n>=count/2){pitch=-.05f+.45f*(float)sin(sample*.017f);zoom=.97f+.32f*(float)sin(sample*.013f);}
+#else
             yaw=-.6f+n*(6.2831853f/720);
             if(n==720) { profile_toggle();profiler_dirty=1; }
             if(n>=720) { pitch=-.05f+.45f*(float)sin(n*.017f);zoom=.97f+.32f*(float)sin(n*.013f); }
+#endif
             render(60,0);++frames;ms=profiler.frame[(profiler.next+PROFILE_HISTORY-1)%PROFILE_HISTORY];
             if(ms<min_ms)min_ms=ms;if(ms>max_ms)max_ms=ms;sum+=ms;
             if(ms>18) {
                 int stage,slot=(profiler.next+PROFILE_HISTORY-1)%PROFILE_HISTORY;++misses;
-                if(log) {
+                if(log
+#ifdef ENVIRONMENT_DEMO
+                    && misses<=12
+#endif
+                ) {
                     fprintf(log,"Slow frame %d: %.3f ms, zoom %.4f, distant %d; stages",n,ms,zoom,model_distant);
                     for(stage=0;stage<P_STAGES;++stage)fprintf(log," %.3f",profiler.stage[slot][stage]);
                     fprintf(log,"\n");
@@ -666,10 +751,16 @@ int main(int argc,char **argv)
             if(key==9) { profile_toggle();profiler_dirty=1; }
             if(key=='a' || key=='A') antialias=!antialias;
             if(key=='t' || key=='T') textured=!textured;
-            if(key=='q' || key=='Q') { detailed=!detailed;model_detail(detailed);if(!build_helmet()){ok=0;goto done;} }
-            if(key==' ') { paused=!paused;inertia_yaw=inertia_pitch=0; }
+#ifdef ENVIRONMENT_DEMO
+            if(key=='e' || key=='E')environment_enabled=!environment_enabled;
+            if(key=='+' || key=='=')environment_adjust(1);
+            if(key=='-')environment_adjust(-1);
+#else
             if(key=='+' || key=='=') target_zoom=clamp(target_zoom+.05f,.65f,1.3f);
             if(key=='-') target_zoom=clamp(target_zoom-.05f,.65f,1.3f);
+#endif
+            if(key=='q' || key=='Q') { detailed=!detailed;model_detail(detailed);if(!build_helmet()){ok=0;goto done;} }
+            if(key==' ') { paused=!paused;inertia_yaw=inertia_pitch=0; }
             if(key=='r' || key=='R') reset_target();
             if(key==0 || key==224) {
                 inertia_yaw=inertia_pitch=0;

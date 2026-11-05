@@ -14,6 +14,9 @@ with interactive Glide graphics.
   Winchester photograph, with silhouette-edge anti-aliasing, inertial mouse
   controls, and a Tab profiler with FPS/frame-time graphs.
   Launch with `helmet/run.cmd` or `./helmet/run.ps1`.
+- [envmap](envmap/README.md): the diving helmet with tinted environment
+  reflections on copper, brass and steel. **E** toggles them, **+/-** adjusts
+  strength. Launch with `envmap/run.cmd` or `./envmap/run.ps1`.
 - [textures](textures/README.md): Winchester Cathedral exterior with smooth
   orbit controls, an automatic drone flight, perspective/affine texture
   comparison and the Tab profiler. Launch with `textures/run.cmd` or

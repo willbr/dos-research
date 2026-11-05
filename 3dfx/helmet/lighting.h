@@ -13,6 +13,12 @@ static void prepare_lit(void)
         LightingGroup *g=&lighting_groups[i];
         float diff=g->normal.x*lx+g->normal.y*ly+g->normal.z*lz;
         float h=g->normal.x*hx+g->normal.y*hy+g->normal.z*hz,h2,h4,h8,h16;
+#ifdef ENVIRONMENT_DEMO
+        if(environment_enabled && environment_strength>0) {
+            environment_u[i]=127.5f*(1+cy*g->normal.x+sy*g->normal.z);
+            environment_v[i]=127.5f*(1-r10*g->normal.x-cp*g->normal.y-r12*g->normal.z);
+        }
+#endif
         if(diff<0)diff=0;group_diff[i]=.34f+.66f*diff;if(h<0)h=0;
         h2=h*h;h4=h2*h2;h8=h4*h4;h16=h8*h8;
         group_shine[i]=(g->mat==GLASS?h16:h16*h16)*specular[g->mat]*255;
