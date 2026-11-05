@@ -43,13 +43,13 @@ static void projector_hud_camera_help(void)
 #endif
     projector_hud_update(0,line);
     if(firstperson_mode) {
-        projector_hud_split(7,"WASD MOVE SHIFT FAST MOUSE LOOK F2 WALK F3 FLY F TOUR TAB PROFILER");
+        projector_hud_split(7,"WASD MOVE SHIFT FAST MOUSE LOOK U WALK I FLY F TOUR TAB PROFILER");
 #ifdef DETAIL_DEMO
-        projector_hud_split(9,firstperson_mode==2?"SPACE/CTRL UP/DOWN F4 MANUAL F5 DETAIL F6 SHADOWS V SPLIT":"F4 MANUAL F5 DETAIL F6 SHADOWS V SPLIT -/+ STRENGTH J/K TILING");
+        projector_hud_split(9,firstperson_mode==2?"SPACE/CTRL UP/DOWN N MANUAL T DETAIL Y SHADOWS V SPLIT":"N MANUAL T DETAIL Y SHADOWS V SPLIT -/+ STRENGTH J/K TILING");
 #elif defined(SHADOW_DEMO)
-        projector_hud_split(9,firstperson_mode==2?"SPACE/CTRL UP/DOWN F4 MANUAL F6 SHADOWS ESC EXIT":"F4 MANUAL F6 SHADOWS ESC EXIT");
+        projector_hud_split(9,firstperson_mode==2?"SPACE/CTRL UP/DOWN N MANUAL Y SHADOWS ESC EXIT":"N MANUAL Y SHADOWS ESC EXIT");
 #else
-        projector_hud_split(9,firstperson_mode==2?"SPACE/CTRL UP/DOWN F4 MANUAL ESC EXIT":"F4 MANUAL ESC EXIT");
+        projector_hud_split(9,firstperson_mode==2?"SPACE/CTRL UP/DOWN N MANUAL ESC EXIT":"N MANUAL ESC EXIT");
 #endif
         return;
     }
@@ -62,7 +62,7 @@ static void projector_hud_camera_help(void)
 #else
     projector_hud_split(7,"P LANTERN O HOLD X GRID B LIGHTMAPS H FOG TAB PROFILER");
 #endif
-    projector_hud_split(9,"F TOUR F2 WALK F3 FLY F4 MANUAL LMB LOOK WHEEL DOLLY B LIGHTMAPS H FOG");
+    projector_hud_split(9,"F TOUR U WALK I FLY N MANUAL LMB LOOK WHEEL DOLLY B LIGHTMAPS H FOG");
 }
 static void projector_hud_refresh(int fps)
 {
@@ -72,13 +72,13 @@ static void projector_hud_refresh(int fps)
     projector_hud_update(3,projector_locked?"O FIXED IN WORLD":"O MOVING LANTERN");
     if(fps>0)sprintf(line,"FPS %d",fps);else strcpy(line,"FPS --");projector_hud_update(4,line);
 #ifdef DETAIL_DEMO
-    sprintf(line,"D DETAIL %s  STRENGTH %d  TILING %d  B LIGHTMAPS %s  H FOG %s / %s",detail_enabled?"ON":"OFF",(int)(detail_strength*100+.5f),detail_tiles,lightmaps_enabled?"ON":"OFF",fog_enabled?"ON":"OFF",current_camera.eye.z< -14?"GRAVEYARD":"NAVE");
+    sprintf(line,"T DETAIL %s  STRENGTH %d  TILING %d  B LIGHTMAPS %s  H FOG %s / %s",detail_enabled?"ON":"OFF",(int)(detail_strength*100+.5f),detail_tiles,lightmaps_enabled?"ON":"OFF",fog_enabled?"ON":"OFF",current_camera.eye.z< -14?"GRAVEYARD":"NAVE");
     projector_hud_update(11,detail_compare?"BASE TEXTURE":"");
     projector_hud_update(12,detail_compare?(detail_enabled?"DETAIL GRAIN":"DETAIL OFF"):"");
 #elif defined(REFLECTION_DEMO)
-    sprintf(line,"R REFLECTION %s  S SHADOWS %s  B LIGHTMAPS %s  H FOG %s / %s",reflections_enabled?"ON":"OFF",shadows_enabled?"ON":"OFF",lightmaps_enabled?"ON":"OFF",fog_enabled?"ON":"OFF",current_camera.eye.z< -14?"GRAVEYARD":"NAVE");
+    sprintf(line,"R REFLECTION %s  Y SHADOWS %s  B LIGHTMAPS %s  H FOG %s / %s",reflections_enabled?"ON":"OFF",shadows_enabled?"ON":"OFF",lightmaps_enabled?"ON":"OFF",fog_enabled?"ON":"OFF",current_camera.eye.z< -14?"GRAVEYARD":"NAVE");
 #elif defined(SHADOW_DEMO)
-    sprintf(line,"S SHADOWS %s  %s  B LIGHTMAPS %s  H FOG %s  /  %s",shadows_enabled?"ON":"OFF",projector_grid?"X GRID":"WARM BEAM",lightmaps_enabled?"ON":"OFF",fog_enabled?"ON":"OFF",current_camera.eye.z< -14?"GRAVEYARD":"NAVE");
+    sprintf(line,"Y SHADOWS %s  %s  B LIGHTMAPS %s  H FOG %s  /  %s",shadows_enabled?"ON":"OFF",projector_grid?"X GRID":"WARM BEAM",lightmaps_enabled?"ON":"OFF",fog_enabled?"ON":"OFF",current_camera.eye.z< -14?"GRAVEYARD":"NAVE");
 #else
     sprintf(line,"%s  LIGHTMAPS %s  FOG %s  /  %s",projector_grid?"X GRID":"X WARM BEAM",lightmaps_enabled?"ON":"OFF",fog_enabled?"ON":"OFF",current_camera.eye.z< -14?"GRAVEYARD":"CANDLELIT NAVE");
 #endif

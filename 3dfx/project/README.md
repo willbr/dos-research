@@ -18,7 +18,7 @@ Glide, using the shared vendored runtime and compiler setup.
 | B | Baked lightmaps on/off |
 | H | Distance fog on/off |
 | F | Journey / manual look |
-| F2 / F3 / F4 | FPS walk / FPS fly / drag-based manual look |
+| U / I / N | FPS walk / FPS fly / drag-based manual look |
 | WASD / Shift | Held movement / faster movement in FPS modes |
 | Space / Ctrl | Rise / descend in FPS fly |
 | Space | Pause journey and lantern sweep |

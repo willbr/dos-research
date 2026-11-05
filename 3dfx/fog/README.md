@@ -15,9 +15,9 @@ runtimes and compiler setup described in [the parent README](../README.md).
 | Control | Action |
 | --- | --- |
 | F | Automatic journey / leave journey |
-| F2 | First-person walking |
-| F3 | First-person free flight (noclip) |
-| F4 | Return to drag-based manual look |
+| U | First-person walking |
+| I | First-person free flight (noclip) |
+| N | Return to drag-based manual look |
 | WASD | Held movement in first-person modes; A/D strafe |
 | Mouse | Look without holding a button in first-person modes |
 | Shift | Move twice as fast |
@@ -51,7 +51,7 @@ no release coasting; the drag-based manual mode retains flick inertia. Click
 inside DOSBox-X to capture the mouse; Ctrl+F10 releases it.
 
 In the shadows/detail descendants, WASD takes precedence over letter hotkeys:
-F6 toggles ground shadows, and F5 toggles the detail layer where present.
+Y toggles ground shadows, and T toggles the detail layer where present.
 F returns to the automatic tour. Space pauses only outside first-person modes.
 The active mode and relevant controls appear in the HUD. Free flight above the
 nave uses conservative exterior visibility rather than the indoor portal shortcut.

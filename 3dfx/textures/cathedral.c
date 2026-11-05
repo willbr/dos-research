@@ -557,17 +557,17 @@ static void render(int fps,int paused)
     if(paused)text(290,416,"PAUSED",1,240,215,154);
 #if defined(FOG_DEMO) && !defined(PROJECTOR_DEMO)
     if(firstperson_mode) {
-        text(21,452,"WASD MOVE MOUSE LOOK SHIFT FAST F TOUR F2 WALK F3 FLY",1,176,188,190);
-        text(21,466,firstperson_mode==2?"SPACE/CTRL UP/DOWN F4 MANUAL TAB PROFILER ESC EXIT":"F4 MANUAL TAB PROFILER ESC EXIT",1,116,140,148);
+        text(21,452,"WASD MOVE MOUSE LOOK SHIFT FAST F TOUR U WALK I FLY",1,176,188,190);
+        text(21,466,firstperson_mode==2?"SPACE/CTRL UP/DOWN N MANUAL TAB PROFILER ESC EXIT":"N MANUAL TAB PROFILER ESC EXIT",1,116,140,148);
     } else {
 #endif
 #ifdef PROJECTOR_DEMO
     /* Projector HUD includes the cached footer. */
 #elif defined(LIGHTMAP_DEMO)
-    text(21,452,"F TOUR F2 WALK F3 FLY F4 MANUAL TAB PROFILER",1,176,188,190);
+    text(21,452,"F TOUR U WALK I FLY N MANUAL TAB PROFILER",1,176,188,190);
     text(21,466,"1/2/3 FOG CURVE  [ ] DENSITY  Q COLOR  TAB PROFILER  ESC EXIT",1,116,140,148);
 #elif defined(FOG_DEMO)
-    text(21,452,"F TOUR F2 WALK F3 FLY F4 MANUAL TAB PROFILER",1,176,188,190);
+    text(21,452,"F TOUR U WALK I FLY N MANUAL TAB PROFILER",1,176,188,190);
     text(21,466,"H FOG  1 LINEAR  2 EXP  3 EXP2  [ ] DENSITY  Q COLOR  ESC EXIT",1,116,140,148);
 #elif defined(BLEND_DEMO)
     text(21,452,"LMB LOOK  WHEEL/RMB DOLLY  ARROWS TURN  F NAVE TOUR  SPACE PAUSE",1,176,188,190);
@@ -711,6 +711,15 @@ int main(int argc,char **argv)
             if(firstperson_key_consumed(key))continue;
 #endif
 #ifdef FOG_DEMO
+            if(key=='u'||key=='U'){if(firstperson_mode!=1)firstperson_set_mode(1);paused=0;continue;}
+            if(key=='i'||key=='I'){if(firstperson_mode!=2)firstperson_set_mode(2);paused=0;continue;}
+            if(key=='n'||key=='N'){firstperson_set_mode(0);paused=1;continue;}
+#ifdef DETAIL_DEMO
+            if(key=='t'||key=='T'){detail_enabled=!detail_enabled;continue;}
+#endif
+#ifdef SHADOW_DEMO
+            if(key=='y'||key=='Y'){shadows_enabled=!shadows_enabled;continue;}
+#endif
             fog_key(key);
 #ifdef PROJECTOR_DEMO
 #ifdef SHADOW_DEMO
@@ -781,16 +790,6 @@ int main(int argc,char **argv)
             if(key==0||key==224) {
 #ifdef FOG_DEMO
                 key=getch();
-                if(key>=84 && key<=93)key-=25; /* Shift+function keys. */
-                if(key==60){if(firstperson_mode!=1)firstperson_set_mode(1);paused=0;continue;}
-                if(key==61){if(firstperson_mode!=2)firstperson_set_mode(2);paused=0;continue;}
-                if(key==62){firstperson_set_mode(0);paused=1;continue;}
-#ifdef DETAIL_DEMO
-                if(key==63){detail_enabled=!detail_enabled;continue;}
-#endif
-#ifdef SHADOW_DEMO
-                if(key==64){shadows_enabled=!shadows_enabled;continue;}
-#endif
                 if(firstperson_mode)continue;
                 fly_mode(0);inertia_yaw=inertia_pitch=0;
                 if(key==75)target_yaw+=.08f;if(key==77)target_yaw-=.08f;
