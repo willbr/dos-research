@@ -6,6 +6,13 @@ static float water_scroll_u[2],water_scroll_v[2];
 static GrTexInfo water_texture;
 static FxU32 water_address[2];
 static const int water_light[2][3]={{55,85,100},{70,100,110}};
+static const float water_uv_axes[2][4]={{153,21,-18,147},{67,49,-53,65}};
+static void water_flow_velocity(int layer,float *x,float *z)
+{
+    float wind=.02f+.33f*water_energy*water_energy;
+    *x=(layer?-.010f:.012f)+wind;
+    *z=(layer?.018f:-.006f)-wind*.35f;
+}
 static int water_probe[2],water_probe_u[2],water_probe_v[2];
 static int water_key(int key)
 {
@@ -28,7 +35,7 @@ static int water_load(FxU32 *next,unsigned char *pixels)
             float noise=.5f+.22f*(float)(sin(u+phase)*cos(2*v-phase))
                 +.14f*(float)(cos(3*u+v+phase)*sin(3*v-u))
                 +.09f*(float)(sin(5*u+2*v-phase)*cos(4*v-3*u+phase));
-            int value=(int)(255*clamp(noise,.08f,.92f));
+            int value=(int)(255*clamp((noise-.22f)*1.65f,0,1));
             pixels[y*256+x]=(unsigned char)value;
             if(value>water_probe[kind]){water_probe[kind]=value;water_probe_u[kind]=x;water_probe_v[kind]=y;}
         }

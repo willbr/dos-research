@@ -13,9 +13,9 @@ static void water_state(int layer)
 }
 static void water_uv(float x,float z,int layer,float *u,float *v)
 {
-    float scroll_s=water_scroll_u[layer],scroll_t=water_scroll_v[layer];
-    *u=(layer?x*67+z*49:x*153+z*21)+scroll_s;
-    *v=(layer?-x*53+z*65:-x*18+z*147)+scroll_t;
+    const float *axis=water_uv_axes[layer];
+    *u=x*axis[0]+z*axis[1]+water_scroll_u[layer];
+    *v=x*axis[2]+z*axis[3]+water_scroll_v[layer];
 }
 static void water_draw(void)
 {
@@ -25,7 +25,7 @@ static void water_draw(void)
     if(!water_ripples || water_strength<=0 || water_count<3)return;
     for(layer=0;layer<2;++layer) {
         int count;unsigned int mask=0,common=63;
-        alpha=(layer?12+38*water_energy:16+44*water_energy)*water_strength;
+        alpha=(layer?45+70*water_energy:65+80*water_energy)*water_strength;
         for(i=0;i<8;++i) {
             int j;unsigned int code=0;float u,t;
             water_uv(water_outline[i][0],water_outline[i][1],layer,&u,&t);

@@ -47,7 +47,7 @@ geometry clipping.
 
 A grazing-angle reflection approximation varies the water tint across the
 plane: shallow sight lines show stronger reflections than a downward view.
-Two 256x256 ALPHA8 textures provide soft, low-contrast patches of water detail
+Two 256x256 ALPHA8 textures provide visible, contrasting patches of water detail
 without narrow bright lines. The layers have different color and strength. Each draws
 in a separate additive pass on the single TMU. World-space UVs give the layers
 different tiling, rotation and scroll direction; only coordinates change each
@@ -58,6 +58,11 @@ texture re-upload or expanded Voodoo configuration.
 Local gust strength feeds a damped water-roughness value: it builds quickly,
 then eases back toward calm. Roughness modulates texture opacity, scrolling speed and leaf bobbing.
 Scrolling phases are integrated over time so gust-speed changes stay continuous.
+UV drift is derived from world-space velocity (with the required negative sign),
+so stronger gusts carry both patterns along the leaves' +X/-Z wind direction.
+The layers keep different small base drifts; gust speed grows with wind strength.
+The direction regression checks recover world velocity from the measured UV
+change, and verify that strong gusts increase the flow rather than reverse it.
 The water plane and reflected geometry remain flat: these are animated surface
 highlights, not normal mapping, physical wave geometry, refraction or a distortion
 of the reflected scene. Still mode removes the two highlight passes; zero
@@ -104,7 +109,7 @@ foliage with optional stone detail off. Unrestricted free flight and the heavier
 blended-foliage comparison are outside that performance claim.
 
 The latest simplified 600-frame close-puddle test at 128 leaves measures
-**59.82 Windows FPS**, max guest frame **17.206 ms**, **zero over 18 ms**.
+**59.74 Windows FPS**, max guest frame **17.198 ms**, **zero over 18 ms**.
 Native OpenGL and software Voodoo pixel/reflection checks pass.
 
 The previous full-tour baseline with DOSBox-X 2026.01.02 on this machine at

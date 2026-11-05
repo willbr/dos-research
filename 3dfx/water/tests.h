@@ -131,6 +131,23 @@ static int water_reflection_checks(FILE *log)
     if(log)fprintf(log,"Reflection completeness: %lu slab pixels, %lu vegetation pixels, %d grass polygons, %lu outside puddle; %s\n",slab_changes,plant_changes,grass,outside,ok?"PASS":"FAIL");
     foliage_benchmark=0;water_ripples=1;leaves_enabled=1;return ok;
 }
+static int water_scroll_checks(FILE *log)
+{
+    int layer,ok=1;float saved=water_energy;
+    for(layer=0;layer<2;++layer) {
+        float before_u,before_v,du,dv,world_x,world_z,slow_x,slow_z,fast_x,fast_z;
+        const float *a=water_uv_axes[layer];float determinant=a[0]*a[3]-a[1]*a[2];
+        water_energy=.12f;water_flow_velocity(layer,&slow_x,&slow_z);
+        water_energy=.9f;water_flow_velocity(layer,&fast_x,&fast_z);
+        if(fast_x<=slow_x*3 || fast_z>=slow_z || fast_x-.35f*fast_z<=0)ok=0;
+        water_scroll_u[layer]=water_scroll_v[layer]=128;before_u=before_v=128;
+        water_tick(1/60.0f);du=(water_scroll_u[layer]-before_u)*60;dv=(water_scroll_v[layer]-before_v)*60;
+        world_x=(-a[3]*du+a[1]*dv)/determinant;world_z=(a[2]*du-a[0]*dv)/determinant;
+        if(world_x<=0 || world_z>=0)ok=0;
+        if(log)fprintf(log,"Water layer %d: calm %.3f m/s, gust %.3f m/s; measured drift +X %.3f -Z %.3f; %s\n",layer,slow_x,fast_x,world_x,world_z,ok?"PASS":"FAIL");
+    }
+    water_energy=saved;water_init();return ok;
+}
 static int water_tests(FILE *log,int controls_only)
 {
     int ok=water_controls(log);if(!foliage_controls(log))ok=0;
@@ -138,6 +155,7 @@ static int water_tests(FILE *log,int controls_only)
     if(!foliage_grass_anchor_checks(log))ok=0;
     if(!firstperson_tests(log))ok=0;
     if(!water_physics_tests(log))ok=0;
+    if(!water_scroll_checks(log))ok=0;
     if(!water_scene_tests(log))ok=0;
     if(!water_reflection_checks(log))ok=0;
     return ok;

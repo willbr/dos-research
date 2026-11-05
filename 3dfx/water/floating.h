@@ -6,13 +6,16 @@ static void water_tick(float dt)
     float rate=target>water_energy?1.4f:.48f;
     water_energy+=(target-water_energy)*(1-(float)exp(-rate*dt));
     {
-        int layer;float speed=.35f+1.65f*water_energy;
+        int layer;
         for(layer=0;layer<2;++layer) {
-            water_scroll_u[layer]+=dt*speed*(layer?-6:3.5f);
-            water_scroll_v[layer]+=dt*speed*(layer?4:1.5f);
+            float x,z;const float *axis=water_uv_axes[layer];water_flow_velocity(layer,&x,&z);
+            /* A pattern F(M*p+offset) moves with velocity -inverse(M)*offset'. */
+            water_scroll_u[layer]-=dt*(axis[0]*x+axis[1]*z);
+            water_scroll_v[layer]-=dt*(axis[2]*x+axis[3]*z);
             if(water_scroll_u[layer]>=256)water_scroll_u[layer]-=256;
             if(water_scroll_u[layer]<0)water_scroll_u[layer]+=256;
             if(water_scroll_v[layer]>=256)water_scroll_v[layer]-=256;
+            if(water_scroll_v[layer]<0)water_scroll_v[layer]+=256;
         }
     }
 }
