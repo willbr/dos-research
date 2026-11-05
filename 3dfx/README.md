@@ -53,6 +53,11 @@ down/up. See [camera controls](fog/README.md) for collisions and feature keys.
   masked away from chipped blue paint and lettering by the native alpha selector
   in one pass. **E** paint mask, **G** specular, **C** split, **N** gloss.
   Launch with `specular-paint/run.cmd` or `./specular-paint/run.ps1`.
+- [texture-compression](texture-compression/README.md): TexUS-generated RGB565,
+  indexed P8 and YIQ/NCC image gallery with memory/error comparisons and resident
+  NCC-slot controls. **E** errors, **Z** zoom, **V** NCC slots, **T** image.
+  Uses software Voodoo for correct NCC switching; OpenGL diagnostics are included.
+  Launch with `texture-compression/run.cmd` or `./texture-compression/run.ps1`.
 - [fog](fog/README.md): continuous journey from the nave through its doorway
   into a graveyard with headstones and trees; native linear, exponential and
   exponential-squared distance fog. Launch with `fog/run.cmd` or `./fog/run.ps1`.
