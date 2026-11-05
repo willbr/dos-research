@@ -96,6 +96,7 @@ static int water_tests(FILE *log,int controls_only)
 {
     int ok=water_controls(log);if(!foliage_controls(log))ok=0;
     if(controls_only)return ok;
+    if(!foliage_grass_anchor_checks(log))ok=0;
     if(!firstperson_tests(log))ok=0;
     if(!water_physics_tests(log))ok=0;
     if(!water_scene_tests(log))ok=0;

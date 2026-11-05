@@ -31,6 +31,12 @@ static void foliage_card(Vec center,Vec right,Vec up,int texture,float light)
     q->p[2]=add(add(center,right),up);q->p[3]=add(sub(center,right),up);q->texture=texture;q->depth=depth;
     q->r=q->g=q->b=light;q->alpha=foliage_mode==1?205:255;q->bias=0;
 }
+static void foliage_grass(float x,float z,Vec right,float half_height,float sway,float light)
+{
+    /* Center moves by half the tip offset, cancelling it at both roots. */
+    foliage_card(vec(x+sway*.5f,half_height-.02f,z-sway*.15f),right,
+        vec(sway*.5f,half_height,-sway*.15f),1,light);
+}
 static void foliage_tree(float x,float z,float height,int seed)
 {
     int j,k;float gust,sway;
@@ -63,8 +69,8 @@ static void foliage_collect(void)
                 float sway;
                 if(dist>32*32 || !foliage_visible(vec(x,.4f,z),1.1f))continue;
                 sway=wind_enabled?(.025f+foliage_gust(x,z)*.18f)*foliage_sin(foliage_time*3+i+j):0;
-                foliage_card(vec(x,.31f,z),vec(.58f,0,.15f),vec(sway,.33f,-sway*.3f),1,195);
-                foliage_card(vec(x,.28f,z),vec(-.13f,0,.53f),vec(sway,.30f,-sway*.3f),1,175);
+                foliage_grass(x,z,vec(.58f,0,.15f),.33f,sway,195);
+                foliage_grass(x,z,vec(-.13f,0,.53f),.30f,sway,175);
             }
             /* Small branch sprays hugging the lower exterior wall as ivy. */
             for(j=0;j<7;++j)foliage_card(vec(side*(1.85f+j*.43f),.55f+j%3*.28f,-14.23f),vec(.45f,0,0),vec(0,.65f,0),0,170);

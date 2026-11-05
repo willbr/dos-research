@@ -40,10 +40,32 @@ static unsigned long foliage_image_changes(unsigned short *a,unsigned short *b)
     for(i=88*640;i<432*640;++i)if(a[i]!=b[i])++count;
     return count;
 }
+static int foliage_grass_anchor_checks(FILE *log)
+{
+    Camera saved=current_camera;int saved_wind=wind_enabled,saved_foliage=foliage_enabled;
+    float saved_time=foliage_time;int phase,i,samples=0,moving=0,errors=0;
+    current_camera.eye=vec(0,3,-24);current_camera.look=vec(-8,0,-35);wind_enabled=foliage_enabled=1;
+    for(phase=0;phase<8;++phase) {
+        foliage_time=phase*.8f;foliage_collect();
+        for(i=0;i<foliage_card_count;++i)if(foliage_cards[i].texture==1) {
+            EffectQuad *q=&foliage_cards[i];Vec root=mul(add(q->p[0],q->p[1]),.5f),tip=mul(add(q->p[2],q->p[3]),.5f);
+            int column=(int)((fabs(root.x)-3.7f)/3.8f+.5f),row=(int)((-21-root.z)/7.5f+.5f);
+            float x=(root.x<0?-1:1)*(3.7f+column*3.8f),z=-21-row*7.5f;
+            ++samples;
+            if(column<0 || column>4 || row<0 || row>4 || fabs(root.x-x)>.00001f || fabs(root.z-z)>.00001f ||
+                fabs(q->p[0].y+.02f)>.00001f || fabs(q->p[1].y+.02f)>.00001f)++errors;
+            if(fabs(tip.x-root.x)>.005f)++moving;
+        }
+    }
+    current_camera=saved;wind_enabled=saved_wind;foliage_enabled=saved_foliage;foliage_time=saved_time;
+    if(log)fprintf(log,"Grass roots anchored through gust: %d samples, %d root errors, %d moving tips; %s\n",samples,errors,moving,samples>8 && !errors && moving>8?"PASS":"FAIL");
+    return samples>8 && !errors && moving>8;
+}
 static int foliage_tests(FILE *log,int controls_only)
 {
     int ok=foliage_controls(log),i,rest=0,lifted=0;unsigned short *a,*b;unsigned long changes;
     if(controls_only)return ok;
+    if(!foliage_grass_anchor_checks(log))ok=0;
     if(!firstperson_tests(log))ok=0;
     /* Fixed-step settle, then a traveling gust must lift leaves again. */
     foliage_init();
