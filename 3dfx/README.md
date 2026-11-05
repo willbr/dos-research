@@ -63,6 +63,10 @@ down/up. See [camera controls](fog/README.md) for collisions and feature keys.
   upload comparisons, range controls, live strip and byte counters. **Space**
   pause, **N** step, **C** full/partial, **G** range.
   Launch with `palette-lava/run.cmd` or `./palette-lava/run.ps1`.
+- [procedural-fire](procedural-fire/README.md): CPU fire with full versus changed-row
+  texture uploads, split comparisons and payload counters. **B** full/band,
+  **G** band size, **C** split, **N** step, **Tab** profiler.
+  Launch with `procedural-fire/run.cmd` or `./procedural-fire/run.ps1`.
 - [fog](fog/README.md): continuous journey from the nave through its doorway
   into a graveyard with headstones and trees; native linear, exponential and
   exponential-squared distance fog. Launch with `fog/run.cmd` or `./fog/run.ps1`.
