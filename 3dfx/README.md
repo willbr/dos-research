@@ -30,6 +30,10 @@ down/up. See [camera controls](fog/README.md) for collisions and feature keys.
   stone comparisons, with split/single views, magnification/minification and
   moving oblique surfaces. **C** split, **B** filter, **V** mag/min, **Space** pause.
   Launch with `filtering/run.cmd` or `./filtering/run.ps1`.
+- [self-lit-city](self-lit-city/README.md): buildings with windows and neon signs
+  that stay bright while CPU lighting darkens the walls, using the native alpha
+  lighting selector in one pass. **E** mask, **C** split, **M** mask preview.
+  Launch with `self-lit-city/run.cmd` or `./self-lit-city/run.ps1`.
 - [mipmaps](mipmaps/README.md): cathedral mipmapping comparison, colored mip
   levels, LOD bias and dithered transitions. Uses the software Voodoo backend
   to honor uploaded levels; see its measured host FPS and backend notes.

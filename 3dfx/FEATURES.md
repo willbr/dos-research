@@ -73,14 +73,14 @@ demo's Windows-clock benchmark also separates actual host FPS from guest time.
 
 ## Effects and experiments found in the manuals
 
-These extend the basic tests into visual demos. All remain untested on our
-standard 4 MB, one-TMU target. The API mechanisms below are documented;
+These extend the basic tests into visual demos. Entries without demo links
+remain untested on our standard 4 MB, one-TMU target. The API mechanisms below are documented;
 the scenes and comparisons are our proposed applications of them.
 Page references are the manuals' printed page numbers, not PDF page indexes.
 
 | Done | Proposed demo | What makes it interesting | Mechanism, limits and source |
 | --- | --- | --- | --- |
-| [ ] | `self-lit-city` | Fly past buildings: walls get darker as the light moves, but windows and signs stay bright. Toggle the mask to see the difference. | `grAlphaControlsITRGBLighting` uses the **most significant texture-alpha bit** to select vertex RGB or a constant color. With the constant set to white and multiplicative texture lighting, selected texels bypass vertex lighting in the same pass. This is self-illumination, not bloom or a light cast onto nearby objects. Reference p. 16. |
+| [ ] | [`self-lit-city`](self-lit-city/README.md) | Twelve procedural buildings: moving light shades walls while windows and neon signs stay bright. E mask toggle, C split, S swap, M source-mask preview, light strength, orbit/flypast and Tab graphs. | Native `grAlphaControlsITRGBLighting` selects vertex RGB or constant white from the ARGB1555 alpha MSB; one face draw per view, opaque depth writes, no extra illumination pass. OpenGL/software pixel controls pass, including nonwhite constant and disabled-state restoration; swapped interiors match. 600 moving frames: 59.90 Windows FPS, max 17.208 ms, zero over 18 ms. Self-illumination only, no bloom or cast light. Reference p. 16; visual review pending. |
 | [ ] | `specular-paint` | A moving highlight crosses a painted metal panel, appearing on exposed metal but disappearing on matte painted regions. | The same alpha-controlled lighting mode can mask the **addition** of vertex-computed specular RGB. Use a black constant for regions without highlights. The CPU computes the highlight; this is not per-pixel Phong shading or normal mapping. Reference p. 16; Guide pp. 45–46. |
 | [ ] | `palette-lava` | Animate lava, flowing color bands, or water on a textured object without re-uploading its texels. Show a palette strip and count upload bytes. | Upload a `P_8` texture once, then rotate selected palette entries with `grTexDownloadTablePartial`. Each TMU has only one palette, so every indexed texture using it sees that palette change. Palette-entry alpha is ignored; use a suitable texture format if texel alpha is needed. Guide pp. 114–115; Reference pp. 94–95. |
 | [ ] | `procedural-fire` | A CPU-generated fire texture plays on a rotating cube or screen. Compare full uploads against a controlled animation where only a band of rows changes. | `grTexDownloadMipMapLevelPartial` updates an inclusive range of **whole rows**, not arbitrary rectangles. Keep the base address at the start of the mip level, with 8-byte alignment; do not cross a 2 MB texture-memory boundary. Generate pixels on the CPU. Updating only the bottom row is not enough if the fire simulation changes the rest. Reference p. 93; Guide pp. 104–108. |
