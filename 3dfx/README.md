@@ -45,6 +45,10 @@ down/up. See [camera controls](fog/README.md) for collisions and feature keys.
   native Z/W buffers, depth comparisons and writes. **H** test, **W** writes,
   **D** order, **P** precision, **N** fitted Z range.
   Launch with `depth/run.cmd` or `./depth/run.ps1`.
+- [combiners](combiners/README.md): one textured orb in replace, modulate, add
+  and interpolate modes, with labeled RGB/alpha equations and pixel controls.
+  **1-4** mode, **C** gallery, **A** alpha equation, **B** source-alpha blending.
+  Launch with `combiners/run.cmd` or `./combiners/run.ps1`.
 - [fog](fog/README.md): continuous journey from the nave through its doorway
   into a graveyard with headstones and trees; native linear, exponential and
   exponential-squared distance fog. Launch with `fog/run.cmd` or `./fog/run.ps1`.
