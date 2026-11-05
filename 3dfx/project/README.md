@@ -20,11 +20,11 @@ Glide, using the shared vendored runtime and compiler setup.
 | F | Journey / manual look |
 | U / I / N | FPS walk / FPS fly / drag-based manual look |
 | WASD / Shift | Held movement / faster movement in FPS modes |
-| Space / Ctrl | Rise / descend in FPS fly |
+| Q / E | Descend / rise in FPS fly |
 | Space | Pause journey and lantern sweep |
 | Left drag / arrows | Smooth manual look |
 | Wheel / right drag | Local dolly |
-| 1 / 2 / 3, [ / ], Q | Fog curve, density and color |
+| 1 / 2 / 3, [ / ], Q | Fog curve, density and color (Q outside FPS fly) |
 | Tab | Profiler, including a separate **PROJECT** row |
 | Esc | Exit |
 

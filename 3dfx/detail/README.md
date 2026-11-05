@@ -25,7 +25,7 @@ Glide passthrough off. Compiler and runtime setup remain shared and vendored.
 | U / I / N | FPS walk / FPS fly / drag-based manual look |
 | WASD / Shift | Move / faster movement in FPS modes |
 | Mouse | Button-free look in FPS modes |
-| Space / Ctrl | Rise / descend in FPS fly |
+| Q / E | Descend / rise in FPS fly |
 | T / Y | Detail / shadows while WASD is in use |
 | Space | Pause journey and lantern sweep |
 | Left drag / arrows | Smooth manual look |

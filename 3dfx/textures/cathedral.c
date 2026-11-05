@@ -558,7 +558,7 @@ static void render(int fps,int paused)
 #if defined(FOG_DEMO) && !defined(PROJECTOR_DEMO)
     if(firstperson_mode) {
         text(21,452,"WASD MOVE MOUSE LOOK SHIFT FAST F TOUR U WALK I FLY",1,176,188,190);
-        text(21,466,firstperson_mode==2?"SPACE/CTRL UP/DOWN N MANUAL TAB PROFILER ESC EXIT":"N MANUAL TAB PROFILER ESC EXIT",1,116,140,148);
+        text(21,466,firstperson_mode==2?"Q DOWN E UP N MANUAL TAB PROFILER ESC EXIT":"N MANUAL TAB PROFILER ESC EXIT",1,116,140,148);
     } else {
 #endif
 #ifdef PROJECTOR_DEMO

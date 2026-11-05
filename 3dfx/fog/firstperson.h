@@ -18,6 +18,8 @@ static void firstperson_scan(unsigned char scan)
         if(code==31)firstperson_swallow&=~4;
         if(code==32)firstperson_swallow&=~8;
         if(code==57)firstperson_swallow&=~16;
+        if(code==16)firstperson_swallow&=~32;
+        if(code==18)firstperson_swallow&=~64;
     }
 }
 static void firstperson_release_guard(void)
@@ -28,12 +30,14 @@ static void firstperson_release_guard(void)
     if(firstperson_keys[31])firstperson_swallow|=4;
     if(firstperson_keys[32])firstperson_swallow|=8;
     if(firstperson_keys[57])firstperson_swallow|=16;
+    if(firstperson_mode==2 && firstperson_keys[16])firstperson_swallow|=32;
+    if(firstperson_mode==2 && firstperson_keys[18])firstperson_swallow|=64;
     _enable();
 }
 static int firstperson_key_consumed(int key)
 {
-    int mask=key=='w'||key=='W'?1:key=='a'||key=='A'?2:key=='s'||key=='S'?4:key=='d'||key=='D'?8:key==' '?16:0;
-    return mask && (firstperson_mode || (firstperson_swallow&mask));
+    int mask=key=='w'||key=='W'?1:key=='a'||key=='A'?2:key=='s'||key=='S'?4:key=='d'||key=='D'?8:key==' '?16:key=='q'||key=='Q'?32:key=='e'||key=='E'?64:0;
+    return mask && ((mask<32?firstperson_mode:firstperson_mode==2) || (firstperson_swallow&mask));
 }
 static void __interrupt __far firstperson_irq(void)
 { firstperson_scan((unsigned char)inp(0x60));_chain_intr(firstperson_old_irq); }
@@ -75,7 +79,7 @@ static float firstperson_floor(float x,float z)
 static void firstperson_set_mode(int mode)
 {
     int i;Vec original;
-    if(!mode && firstperson_mode)firstperson_release_guard();
+    if(mode!=firstperson_mode && firstperson_mode)firstperson_release_guard();
     firstperson_mode=mode;if(flying)fly_mode(0);
     else {
         /* Catch the actual view, including any unfinished camera transition. */
@@ -106,7 +110,7 @@ static void firstperson_move(float dt)
 {
     float heading=yaw+.6f,elevation=-pitch*1.5f-.1f;
     float forward=(float)firstperson_keys[17]-firstperson_keys[31],side=(float)firstperson_keys[32]-firstperson_keys[30];
-    float vertical=firstperson_mode==2?(float)firstperson_keys[57]-(firstperson_keys[29] || firstperson_keys[128+29]):0;
+    float vertical=firstperson_mode==2?(float)firstperson_keys[18]-firstperson_keys[16]:0;
     float speed=(firstperson_mode==1?3.0f:7.0f)*((firstperson_keys[42] || firstperson_keys[54])?2:1),length,blend;
     float cp=firstperson_mode==2?(float)cos(elevation):1;
     Vec direction=vec((float)sin(heading)*forward*cp-(float)cos(heading)*side,

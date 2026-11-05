@@ -45,11 +45,11 @@ static void projector_hud_camera_help(void)
     if(firstperson_mode) {
         projector_hud_split(7,"WASD MOVE SHIFT FAST MOUSE LOOK U WALK I FLY F TOUR TAB PROFILER");
 #ifdef DETAIL_DEMO
-        projector_hud_split(9,firstperson_mode==2?"SPACE/CTRL UP/DOWN N MANUAL T DETAIL Y SHADOWS V SPLIT":"N MANUAL T DETAIL Y SHADOWS V SPLIT -/+ STRENGTH J/K TILING");
+        projector_hud_split(9,firstperson_mode==2?"Q DOWN E UP N MANUAL T DETAIL Y SHADOWS V SPLIT":"N MANUAL T DETAIL Y SHADOWS V SPLIT -/+ STRENGTH J/K TILING");
 #elif defined(SHADOW_DEMO)
-        projector_hud_split(9,firstperson_mode==2?"SPACE/CTRL UP/DOWN N MANUAL Y SHADOWS ESC EXIT":"N MANUAL Y SHADOWS ESC EXIT");
+        projector_hud_split(9,firstperson_mode==2?"Q DOWN E UP N MANUAL Y SHADOWS ESC EXIT":"N MANUAL Y SHADOWS ESC EXIT");
 #else
-        projector_hud_split(9,firstperson_mode==2?"SPACE/CTRL UP/DOWN N MANUAL ESC EXIT":"N MANUAL ESC EXIT");
+        projector_hud_split(9,firstperson_mode==2?"Q DOWN E UP N MANUAL ESC EXIT":"N MANUAL ESC EXIT");
 #endif
         return;
     }

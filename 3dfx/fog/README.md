@@ -21,7 +21,7 @@ runtimes and compiler setup described in [the parent README](../README.md).
 | WASD | Held movement in first-person modes; A/D strafe |
 | Mouse | Look without holding a button in first-person modes |
 | Shift | Move twice as fast |
-| Space / Ctrl | Rise / descend in free flight |
+| Q / E | Descend / rise in free flight |
 | Space | Pause the journey |
 | Left drag / arrows | Smooth manual look with inertia |
 | Wheel / right drag / +/- | Dolly around the current manual position |
@@ -29,7 +29,7 @@ runtimes and compiler setup described in [the parent README](../README.md).
 | H | Native fog off/on |
 | 1 / 2 / 3 | Linear / exponential / exponential-squared fog |
 | [ / ] | Decrease / increase fog density |
-| Q | Blue haze / stone mist / night fog color |
+| Q | Blue haze / stone mist / night fog color outside FPS fly |
 | Tab | Frame profiler, FPS and frame-time graphs |
 | Esc | Exit |
 
@@ -38,7 +38,7 @@ tour. Horizontal mouse movement and arrow turns follow camera-right rather
 than the orbit sign. Walking uses a 1.7-unit eye height, 3 units/second speed,
 basic wall/pillar/grave/trunk collision and wall sliding. It can traverse the
 doorway freely. Free flight follows the look direction at 7 units/second,
-with Space/Ctrl for vertical motion; it ignores geometry within a bounded world
+with Q/E for vertical motion; it ignores geometry within a bounded world
 volume. Shift doubles either speed. Diagonal inputs are normalized and movement
 accelerates and brakes smoothly. Walking has no jump or gravity simulation;
 it settles onto the ground height when selected. If switching from noclip inside

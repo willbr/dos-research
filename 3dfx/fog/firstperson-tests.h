@@ -43,11 +43,15 @@ static int firstperson_tests(FILE *log)
     firstperson_test_pose(vec(1.8f,1.7f,0),vec(5,1.7f,0),1);firstperson_scan(17);firstperson_test_step(60,1/60.0f);if(manual_anchor.x>2.47f)ok=0;
     firstperson_test_pose(vec(-6,1.7f,-20),vec(-6,1.7f,-25),1);firstperson_scan(17);firstperson_test_step(60,1/60.0f);if(manual_anchor.z< -20.9f)ok=0;
     if(log)fprintf(log,"Walking eye height, doorway clearance, wall/pier/grave collisions: %s\n",ok?"PASS":"FAIL");
-    firstperson_test_pose(vec(0,5,-10),vec(0,5,-20),2);firstperson_scan(57);firstperson_test_step(60,1/60.0f);if(manual_anchor.y<11)ok=0;
-    firstperson_test_pose(vec(0,5,-10),vec(0,5,-20),2);firstperson_scan(29);firstperson_test_step(30,1/60.0f);if(manual_anchor.y>2.2f)ok=0;
+    firstperson_test_pose(vec(0,5,-10),vec(0,5,-20),2);firstperson_scan(18);firstperson_test_step(60,1/60.0f);if(manual_anchor.y<11)ok=0;
+    firstperson_test_pose(vec(0,5,-10),vec(0,5,-20),2);firstperson_scan(16);firstperson_test_step(30,1/60.0f);if(manual_anchor.y>2.2f)ok=0;
     firstperson_test_pose(vec(4,5,-1),vec(10,5,-1),2);firstperson_scan(17);firstperson_test_step(60,1/60.0f);if(manual_anchor.x<10)ok=0;
     firstperson_test_pose(vec(0,5,-10),vec(0,9,-14),2);firstperson_scan(17);firstperson_test_step(60,1/60.0f);if(manual_anchor.y<9)ok=0;
-    if(log)fprintf(log,"FPS flight: climb, descend, pitched forward movement and noclip: %s\n",ok?"PASS":"FAIL");
+    firstperson_test_pose(vec(0,5,-10),vec(0,5,-20),2);firstperson_scan(16);firstperson_scan(18);firstperson_test_step(30,1/60.0f);
+    if(fabs(manual_anchor.y-5)>.001f || !firstperson_key_consumed('q') || !firstperson_key_consumed('E'))ok=0;
+    firstperson_set_mode(1);if(!firstperson_key_consumed('q'))ok=0;
+    firstperson_scan(0x90);firstperson_scan(0x92);if(firstperson_key_consumed('q'))ok=0;
+    if(log)fprintf(log,"FPS flight: E climb, Q descend, opposite keys cancel, mode-exit guard, pitched forward movement and noclip: %s\n",ok?"PASS":"FAIL");
     before=current_camera;firstperson_set_mode(1);update_camera(0,0);delta=sub(current_camera.eye,before.eye);if(dot(delta,delta)>.000001f)ok=0;
     for(i=0;i<8;++i){before=path_at(i*2.0f);current_camera=before;flying=1;firstperson_set_mode(2);update_camera(0,0);delta=sub(current_camera.eye,before.eye);if(dot(delta,delta)>.000001f)ok=0;}
     if(log)fprintf(log,"FPS mode/tour entry preserves the current position: %s\n",ok?"PASS":"FAIL");

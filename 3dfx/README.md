@@ -9,8 +9,8 @@ with interactive Glide graphics.
 
 The nave/graveyard demos share **U** FPS walking, **I** noclip flying,
 **N** drag-based manual look and **F** automatic tour. FPS modes use held
-**WASD**, mouse look and **Shift** for speed; flying adds **Space/Ctrl** for
-up/down. See [camera controls](fog/README.md) for collisions and feature keys.
+**WASD**, mouse look and **Shift** for speed; flying adds **Q/E** for
+down/up. See [camera controls](fog/README.md) for collisions and feature keys.
 
 - [cube](cube/README.md): rotating rainbow cube using DOS Glide, with a live
   FPS counter and 60 Hz frame pacing. Launch with `cube/run.cmd` or

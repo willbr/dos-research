@@ -17,13 +17,13 @@ Voodoo 1 settings remain unchanged: one 2 MB TMU, 2 MB framebuffer,
 | F | Journey / manual look |
 | U / I / N | FPS walk / FPS fly / drag-based manual look |
 | WASD / Shift | Held movement / faster movement in FPS modes |
-| Space / Ctrl | Rise / descend in FPS fly |
+| Q / E | Descend / rise in FPS fly |
 | Space | Pause |
 | Left drag / arrows | Smooth look with inertia |
 | Wheel / right drag | Local dolly |
 | 1 / 2 / 3 | Linear / exponential / exponential-squared fog |
 | [ / ] | Fog density |
-| Q | Fog color |
+| Q | Fog color outside FPS fly |
 | Tab | Profiler, FPS and frame-time graphs |
 | Esc | Exit |
 

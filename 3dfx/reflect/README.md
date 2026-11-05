@@ -19,7 +19,7 @@ scene still uses 1,220,608 bytes of TMU memory.
 | F | Automatic journey / manual look |
 | U / I / N | FPS walk / FPS fly / drag-based manual look |
 | WASD / Shift | Held movement / faster movement in FPS modes |
-| Space / Ctrl | Rise / descend in FPS fly |
+| Q / E | Descend / rise in FPS fly |
 | Y | Shadows while S is used for backward movement |
 | Space | Pause journey and lantern sweep |
 | Left drag / arrows | Smooth manual look |
