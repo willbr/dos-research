@@ -86,6 +86,7 @@ static int water_scene_tests(FILE *log)
     free(zero);water_strength=.8f;render(0,1);zero=capture("REPEAT.PPM");repeat=foliage_image_changes(ripple,zero);
     if(!zero || repeat)ok=0;
     if(log)fprintf(log,"Fixed camera/time has no triangle shimmer: %lu errors; %s\n",repeat,ok?"PASS":"FAIL");
+    for(i=0;i<84;++i)water_tick(1/60.0f);water_energy=.7f;
     foliage_time=3.4f;render(0,1);next=capture("SCROLL.PPM");changed=foliage_image_changes(ripple,next);
     if(!next || changed<200)ok=0;
     if(log)fprintf(log,"UV scrolling animates static textures: %lu changed pixels; %s\n",changed,ok?"PASS":"FAIL");

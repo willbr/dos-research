@@ -5,6 +5,16 @@ static void water_tick(float dt)
     /* Roughness builds quickly and decays more slowly after the gust. */
     float rate=target>water_energy?1.4f:.48f;
     water_energy+=(target-water_energy)*(1-(float)exp(-rate*dt));
+    {
+        int layer;float speed=.35f+1.65f*water_energy;
+        for(layer=0;layer<2;++layer) {
+            water_scroll_u[layer]+=dt*speed*(layer?-6:3.5f);
+            water_scroll_v[layer]+=dt*speed*(layer?4:1.5f);
+            if(water_scroll_u[layer]>=256)water_scroll_u[layer]-=256;
+            if(water_scroll_u[layer]<0)water_scroll_u[layer]+=256;
+            if(water_scroll_v[layer]>=256)water_scroll_v[layer]-=256;
+        }
+    }
 }
 static void water_float_leaf(WindLeaf *l,float dt,float gust)
 {
@@ -22,6 +32,7 @@ static void water_float_leaf(WindLeaf *l,float dt,float gust)
 static void water_init(void)
 {
     int i;water_energy=.18f;water_floating=0;
+    water_scroll_u[0]=water_scroll_v[0]=0;water_scroll_u[1]=37;water_scroll_v[1]=101;
     /* Keep the water/leaf interaction visible immediately on entering the demo. */
     for(i=0;i<16;++i) {
         WindLeaf *l=&wind_leaves[i];

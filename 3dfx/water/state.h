@@ -1,10 +1,11 @@
-/* Native one-TMU water: two independent scrolling ALPHA8 layers. */
+/* Two soft water textures, independently scrolling on the single TMU. */
 #include "../reflect/footprint.h"
 static int water_quick,water_ripples=1,water_floating,water_layers;
 static float water_energy=.18f,water_strength=.8f;
+static float water_scroll_u[2],water_scroll_v[2];
 static GrTexInfo water_texture;
 static FxU32 water_address[2];
-static const int water_light[2][3]={{45,85,105},{145,182,190}};
+static const int water_light[2][3]={{55,85,100},{70,100,110}};
 static int water_probe[2],water_probe_u[2],water_probe_v[2];
 static int water_key(int key)
 {
@@ -23,10 +24,11 @@ static int water_load(FxU32 *next,unsigned char *pixels)
         water_probe[kind]=0;
         for(y=0;y<256;++y)for(x=0;x<256;++x) {
             float u=x*(6.28318530718f/256),v=y*(6.28318530718f/256);
-            float wave=(float)sin(u*(kind?6:1)+.65*sin(v*(kind?3:2))+.3*sin(v-u));
-            float ridge=clamp((wave-.78f)/.22f,0,1);
-            int value=kind?(int)(255*ridge*ridge*(.65f+.35f*(float)cos(v*2-u))):
-                (int)(255*clamp(.42f+.30f*wave+.14f*(float)sin(v+u*2),0,1));
+            float phase=kind*1.73f;
+            float noise=.5f+.22f*(float)(sin(u+phase)*cos(2*v-phase))
+                +.14f*(float)(cos(3*u+v+phase)*sin(3*v-u))
+                +.09f*(float)(sin(5*u+2*v-phase)*cos(4*v-3*u+phase));
+            int value=(int)(255*clamp(noise,.08f,.92f));
             pixels[y*256+x]=(unsigned char)value;
             if(value>water_probe[kind]){water_probe[kind]=value;water_probe_u[kind]=x;water_probe_v[kind]=y;}
         }

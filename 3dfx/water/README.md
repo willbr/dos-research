@@ -47,8 +47,8 @@ geometry clipping.
 
 A grazing-angle reflection approximation varies the water tint across the
 plane: shallow sight lines show stronger reflections than a downward view.
-Two 256x256 ALPHA8 textures provide broad, slow blue ripples and sparse finer
-specular-looking glints. The layers have different color and strength. Each draws
+Two 256x256 ALPHA8 textures provide soft, low-contrast patches of water detail
+without narrow bright lines. The layers have different color and strength. Each draws
 in a separate additive pass on the single TMU. World-space UVs give the layers
 different tiling, rotation and scroll direction; only coordinates change each
 frame. Textures upload once at startup, adding 131,072 bytes for total TMU use
@@ -56,7 +56,8 @@ of **1,761,280 bytes**. The ripple effect needs no framebuffer readback,
 texture re-upload or expanded Voodoo configuration.
 
 Local gust strength feeds a damped water-roughness value: it builds quickly,
-then eases back toward calm. Roughness modulates ripple alpha and leaf bobbing.
+then eases back toward calm. Roughness modulates texture opacity, scrolling speed and leaf bobbing.
+Scrolling phases are integrated over time so gust-speed changes stay continuous.
 The water plane and reflected geometry remain flat: these are animated surface
 highlights, not normal mapping, physical wave geometry, refraction or a distortion
 of the reflected scene. Still mode removes the two highlight passes; zero
@@ -102,8 +103,12 @@ The profiler opens halfway through each run. The checks require at least
 foliage with optional stone detail off. Unrestricted free flight and the heavier
 blended-foliage comparison are outside that performance claim.
 
-With DOSBox-X 2026.01.02 on this machine, the complete 6,000-frame tour at
-128 leaves measures **59.96 Windows FPS**, max guest frame **17.215 ms**,
+The latest simplified 600-frame close-puddle test at 128 leaves measures
+**59.82 Windows FPS**, max guest frame **17.206 ms**, **zero over 18 ms**.
+Native OpenGL and software Voodoo pixel/reflection checks pass.
+
+The previous full-tour baseline with DOSBox-X 2026.01.02 on this machine at
+128 leaves measured **59.96 Windows FPS**, max guest frame **17.215 ms**,
 **zero frames over 18 ms**, with the profiler shown for the second half.
 The dedicated doorway run also passes at 59.86 Windows FPS, max 17.205 ms,
 zero over 18 ms. Both native OpenGL and software Voodoo pixel controls pass;
