@@ -109,10 +109,17 @@ static int submission_comparisons(FILE *log)
 #ifdef PROJECTOR_DEMO
 #include "../project/temporal-tests.h"
 #endif
+#ifdef RAIN_DEMO
+#include "../rain/tests.h"
+#endif
 static int run_tests(FILE *log,int soak)
 {
     int ok=1,i,count=soak==3?600:soak==2?6000:soak?1440:360,slow=0,inside=0,outside=0,portal=0;
     float max_ms=0,sum=0;unsigned short *a,*b;
+#ifdef RAIN_DEMO
+    if(rain_quick){test_frames=0;return rain_tests(log,rain_quick==2);}
+    if(soak)rain_level=3;
+#endif
 #ifdef FOLIAGE_DEMO
     if(soak==5)count=600;
     if(foliage_quick){test_frames=0;return foliage_tests(log,foliage_quick==2);}

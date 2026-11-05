@@ -32,7 +32,9 @@ static void projector_hud_camera_help(void)
     static int last=-1;int state=firstperson_mode+4*flying;char line[64];
     const char *mode=firstperson_mode==1?"FPS WALK":firstperson_mode==2?"FPS FLY":flying?"TOUR":"MANUAL";
     if(state==last)return;last=state;
-#ifdef WATER_DEMO
+#ifdef RAIN_DEMO
+    sprintf(line,"3DFX RAIN / %s",mode);
+#elif defined(WATER_DEMO)
     sprintf(line,"3DFX WATER / %s",mode);
 #elif defined(FOLIAGE_DEMO)
     sprintf(line,"3DFX WIND / %s",mode);
@@ -47,6 +49,11 @@ static void projector_hud_camera_help(void)
 #endif
     projector_hud_update(0,line);
 #ifdef WATER_DEMO
+#ifdef RAIN_DEMO
+    projector_hud_split(7,"J/K RAIN -/+ M GUST V WATER +/- RIPPLES ,/. LEAVES TAB PROF");
+    projector_hud_split(9,"WASD MOVE U WALK I FLY Q DOWN E UP N MANUAL F TOUR P LANTERN");
+    return;
+#endif
     projector_hud_split(7,"V STILL/RIPPLES +/- STRENGTH R REFLECT M GUST Z WIND ,/. LEAVES TAB PROF");
     projector_hud_split(9,"WASD MOVE U WALK I FLY Q DOWN E UP N MANUAL F TOUR G FOLIAGE L LEAVES");
     return;
@@ -85,7 +92,10 @@ static void projector_hud_refresh(int fps)
     projector_hud_update(2,projector_enabled?"P LANTERN ON":"P LANTERN OFF");
     projector_hud_update(3,projector_locked?"O FIXED IN WORLD":"O MOVING LANTERN");
     if(fps>0)sprintf(line,"FPS %d",fps);else strcpy(line,"FPS --");projector_hud_update(4,line);
-#ifdef WATER_DEMO
+#ifdef RAIN_DEMO
+    sprintf(line,"RAIN %s %d/%d GUST %d%% LEAVES %d/128",rain_level==0?"OFF":rain_level==1?"LIGHT":rain_level==2?"MEDIUM":"HEAVY",rain_level*(RAIN_MAX/3),RAIN_MAX,(int)(water_energy*100+.5f),leaf_count);
+    projector_hud_update(11,"");projector_hud_update(12,"");
+#elif defined(WATER_DEMO)
     {
         int i;water_floating=0;
         for(i=0;i<leaf_count;++i)if(wind_leaves[i].floating)++water_floating;
@@ -117,7 +127,11 @@ static int projector_hud_load(FxU32 *next)
     if(*next+bytes>grTexMaxAddress(GR_TMU0)+1)return 0;
     projector_hud_address=*next;*next+=bytes;
 #ifdef WATER_DEMO
+#ifdef RAIN_DEMO
+    projector_hud_update(0,"3DFX / WEATHER PARTICLES");projector_hud_update(1,"WINCHESTER / WIND AND RAIN");
+#else
     projector_hud_update(0,"3DFX / ANIMATED TEXTURE COORDINATES");projector_hud_update(1,"WINCHESTER / WIND AND WATER");
+#endif
 #elif defined(FOLIAGE_DEMO)
     projector_hud_update(0,"3DFX / WIND AND ALPHA CUTOUTS");projector_hud_update(1,"WINCHESTER / AUTUMN WIND");
 #elif defined(DETAIL_DEMO)

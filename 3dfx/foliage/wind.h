@@ -73,6 +73,9 @@ static void foliage_tick(float dt)
 #ifdef WATER_DEMO
     water_tick(dt);
 #endif
+#ifdef RAIN_DEMO
+    if(foliage_benchmark)rain_tick(dt);
+#endif
     for(i=0;i<leaf_count;++i) {
         WindLeaf *l=&wind_leaves[i];float gust=foliage_gust(l->p.x,l->p.z),floor;
         l->age+=dt;

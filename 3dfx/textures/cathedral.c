@@ -104,8 +104,14 @@ static int reflections_enabled=1;
 #ifdef WATER_DEMO
 #include "../water/state.h"
 #endif
+#ifdef RAIN_DEMO
+#include "../rain/state.h"
+#endif
 #ifdef FOLIAGE_DEMO
 #include "../foliage/wind.h"
+#endif
+#ifdef RAIN_DEMO
+#include "../rain/simulation.h"
 #endif
 #ifdef PROJECTOR_DEMO
 #include "../project/projector.h"
@@ -209,6 +215,9 @@ static int load_textures(void)
 #endif
 #ifdef WATER_DEMO
     if(!water_load(&next,(unsigned char *)pixels)){free(rgb);free(font);free(pixels);return 0;}
+#endif
+#ifdef RAIN_DEMO
+    if(!rain_load(&next,(unsigned char *)pixels)){free(rgb);free(font);free(pixels);return 0;}
 #endif
     profiler_tex.smallLod=profiler_tex.largeLod=GR_LOD_256;profiler_tex.aspectRatio=GR_ASPECT_1x2;
     profiler_tex.format=GR_TEXFMT_RGB_565;profiler_tex.data=profiler_pixels;
@@ -501,6 +510,9 @@ static int reflection_plant_visible(Vec center,float radius);
 #ifdef WATER_DEMO
 #include "../water/ripples.h"
 #endif
+#ifdef RAIN_DEMO
+#include "../rain/render.h"
+#endif
 static void render(int fps,int paused)
 {
     char line[80];GrVertex sky[4];int i;
@@ -528,6 +540,9 @@ static void render(int fps,int paused)
 #endif
 #ifdef FOLIAGE_DEMO
     foliage_update(paused);
+#endif
+#ifdef RAIN_DEMO
+    rain_update(paused);
 #endif
     drawn=clipped=0;prepare();profile_stage(P_TRANSFORM);
 #ifdef FOG_DEMO
@@ -564,6 +579,9 @@ static void render(int fps,int paused)
     blending_effects(paused);
 #else
     if(compare)scene(1);
+#endif
+#ifdef RAIN_DEMO
+    rain_draw();
 #endif
     profile_stage(P_AA);
 #ifndef BLEND_DEMO
@@ -661,6 +679,10 @@ int main(int argc,char **argv)
 #ifdef WATER_DEMO
     water_quick=argc>1 && !strcmp(argv[1],"/watercheck")?1:argc>1 && !strcmp(argv[1],"/watercontrol")?2:0;
     if(water_quick)test=1;
+#ifdef RAIN_DEMO
+    rain_quick=argc>1 && !strcmp(argv[1],"/raincheck")?1:argc>1 && !strcmp(argv[1],"/raincontrol")?2:0;
+    if(rain_quick)test=1;
+#endif
     if(argc>1 && !strcmp(argv[1],"/doorbench"))soak=6;
 #endif
     firstperson_quick=argc>1 && !strcmp(argv[1],"/fpstest");if(firstperson_quick)test=1;
@@ -748,6 +770,9 @@ int main(int argc,char **argv)
     grCullMode(GR_CULL_DISABLE);grDitherMode(GR_DITHER_4x4);
     if(!load_textures()){grGlideShutdown();puts("Cannot load material textures / texture memory exhausted");if(log)fclose(log);return 1;}
     profile_init();mouse_init();
+#ifdef RAIN_DEMO
+    rain_init();
+#endif
 #ifdef DETAIL_DEMO
     detail_profiler_template();
 #endif
@@ -789,6 +814,9 @@ int main(int argc,char **argv)
 #ifdef FOLIAGE_DEMO
 #ifdef WATER_DEMO
             if(water_key(key))continue;
+#endif
+#ifdef RAIN_DEMO
+            if(rain_key(key))continue;
 #endif
             if(foliage_key(key))continue;
 #endif

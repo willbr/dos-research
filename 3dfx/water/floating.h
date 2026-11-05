@@ -2,8 +2,12 @@
 static void water_tick(float dt)
 {
     float target=.12f+.88f*foliage_gust(-5.8f,-28);
+    float rate;
+#ifdef RAIN_DEMO
+    target=clamp(target+rain_level*.065f,0,1);
+#endif
     /* Roughness builds quickly and decays more slowly after the gust. */
-    float rate=target>water_energy?1.4f:.48f;
+    rate=target>water_energy?1.4f:.48f;
     water_energy+=(target-water_energy)*(1-(float)exp(-rate*dt));
     {
         int layer;
