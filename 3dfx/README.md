@@ -26,6 +26,10 @@ down/up. See [camera controls](fog/README.md) for collisions and feature keys.
   orbit controls, an automatic drone flight, perspective/affine texture
   comparison and the Tab profiler. Launch with `textures/run.cmd` or
   `./textures/run.ps1`.
+- [filtering](filtering/README.md): isolated nearest/bilinear checkerboard and
+  stone comparisons, with split/single views, magnification/minification and
+  moving oblique surfaces. **C** split, **B** filter, **V** mag/min, **Space** pause.
+  Launch with `filtering/run.cmd` or `./filtering/run.ps1`.
 - [mipmaps](mipmaps/README.md): cathedral mipmapping comparison, colored mip
   levels, LOD bias and dithered transitions. Uses the software Voodoo backend
   to honor uploaded levels; see its measured host FPS and backend notes.
