@@ -3,13 +3,13 @@ static int shadow_controls(FILE *log)
     int i,ok=1;
     for(i=0;i<4;++i) {
         control_clear();grFogMode(GR_FOG_DISABLE);grAlphaBlendFunction(GR_BLEND_ONE,GR_BLEND_ZERO,GR_BLEND_ONE,GR_BLEND_ZERO);
-        grDepthMask(FXTRUE);control_rect(i==3?0:80,i==3?200:60,i==3?0:40,255,i==3?30000:10000,0);
+        grDepthMask(FXTRUE);control_rect(i==3?0:80,i==3?200:60,i==3?0:40,255,i==3?10040:10000,0);
         shadow_mask_state();grDepthBiasLevel(SHADOW_DEPTH_BIAS);control_rect(0,0,0,255,10000,0);
         if(i==2)control_rect(0,0,0,255,10000,0);
         if(i==1 || i==2){projector_control_state();projector_control_quad(.25f,0);}
         if(i==3) {
             local_color();grDepthMask(FXFALSE);grDepthBiasLevel(0);grDepthBufferFunction(GR_CMP_GREATER);
-            grAlphaBlendFunction(GR_BLEND_ONE,GR_BLEND_ZERO,GR_BLEND_ONE,GR_BLEND_ZERO);control_rect(255,0,0,255,25000,0);
+            grAlphaBlendFunction(GR_BLEND_ONE,GR_BLEND_ZERO,GR_BLEND_ONE,GR_BLEND_ZERO);control_rect(255,0,0,255,10032,0);
         }
         if(!control_sample(log,i==0?"shadow mask preserves scene RGB":i==1?"depth mask blocks lantern only":i==2?"overlapping masks form a union":"shadow mask preserves foreground depth",
             i==3?0:80,i==3?200:60,i==3?0:40))ok=0;

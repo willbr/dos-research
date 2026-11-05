@@ -1,6 +1,11 @@
 /* Cache glyph rasterization and static strings; update changed rows only. */
 static unsigned char projector_hud_pixels[256*128];
-static char projector_hud_text[11][41];
+#ifdef DETAIL_DEMO
+#define PROJECTOR_HUD_SLOTS 13
+#else
+#define PROJECTOR_HUD_SLOTS 11
+#endif
+static char projector_hud_text[PROJECTOR_HUD_SLOTS][41];
 static GrTexInfo projector_hud_texture;
 static FxU32 projector_hud_address;
 static int projector_hud_uploaded;
@@ -30,6 +35,8 @@ static void projector_hud_refresh(int fps)
     if(fps>0)sprintf(line,"FPS %d",fps);else strcpy(line,"FPS --");projector_hud_update(4,line);
 #ifdef DETAIL_DEMO
     sprintf(line,"D DETAIL %s  STRENGTH %d  TILING %d  B LIGHTMAPS %s  H FOG %s / %s",detail_enabled?"ON":"OFF",(int)(detail_strength*100+.5f),detail_tiles,lightmaps_enabled?"ON":"OFF",fog_enabled?"ON":"OFF",current_camera.eye.z< -14?"GRAVEYARD":"NAVE");
+    projector_hud_update(11,detail_compare?"BASE TEXTURE":"");
+    projector_hud_update(12,detail_compare?(detail_enabled?"DETAIL GRAIN":"DETAIL OFF"):"");
 #elif defined(REFLECTION_DEMO)
     sprintf(line,"R REFLECTION %s  S SHADOWS %s  B LIGHTMAPS %s  H FOG %s / %s",reflections_enabled?"ON":"OFF",shadows_enabled?"ON":"OFF",lightmaps_enabled?"ON":"OFF",fog_enabled?"ON":"OFF",current_camera.eye.z< -14?"GRAVEYARD":"NAVE");
 #elif defined(SHADOW_DEMO)
@@ -49,7 +56,7 @@ static int projector_hud_load(FxU32 *next)
     projector_hud_address=*next;*next+=bytes;
 #ifdef DETAIL_DEMO
     projector_hud_update(0,"3DFX / NEAR MASONRY DETAIL");projector_hud_update(1,"WINCHESTER / STONE GRAIN");
-    projector_hud_split(7,"D DETAIL -/+ STRENGTH J/K TILING P LANTERN S SHADOWS TAB PROFILER");
+    projector_hud_split(7,"D DETAIL V SPLIT -/+ STRENGTH J/K TILING P LANTERN TAB PROFILER");
     projector_hud_split(9,"B LIGHTMAPS H FOG F JOURNEY SPACE PAUSE LMB LOOK WHEEL DOLLY");
 #elif defined(REFLECTION_DEMO)
     projector_hud_update(0,"3DFX / PLANAR REFLECTIONS");projector_hud_update(1,"WINCHESTER / STILL WATER");
@@ -70,14 +77,20 @@ static int projector_hud_load(FxU32 *next)
 }
 static void projector_hud(int fps)
 {
-    static const struct { float x,y,scale;int r,g,b; } patch[11]={
+    static const struct { float x,y,scale;int r,g,b; } patch[PROJECTOR_HUD_SLOTS]={
         {21,19,1,176,157,122},{21,39,2.5f,233,224,202},{480,20,1,135,209,202},
         {480,36,1,176,188,190},{480,53,1,176,157,122},{21,69,1,153,163,158},
         {261,69,1,153,163,158},{21,452,1,176,188,190},{261,452,1,176,188,190},
         {21,466,1,116,140,148},{261,466,1,116,140,148}
+#ifdef DETAIL_DEMO
+        ,{110,80,1,176,188,190},{430,80,1,135,209,202}
+#endif
     };
     int slot,i;GrVertex q[4];
     projector_hud_refresh(fps);
+#ifdef DETAIL_DEMO
+    if(detail_compare)color_quad(319,88,1,344,105,133,138);
+#endif
     grTexSource(GR_TMU0,projector_hud_address,GR_MIPMAPLEVELMASK_BOTH,&projector_hud_texture);
     grTexFilterMode(GR_TMU0,GR_TEXTUREFILTER_POINT_SAMPLED,GR_TEXTUREFILTER_POINT_SAMPLED);
     grTexClampMode(GR_TMU0,GR_TEXTURECLAMP_CLAMP,GR_TEXTURECLAMP_CLAMP);
@@ -85,7 +98,7 @@ static void projector_hud(int fps)
     grAlphaCombine(GR_COMBINE_FUNCTION_SCALE_OTHER,GR_COMBINE_FACTOR_ONE,GR_COMBINE_LOCAL_NONE,GR_COMBINE_OTHER_TEXTURE,FXFALSE);
     grAlphaBlendFunction(GR_BLEND_SRC_ALPHA,GR_BLEND_ONE_MINUS_SRC_ALPHA,GR_BLEND_ONE,GR_BLEND_ZERO);
     memset(q,0,sizeof(q));for(i=0;i<4;++i)q[i].a=255,q[i].oow=q[i].tmuvtx[0].oow=1;
-    for(slot=0;slot<11;++slot) {
+    for(slot=0;slot<PROJECTOR_HUD_SLOTS;++slot) {
         float width=(float)strlen(projector_hud_text[slot])*6-1,scale=patch[slot].scale,x=patch[slot].x,y=patch[slot].y;
         if(width<0)continue;
         grConstantColorValue(0xff000000UL|(FxU32)patch[slot].r|((FxU32)patch[slot].g<<8)|((FxU32)patch[slot].b<<16));

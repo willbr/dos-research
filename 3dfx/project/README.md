@@ -51,9 +51,15 @@ Visible camera-clipped polygons are reused for the added pass. Conservative
 world bounds and camera-depth rejection avoid work outside the light volume;
 six homogeneous clip planes handle the actual cone bounds, near plane and
 range limit. This prevents projection behind the lantern and texture-edge
-smearing. The pass tests depth with a one-unit bias to tolerate native depth
+smearing. The pass tests depth with an eight-unit bias to tolerate native depth
 rounding after clipping, and never writes depth. Camera-occluded surfaces
 reject the light. Shadowing remains the scene's baked lightmap shadows.
+
+The earlier one-unit bias allowed clipped triangles to fail the depth test
+intermittently, making patches of the torch flash. A fixed-camera animated
+beam regression compares that path with the corrected bias; shallow foreground
+depth controls verify that the light still respects occluders. The shared
+correction also applies to shadows, reflections and masonry-detail demos.
 
 ## Additive light and fog
 

@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 & "$PSScriptRoot/build.ps1"
 $emulator = (Get-Command dosbox-x.exe).Source
-foreach ($config in 'test.conf','software.conf') {
+foreach ($config in 'test.conf','software.conf','torch.conf') {
     Remove-Item -LiteralPath "$PSScriptRoot/DETAIL.LOG" -ErrorAction SilentlyContinue
     $demoProcess = Start-Process $emulator -WorkingDirectory $PSScriptRoot -ArgumentList "-conf $config" -WindowStyle Hidden -PassThru
     $deadline = [Diagnostics.Stopwatch]::StartNew()

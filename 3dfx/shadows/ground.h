@@ -1,5 +1,5 @@
 #include "../shadows/casters.h"
-#define SHADOW_DEPTH_BIAS 8
+#define SHADOW_DEPTH_BIAS 24
 typedef struct { float x,z; } ShadowPoint;
 typedef struct { float x,y,z; } ShadowView;
 typedef struct { float y,x0,x1,z0,z1;int bias; } ShadowGround;

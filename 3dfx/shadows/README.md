@@ -34,6 +34,8 @@ irrelevant casters; clipping skips planes that contain every vertex.
 
 After the opaque scene and lightmaps, a depth-only pass stamps the silhouettes
 using `ZERO, ONE` color blending and a small depth bias. Scene RGB stays intact.
+The mask uses a 24-unit bias, ahead of the lantern's eight-unit clipping
+tolerance, so the stable light pass still respects moving ground shadows.
 The additive lantern pass then fails its depth test inside the mask. Overlapping
 shadows form a union rather than accumulating darkness; foreground geometry
 retains its depth. The next frame clears the mask with the normal depth clear.

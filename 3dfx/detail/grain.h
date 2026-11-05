@@ -79,10 +79,27 @@ static void detail_record_polygon(Face *face,const GrVertex *list,const int *ids
         p->a=255*detail_strength*clamp((p->oow-detail_far_w)/(detail_near_w-detail_far_w),0,1);
         p->tmuvtx[0].sow*=detail_tiles;p->tmuvtx[0].tow*=detail_tiles;p->tmuvtx[0].oow=p->oow;
     }
+    if(detail_compare) {
+        /* The native OpenGL backend does not enforce this changing clip
+           rectangle reliably. Clip the wipe in homogeneous screen inputs. */
+        n=0;
+        for(i=0;i<count;++i) {
+            GrVertex *p=&s->p[i],*q=&s->p[(i+1)%count];float dp=p->x-320,dq=q->x-320;
+            if(dp>=0)b[n++]=*p;
+            if((dp>=0)!=(dq>=0)) {
+                float t=dp/(dp-dq);GrVertex *r=&b[n++];*r=*p;
+                r->x=320;r->y=p->y+(q->y-p->y)*t;r->ooz=p->ooz+(q->ooz-p->ooz)*t;
+                r->oow=p->oow+(q->oow-p->oow)*t;r->a=p->a+(q->a-p->a)*t;
+                r->tmuvtx[0].sow=p->tmuvtx[0].sow+(q->tmuvtx[0].sow-p->tmuvtx[0].sow)*t;
+                r->tmuvtx[0].tow=p->tmuvtx[0].tow+(q->tmuvtx[0].tow-p->tmuvtx[0].tow)*t;r->tmuvtx[0].oow=r->oow;
+            }
+        }
+        if(n<3){--detail_count;return;}s->count=n;for(i=0;i<n;++i)s->p[i]=b[i];
+    }
 }
 static void detail_state(int correction)
 {
-    grDepthBufferMode(GR_DEPTHBUFFER_ZBUFFER);grDepthBufferFunction(GR_CMP_GEQUAL);grDepthMask(FXFALSE);grDepthBiasLevel(1);
+    grDepthBufferMode(GR_DEPTHBUFFER_ZBUFFER);grDepthBufferFunction(GR_CMP_GEQUAL);grDepthMask(FXFALSE);grDepthBiasLevel(8);
     grHints(GR_HINT_STWHINT,0);grAlphaTestFunction(GR_CMP_ALWAYS);grConstantColorValue(0xff000000UL);
     grTexSource(GR_TMU0,detail_address,GR_MIPMAPLEVELMASK_BOTH,&detail_texture);
     grTexClampMode(GR_TMU0,GR_TEXTURECLAMP_WRAP,GR_TEXTURECLAMP_WRAP);
@@ -95,6 +112,7 @@ static void detail_state(int correction)
 static void detail_draw(void)
 {
     int pass,i;if(!detail_enabled || detail_strength<=0 || !detail_count)return;
+    if(detail_compare)grClipWindow(320,88,640,432);
     for(pass=0;pass<(fog_enabled?2:1);++pass) {
         detail_state(pass);
         for(i=0;i<detail_count;++i) {
@@ -102,5 +120,5 @@ static void detail_draw(void)
             ++detail_polygons;detail_triangles+=s->count-2;
         }
     }
-    grFogMode(GR_FOG_DISABLE);grDepthBiasLevel(0);
+    grClipWindow(0,88,640,432);grFogMode(GR_FOG_DISABLE);grDepthBiasLevel(0);
 }

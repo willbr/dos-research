@@ -11,7 +11,7 @@ static void projector_control_quad(float q,int camera_w)
 }
 static void projector_control_state(void)
 {
-    grDepthMask(FXFALSE);grDepthBufferFunction(GR_CMP_GEQUAL);grDepthBiasLevel(1);grFogMode(GR_FOG_DISABLE);
+    grDepthMask(FXFALSE);grDepthBufferFunction(GR_CMP_GEQUAL);grDepthBiasLevel(projector_depth_bias);grFogMode(GR_FOG_DISABLE);
     grTexSource(GR_TMU0,projector_address[0],GR_MIPMAPLEVELMASK_BOTH,&projector_texture);
     grTexFilterMode(GR_TMU0,GR_TEXTUREFILTER_BILINEAR,GR_TEXTUREFILTER_BILINEAR);
     grTexClampMode(GR_TMU0,GR_TEXTURECLAMP_CLAMP,GR_TEXTURECLAMP_CLAMP);
@@ -37,7 +37,7 @@ static int projector_controls(FILE *log)
             i==2?80:i==3?107:i==4?52:162,i==2?60:i==3?93:i==4?65:120,i==2?40:i==3?71:i==4?78:64))ok=0;
     }
     control_clear();grFogMode(GR_FOG_DISABLE);grAlphaBlendFunction(GR_BLEND_ONE,GR_BLEND_ZERO,GR_BLEND_ONE,GR_BLEND_ZERO);
-    grDepthMask(FXTRUE);control_rect(0,200,0,255,30000,0);projector_control_state();projector_control_quad(.25f,0);
+    grDepthMask(FXTRUE);control_rect(0,200,0,255,10016,0);projector_control_state();projector_control_quad(.25f,0);
     if(!control_sample(log,"foreground rejects projected light",0,200,0))ok=0;
     control_clear();grFogMode(GR_FOG_DISABLE);grAlphaBlendFunction(GR_BLEND_ONE,GR_BLEND_ZERO,GR_BLEND_ONE,GR_BLEND_ZERO);
     grDepthMask(FXTRUE);control_rect(80,60,40,255,10000,0);

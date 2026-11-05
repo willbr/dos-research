@@ -4,6 +4,9 @@ static int projector_enabled=1,projector_locked,projector_grid;
 static int projector_count,projector_triangles,projector_intersections;
 static float projector_time,projector_range=11,projector_tan=.36f,projector_min_camera_w;
 static int projector_in_quad;
+/* Clipping changes the native fixed-point Z gradient slightly. Keep enough
+   headroom over the base pass to avoid whole-triangle depth-test flicker. */
+static int projector_depth_bias=8;
 static Vec projector_eye,projector_forward,projector_right,projector_up,projector_low,projector_high;
 static float projector_s[4],projector_t[4],projector_q[4];
 static GrTexInfo projector_texture;
@@ -209,7 +212,7 @@ static void projector_draw(void)
     grAlphaBlendFunction(GR_BLEND_ONE,GR_BLEND_ONE,GR_BLEND_ONE,GR_BLEND_ZERO);
     for(i=0;i<projector_count;++i) {
         ProjectorSurface *t=&projector_cache[i];
-        if(t->bias+1!=last_bias){grDepthBiasLevel(t->bias+1);last_bias=t->bias+1;}
+        if(t->bias+projector_depth_bias!=last_bias){grDepthBiasLevel(t->bias+projector_depth_bias);last_bias=t->bias+projector_depth_bias;}
         projector_polygon(t);
     }
     grHints(GR_HINT_STWHINT,0);

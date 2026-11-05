@@ -3,8 +3,9 @@
 Fine stone porosity layered over the existing nave and graveyard textures.
 The [shadows demo](../shadows/README.md) supplies baked lightmaps, stained glass,
 distance fog, a moving lantern and its ground shadows. This demo adds a nearby
-detail layer without changing the scene meshes. The first two flight shots
-move closer to the nave piers and look toward the stonework.
+detail layer without changing the scene meshes. It opens paused at a close
+stone wall, with base texture on the left and detail grain on the right.
+F starts the flight; its first two shots move close to the nave piers.
 
 Run `./run.ps1` or `run.cmd`; rebuild with `./build.ps1`.
 Native C89 / DOS / Glide 2.43, 640x480 at 60 Hz, fixed 100000 cycles/ms,
@@ -14,6 +15,7 @@ Glide passthrough off. Compiler and runtime setup remain shared and vendored.
 | Key | Action |
 | --- | --- |
 | D | Detail layer on/off |
+| V | Split comparison / full-screen detail |
 | + / - | Strength in exact 10-point steps, clamped to 0..100 |
 | J / K | Decrease/increase tiling multiplier, clamped to 1..8 |
 | B / H | Baked lightmaps / distance fog |
@@ -26,7 +28,9 @@ Glide passthrough off. Compiler and runtime setup remain shared and vendored.
 | Tab | Frame profiler, including DETAIL and FPS/frame-time graphs |
 | Esc | Exit |
 
-Default strength is 70 and tiling is 4. Pause before comparing D or settings.
+Default strength is 100 and tiling is 2 to make the effect clear in the opening
+comparison. The labeled split is clipped on the CPU so the base half stays
+unchanged on both native backends. Pause before comparing D or settings.
 Zoom uses the mouse wheel/right drag; +/- controls strength in this demo.
 The existing 1/2/3, [ / ], Q fog controls remain available.
 
@@ -39,7 +43,7 @@ glass, doors, sprites and sky do not. Both the original albedo and the detail
 layer stay in place in world space as the camera moves.
 
 Existing perspective-correct base UVs are multiplied by the tiling setting.
-At the default setting, a detail tile covers approximately half a scene metre
+At tiling 4, a detail tile covers approximately half a scene metre
 on ordinary wall mapping. Vertex alpha fades the contribution using reciprocal
 camera depth: full strength at vertices within 2 units, zero at 6, interpolated
 across each polygon. Polygons are clipped at
@@ -85,12 +89,16 @@ fully fogged stone and fog disabled. Zero strength must match D off exactly.
 Group rejection must match the unculled detail collection path exactly.
 Distant geometry must receive no detail. Full fog must remain unchanged within
 one framebuffer quantization step. `grain.conf` runs those checks alone.
+The split view must preserve the base half exactly and match full detail on
+the other half within one framebuffer quantization step. `torch.conf` runs
+the shared moving-light clipping-depth stability regression.
 
 `./soak.ps1 -Stress` measures the last six seconds of the flight; `-FullTour`
 measures all 6,000 frames of its 100-second loop, with the profiler visible for
 the second half. Windows wall-clock throughput and guest frame times are
 reported separately, including two startup warmup frames in the Windows interval.
+The split is disabled for benchmarks so they measure full-screen detail.
 
-The complete tour measured **59.97 Windows FPS**, a **17.212 ms** maximum guest
+The corrected tour measured **59.96 Windows FPS**, a **17.218 ms** maximum guest
 frame and **zero frames over 18 ms** on the configured DOSBox-X OpenGL backend.
 This is an emulator measurement, not original-card throughput.

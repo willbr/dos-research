@@ -37,6 +37,23 @@ static int detail_controls(FILE *log)
     }
     fog_enabled=saved_fog;fog_update();grFogMode(GR_FOG_DISABLE);grDepthBiasLevel(0);return ok;
 }
+static int detail_compare_check(FILE *log)
+{
+    unsigned short *base,*full,*split;int pixel,ok=1;unsigned long left=0,right=0,visible=0;
+    current_camera.eye=vec(2.9f,2,1.5f);current_camera.look=vec(5.1f,1.9f,-1);
+    detail_strength=1;detail_tiles=2;detail_compare=0;detail_enabled=0;render(0,1);base=capture("COMPAREB.PPM");
+    detail_enabled=1;render(0,1);full=capture("COMPAREF.PPM");
+    detail_compare=1;render(0,1);split=capture("COMPARE.PPM");
+    if(base && full && split)for(pixel=88*640;pixel<432*640;++pixel) {
+        int x=pixel%640;if(x>=318 && x<=321)continue;
+        if(x<318 && base[pixel]!=split[pixel])++left;
+        if(x>321 && (abs((full[pixel]>>11)-(split[pixel]>>11))>1 || abs(((full[pixel]>>5)&63)-((split[pixel]>>5)&63))>1 || abs((full[pixel]&31)-(split[pixel]&31))>1))++right;
+        if(x>321 && base[pixel]!=split[pixel])++visible;
+    }
+    if(!base || !full || !split || left || right || visible<2000)ok=0;
+    if(log)fprintf(log,"Detail comparison: left base errors %lu, right detail errors %lu, %lu visible detail pixels; %s\n",left,right,visible,ok?"PASS":"FAIL");
+    free(base);free(full);free(split);detail_compare=0;return ok;
+}
 static int detail_scene_checks(FILE *log)
 {
     int pose,pixel,ok=1;float saved_strength=detail_strength;int saved_tiles=detail_tiles;
@@ -60,5 +77,6 @@ static int detail_scene_checks(FILE *log)
         if(log)fprintf(log,"Detail pose %d: %lu changed, zero strength %lu, cull difference %lu, fog errors %lu; %d cached, %d triangles; %s\n",pose,changes,zero_changes,cull_changes,fog_errors,cached,triangles,ok?"PASS":"FAIL");
         free(off);free(zero);free(on);free(reference);
     }
-    detail_enabled=1;detail_strength=saved_strength;detail_tiles=saved_tiles;fog_enabled=1;fog_update();return ok;
+    fog_enabled=1;fog_update();if(!detail_compare_check(log))ok=0;
+    detail_enabled=1;detail_strength=saved_strength;detail_tiles=saved_tiles;return ok;
 }

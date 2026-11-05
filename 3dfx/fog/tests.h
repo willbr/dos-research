@@ -99,12 +99,22 @@ static int submission_comparisons(FILE *log)
 #endif
     return ok;
 }
+#ifdef PROJECTOR_DEMO
+#include "../project/temporal-tests.h"
+#endif
 static int run_tests(FILE *log,int soak)
 {
     int ok=1,i,count=soak==3?600:soak==2?6000:soak?1440:360,slow=0,inside=0,outside=0,portal=0;
     float max_ms=0,sum=0;unsigned short *a,*b;
 #ifdef DETAIL_DEMO
-    if(detail_quick){test_frames=28;return detail_controls(log) && detail_scene_checks(log) && !finite_error;}
+    /* Benchmark full coverage, rather than gaining speed from the wipe. */
+    detail_compare=0;
+#endif
+#ifdef PROJECTOR_DEMO
+    if(soak==4){test_frames=540;return projector_temporal_check(log);}
+#endif
+#ifdef DETAIL_DEMO
+    if(detail_quick){test_frames=31;return detail_controls(log) && detail_scene_checks(log) && !finite_error;}
 #endif
 #ifdef REFLECTION_DEMO
     if(reflection_quick){test_frames=12;return reflection_controls(log) && reflection_scene_checks(log) && !finite_error;}

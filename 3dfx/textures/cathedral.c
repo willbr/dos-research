@@ -82,8 +82,8 @@ static void local_color(void)
 #ifdef SHADOW_DEMO
 static int shadows_enabled=1;
 #ifdef DETAIL_DEMO
-static int detail_enabled=1,detail_tiles=4;
-static float detail_strength=.7f;
+static int detail_enabled=1,detail_tiles=2,detail_compare=1;
+static float detail_strength=1;
 #endif
 #ifdef REFLECTION_DEMO
 static int reflections_enabled=1;
@@ -613,6 +613,7 @@ int main(int argc,char **argv)
     if(argc>1 && !strcmp(argv[1],"/tour"))soak=2;
 #ifdef PROJECTOR_DEMO
     if(argc>1 && !strcmp(argv[1],"/stress"))soak=3;
+    if(argc>1 && !strcmp(argv[1],"/torchcheck"))soak=4;
 #endif
 #ifdef MIPMAP_DEMO
     mip_quick=argc>1 && !strcmp(argv[1],"/check");if(mip_quick)test=1;
@@ -641,6 +642,13 @@ int main(int argc,char **argv)
     prepare_constants();path_init();current_camera=orbit_pose();transition_from=current_camera;
 #ifdef BLEND_DEMO
     flying=1;transition=1;current_camera=drone_pose(0);transition_from=current_camera;
+#ifdef DETAIL_DEMO
+    if(!test && !soak) {
+        /* Open on a still, close stone surface so the comparison is visible. */
+        current_camera.eye=vec(2.9f,2,1.5f);current_camera.look=vec(5.1f,1.9f,-1);
+        fly_mode(0);transition=1;transition_from=current_camera;paused=1;
+    }
+#endif
 #ifdef REFLECTION_DEMO
     if(!test && !soak) {
         /* Open on the new effect; continue the same complete loop afterward. */
@@ -687,6 +695,7 @@ int main(int argc,char **argv)
             if(key=='s'||key=='S')shadows_enabled=!shadows_enabled;
 #ifdef DETAIL_DEMO
             if(key=='d'||key=='D')detail_enabled=!detail_enabled;
+            if(key=='v'||key=='V')detail_compare=!detail_compare;
             if(key=='j'||key=='J')detail_tiles=(int)clamp(detail_tiles-1,1,8);
             if(key=='k'||key=='K')detail_tiles=(int)clamp(detail_tiles+1,1,8);
 #endif
