@@ -1,14 +1,10 @@
 /* Planar reflection, painter ordered within a convex puddle portal.
    Raster Z belongs to the water plane; texture/fog W belongs to the mirror. */
 #define REFLECT_MAX 768
-#define WATER_Y (-.020f)
+#include "../reflect/footprint.h"
 typedef struct { float x,y,z,u,v; } ReflectVertex;
 typedef struct { Vec n;float d; } ReflectPlane;
 typedef struct { int face,count,ids[4];Vec center;float radius; } ReflectSurface;
-static const float water_outline[8][2]={
-    {-7.5f,-25},{-4.3f,-25.3f},{-3.5f,-26.7f},{-3.9f,-29.8f},
-    {-5,-31},{-7.2f,-30.7f},{-8,-29},{-8.1f,-26.5f}
-};
 static ReflectSurface reflect_mesh[REFLECT_MAX];
 static int reflect_count,reflect_order[REFLECT_MAX],reflect_visible,reflect_polygons,reflect_triangles;
 static float reflect_sort[REFLECT_MAX];

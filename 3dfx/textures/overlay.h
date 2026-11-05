@@ -91,9 +91,17 @@ static void panel_line(int x0,int y0,int x1,int y1,unsigned short color)
     }
 }
 #ifdef DETAIL_DEMO
+#ifdef WATER_DEMO
+#define PROFILER_ROW_STEP 7
+#else
+#define PROFILER_ROW_STEP 8
+#endif
 static void detail_profiler_template(void)
 {
     static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW",
+#ifdef WATER_DEMO
+"WATER",
+#endif
 #ifdef FOLIAGE_DEMO
 "FOLIAGE"
 #else
@@ -104,7 +112,7 @@ static void detail_profiler_template(void)
     for(i=0;i<128*256;++i)profiler_pixels[i]=background;
     panel_line(0,0,127,0,muted);panel_line(0,255,127,255,muted);panel_line(0,0,0,255,muted);panel_line(127,0,127,255,muted);
     panel_text(4,5,"FRAME PROFILER",gold);panel_text(4,16,"EMU MS / TAB CLOSE",muted);
-    if(profiler.available)for(i=0;i<P_STAGES;++i)panel_text(4,42+i*8,labels[i],muted);
+    if(profiler.available)for(i=0;i<P_STAGES;++i)panel_text(4,42+i*PROFILER_ROW_STEP,labels[i],muted);
     panel_text(4,148,"FPS 0-90 / 60",muted);panel_text(4,245,"16.7 MS = 60 FPS",gold);
     memcpy(profiler_template,profiler_pixels,sizeof(profiler_template));
 }
@@ -130,6 +138,9 @@ static void profiler_panel(void)
 {
 #ifdef DETAIL_DEMO
     static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW",
+#ifdef WATER_DEMO
+"WATER",
+#endif
 #ifdef FOLIAGE_DEMO
 "FOLIAGE"
 #else
@@ -229,6 +240,10 @@ static void profiler_panel(void)
             row_step=8;bar_step=7;
             if(profiler_build==9)first=9;
             end=first+3;
+#ifdef WATER_DEMO
+            row_step=PROFILER_ROW_STEP;bar_step=6;
+            if(profiler_build==9)end=P_STAGES;
+#endif
 #endif
 #endif
             for(i=first;i<end && i<P_STAGES;++i) {
@@ -238,6 +253,9 @@ static void profiler_panel(void)
                 panel_text(4,y,labels[i],muted);
 #endif
                 sprintf(line,"%2d.%02d",value/100,value%100);panel_text(80,y,line,ink);
+#ifdef WATER_DEMO
+                width=0; /* Thirteen compact rows retain full-height text. */
+#endif
                 for(j=0;j<width && j<116;++j) panel_pixel(4+j,y+bar_step,i==P_PRESENT?muted:gold);
             }
             if(phase==4

@@ -58,6 +58,10 @@ down/up. See [camera controls](fog/README.md) for collisions and feature keys.
   traveling gusts, and loose leaves that flutter, settle and lift again.
   **,/.** adjusts the leaf count from zero to 128; **M** sends a gust.
   Launch with `foliage/run.cmd` or `./foliage/run.ps1`.
+- [water](water/README.md): two scrolling ripple layers over the graveyard
+  reflection, responding to gusts; loose leaves float, bob, drift and strand
+  on the bank. **V** compares still/rippled water, **+/-** changes strength.
+  Launch with `water/run.cmd` or `./water/run.ps1`.
 - [sectorforth](sectorforth/README.md): 32-bit assembly Forth port with Glide
   words and an RGB triangle defined in Forth. Launch with `sectorforth/run.cmd`
   or `./sectorforth/run.ps1`.

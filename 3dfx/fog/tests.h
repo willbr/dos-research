@@ -71,6 +71,9 @@ static int journey_clear(Camera p)
 #ifdef FOLIAGE_DEMO
 #include "../foliage/tests.h"
 #endif
+#ifdef WATER_DEMO
+#include "../water/tests.h"
+#endif
 static int submission_comparisons(FILE *log)
 {
     int pose,mode,ok=1;unsigned short *a,*b;
@@ -113,6 +116,9 @@ static int run_tests(FILE *log,int soak)
 #ifdef FOLIAGE_DEMO
     if(soak==5)count=600;
     if(foliage_quick){test_frames=0;return foliage_tests(log,foliage_quick==2);}
+#endif
+#ifdef WATER_DEMO
+    if(water_quick){test_frames=0;return water_tests(log,water_quick==2);}
 #endif
     if(firstperson_quick){test_frames=0;return firstperson_tests(log);}
 #ifdef DETAIL_DEMO
@@ -256,6 +262,10 @@ static int run_tests(FILE *log,int soak)
             float t=i*(6.0f/count);
             current_camera.eye=vec(-2+t*.3f,2.1f,-25-t*.8f);
             current_camera.look=vec(-17,4,-40-t*.5f);
+#ifdef WATER_DEMO
+            current_camera.eye=vec(-2+t*.10f,1.8f,-23.5f-t*.12f);
+            current_camera.look=vec(-6,WATER_Y,-28);
+#endif
         }
         foliage_step(1/60.0f);
 #endif

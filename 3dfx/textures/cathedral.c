@@ -57,6 +57,9 @@ static float focal=520,frustum_x=320.0f/520;
 #ifdef SHADOW_DEMO
 #ifdef DETAIL_DEMO
 static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait","Projector","Shadows",
+#ifdef WATER_DEMO
+"Water",
+#endif
 #ifdef FOLIAGE_DEMO
 "Detail/foliage"};
 #else
@@ -97,6 +100,9 @@ static float detail_strength=1;
 #ifdef REFLECTION_DEMO
 static int reflections_enabled=1;
 #endif
+#endif
+#ifdef WATER_DEMO
+#include "../water/state.h"
 #endif
 #ifdef FOLIAGE_DEMO
 #include "../foliage/wind.h"
@@ -200,6 +206,9 @@ static int load_textures(void)
 #endif
 #ifdef FOLIAGE_DEMO
     if(!foliage_load(&next,pixels)){free(rgb);free(font);free(pixels);return 0;}
+#endif
+#ifdef WATER_DEMO
+    if(!water_load(&next,(unsigned char *)pixels)){free(rgb);free(font);free(pixels);return 0;}
 #endif
     profiler_tex.smallLod=profiler_tex.largeLod=GR_LOD_256;profiler_tex.aspectRatio=GR_ASPECT_1x2;
     profiler_tex.format=GR_TEXFMT_RGB_565;profiler_tex.data=profiler_pixels;
@@ -483,6 +492,9 @@ static void scene(int pass)
 #ifdef REFLECTION_DEMO
 #include "../reflect/reflection.h"
 #endif
+#ifdef WATER_DEMO
+#include "../water/ripples.h"
+#endif
 #ifdef FOLIAGE_DEMO
 #include "../foliage/render.h"
 #endif
@@ -526,7 +538,11 @@ static void render(int fps,int paused)
     lightmap_draw();profile_stage(P_SPECULAR);
 #endif
 #ifdef REFLECTION_DEMO
-    reflection_draw();profile_stage(P_REFLECTION);
+    reflection_draw();
+#ifdef WATER_DEMO
+    water_draw();
+#endif
+    profile_stage(P_REFLECTION);
 #endif
 #ifdef SHADOW_DEMO
     shadow_draw();profile_stage(P_SHADOWS);
@@ -639,6 +655,10 @@ int main(int argc,char **argv)
     int test=argc>1 && !strcmp(argv[1],"/test"),soak=argc>1 && !strcmp(argv[1],"/soak");
     FILE *log=fopen(DEMO_LOG,"w");
 #ifdef FOG_DEMO
+#ifdef WATER_DEMO
+    water_quick=argc>1 && !strcmp(argv[1],"/watercheck")?1:argc>1 && !strcmp(argv[1],"/watercontrol")?2:0;
+    if(water_quick)test=1;
+#endif
     firstperson_quick=argc>1 && !strcmp(argv[1],"/fpstest");if(firstperson_quick)test=1;
 #endif
 #ifdef DETAIL_DEMO
@@ -683,6 +703,9 @@ int main(int argc,char **argv)
 #endif
 #ifdef FOLIAGE_DEMO
     foliage_init();detail_compare=0;detail_enabled=0;
+#ifdef WATER_DEMO
+    water_init();
+#endif
 #endif
     prepare_constants();path_init();current_camera=orbit_pose();transition_from=current_camera;
 #ifdef BLEND_DEMO
@@ -704,7 +727,11 @@ int main(int argc,char **argv)
 #endif
 #ifdef FOLIAGE_DEMO
     if(!test && !soak) {
+#ifdef WATER_DEMO
+        current_camera.eye=vec(-2,1.7f,-23.7f);current_camera.look=vec(-6,WATER_Y,-28);
+#else
         current_camera.eye=vec(-2,2.1f,-25);current_camera.look=vec(-16,4.5f,-41);
+#endif
         firstperson_set_mode(1);paused=0;
     }
 #endif
@@ -756,6 +783,9 @@ int main(int argc,char **argv)
             if(key=='y'||key=='Y'){shadows_enabled=!shadows_enabled;continue;}
 #endif
 #ifdef FOLIAGE_DEMO
+#ifdef WATER_DEMO
+            if(water_key(key))continue;
+#endif
             if(foliage_key(key))continue;
 #endif
             fog_key(key);

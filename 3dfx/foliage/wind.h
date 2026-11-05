@@ -7,7 +7,11 @@ static float foliage_time,foliage_accumulator,foliage_manual_gust=-100;
 static float foliage_phase,foliage_phase_stamp=-1;
 static GrTexInfo foliage_texture[3];
 static FxU32 foliage_address[3];
-typedef struct { Vec p,v;float age,angle,spin,size;int resting; } WindLeaf;
+typedef struct { Vec p,v;float age,angle,spin,size;int resting;
+#ifdef WATER_DEMO
+    int floating;
+#endif
+} WindLeaf;
 static WindLeaf wind_leaves[LEAF_MAX];
 static float foliage_sines[1025];
 static float foliage_sin(float angle)
@@ -44,9 +48,15 @@ static float foliage_ground(float x,float z)
     } else if(fabs(dx)<.48f && dz>.2f && dz<1.94f)y=.045f;
     return y;
 }
+#ifdef WATER_DEMO
+#include "../water/floating.h"
+#endif
 static void foliage_leaf_spawn(int i,int resting)
 {
     WindLeaf *l=&wind_leaves[i];float x=-21+42*foliage_random01(),z=-18-41*foliage_random01();
+#ifdef WATER_DEMO
+    l->floating=0;
+#endif
     l->p=vec(x,resting?foliage_ground(x,z):2.5f+4*foliage_random01(),z);
     l->v=vec(.5f,0,-.2f);l->age=foliage_random01()*5;l->angle=foliage_random01()*6.2831853f;
     l->spin=1+foliage_random01()*3;l->size=.13f+foliage_random01()*.12f;l->resting=resting;
@@ -60,9 +70,15 @@ static void foliage_init(void)
 static void foliage_tick(float dt)
 {
     int i;foliage_time+=dt;foliage_airborne=0;
+#ifdef WATER_DEMO
+    water_tick(dt);
+#endif
     for(i=0;i<leaf_count;++i) {
         WindLeaf *l=&wind_leaves[i];float gust=foliage_gust(l->p.x,l->p.z),floor;
         l->age+=dt;
+#ifdef WATER_DEMO
+        if(l->floating){water_float_leaf(l,dt,gust);continue;}
+#endif
         if(l->resting) {
             if(gust>.76f+(i%5)*.025f && l->age>3) {
                 l->resting=0;l->v=vec(2+gust*3,1.0f+gust*.8f,-.5f);l->age=0;l->p.y+=.025f;
@@ -77,6 +93,11 @@ static void foliage_tick(float dt)
         l->p.x+=dt*.16f*foliage_sin(l->angle*2);l->p.z+=dt*.1f*foliage_cos(l->angle*1.7f);
         l->p.x=clamp(l->p.x,-22.8f,22.8f);l->p.z=clamp(l->p.z,-60.7f,-15);
         floor=foliage_ground(l->p.x,l->p.z);
+#ifdef WATER_DEMO
+        if(l->v.y<=0 && l->p.y<=WATER_Y+.035f && floor<=WATER_Y+.035f && water_contains(l->p.x,l->p.z)) {
+            l->floating=l->resting=1;l->v=vec(0,0,0);l->p.y=WATER_Y+.035f;l->age=0;--foliage_airborne;continue;
+        }
+#endif
         if(l->p.y<=floor) {l->p.y=floor;l->v=vec(0,0,0);l->resting=1;l->age=0;--foliage_airborne;}
     }
 }
