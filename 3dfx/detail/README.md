@@ -22,6 +22,11 @@ Glide passthrough off. Compiler and runtime setup remain shared and vendored.
 | P / O / X | Lantern toggle / hold in world / projection grid |
 | S | Moving ground shadows |
 | F | Automatic journey / manual look |
+| F2 / F3 / F4 | FPS walk / FPS fly / drag-based manual look |
+| WASD / Shift | Move / faster movement in FPS modes |
+| Mouse | Button-free look in FPS modes |
+| Space / Ctrl | Rise / descend in FPS fly |
+| F5 / F6 | Detail / shadows while WASD is in use |
 | Space | Pause journey and lantern sweep |
 | Left drag / arrows | Smooth manual look |
 | Wheel / right drag | Local dolly |
@@ -33,6 +38,9 @@ comparison. The labeled split is clipped on the CPU so the base half stays
 unchanged on both native backends. Pause before comparing D or settings.
 Zoom uses the mouse wheel/right drag; +/- controls strength in this demo.
 The existing 1/2/3, [ / ], Q fog controls remain available.
+WASD overrides the D/S letter toggles in FPS modes; use F5/F6 instead.
+Walking has basic collisions and free flight is noclip. F resumes the tour.
+See the [shared camera controls](../fog/README.md) for movement behavior.
 
 ## Detail and distance fade
 
@@ -99,6 +107,6 @@ the second half. Windows wall-clock throughput and guest frame times are
 reported separately, including two startup warmup frames in the Windows interval.
 The split is disabled for benchmarks so they measure full-screen detail.
 
-The corrected tour measured **59.96 Windows FPS**, a **17.218 ms** maximum guest
+The camera-controls build measured **59.95 Windows FPS**, a **17.216 ms** maximum guest
 frame and **zero frames over 18 ms** on the configured DOSBox-X OpenGL backend.
 This is an emulator measurement, not original-card throughput.

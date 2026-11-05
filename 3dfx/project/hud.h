@@ -27,9 +27,47 @@ static void projector_hud_split(int slot,const char *text)
 {
     projector_hud_update(slot,text);projector_hud_update(slot+1,strlen(text)>40?text+40:"");
 }
+static void projector_hud_camera_help(void)
+{
+    static int last=-1;int state=firstperson_mode+4*flying;char line[64];
+    const char *mode=firstperson_mode==1?"FPS WALK":firstperson_mode==2?"FPS FLY":flying?"TOUR":"MANUAL";
+    if(state==last)return;last=state;
+#ifdef DETAIL_DEMO
+    sprintf(line,"3DFX STONE DETAIL / %s",mode);
+#elif defined(REFLECTION_DEMO)
+    sprintf(line,"3DFX REFLECTION / %s",mode);
+#elif defined(SHADOW_DEMO)
+    sprintf(line,"3DFX SHADOWS / %s",mode);
+#else
+    sprintf(line,"3DFX LANTERN / %s",mode);
+#endif
+    projector_hud_update(0,line);
+    if(firstperson_mode) {
+        projector_hud_split(7,"WASD MOVE SHIFT FAST MOUSE LOOK F2 WALK F3 FLY F TOUR TAB PROFILER");
+#ifdef DETAIL_DEMO
+        projector_hud_split(9,firstperson_mode==2?"SPACE/CTRL UP/DOWN F4 MANUAL F5 DETAIL F6 SHADOWS V SPLIT":"F4 MANUAL F5 DETAIL F6 SHADOWS V SPLIT -/+ STRENGTH J/K TILING");
+#elif defined(SHADOW_DEMO)
+        projector_hud_split(9,firstperson_mode==2?"SPACE/CTRL UP/DOWN F4 MANUAL F6 SHADOWS ESC EXIT":"F4 MANUAL F6 SHADOWS ESC EXIT");
+#else
+        projector_hud_split(9,firstperson_mode==2?"SPACE/CTRL UP/DOWN F4 MANUAL ESC EXIT":"F4 MANUAL ESC EXIT");
+#endif
+        return;
+    }
+#ifdef DETAIL_DEMO
+    projector_hud_split(7,"D DETAIL V SPLIT -/+ STRENGTH J/K TILING P LANTERN TAB PROFILER");
+#elif defined(REFLECTION_DEMO)
+    projector_hud_split(7,"R REFLECTION S SHADOWS P LANTERN O HOLD X GRID TAB PROFILER");
+#elif defined(SHADOW_DEMO)
+    projector_hud_split(7,"S SHADOWS P LANTERN O HOLD LIGHT X GRID TAB PROFILER");
+#else
+    projector_hud_split(7,"P LANTERN O HOLD X GRID B LIGHTMAPS H FOG TAB PROFILER");
+#endif
+    projector_hud_split(9,"F TOUR F2 WALK F3 FLY F4 MANUAL LMB LOOK WHEEL DOLLY B LIGHTMAPS H FOG");
+}
 static void projector_hud_refresh(int fps)
 {
     char line[90];
+    projector_hud_camera_help();
     projector_hud_update(2,projector_enabled?"P LANTERN ON":"P LANTERN OFF");
     projector_hud_update(3,projector_locked?"O FIXED IN WORLD":"O MOVING LANTERN");
     if(fps>0)sprintf(line,"FPS %d",fps);else strcpy(line,"FPS --");projector_hud_update(4,line);

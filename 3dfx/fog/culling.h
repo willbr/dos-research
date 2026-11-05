@@ -23,7 +23,9 @@ static void fog_portal_add(Vec *p,Vec forward,Vec right,Vec up,float bx,float by
 static void fog_portal_prepare(Vec forward,Vec right,Vec up,float bx,float by,float rx,float ry)
 {
     Vec p[4];int i;
-    fog_inside=current_camera.eye.z> -13.6f && current_camera.eye.z<14 && fabs(current_camera.eye.x)<5.1f;
+    /* Only the low core is certainly inside. Free flight above the roof
+       must not lose the graveyard to the indoor aperture shortcut. */
+    fog_inside=current_camera.eye.z> -13.6f && current_camera.eye.z<14 && fabs(current_camera.eye.x)<5.1f && current_camera.eye.y>=0 && current_camera.eye.y<4.45f;
     fog_portal_count=0;
     p[0]=vec(-1.45f,0,-14);p[1]=vec(1.45f,0,-14);p[2]=vec(1.45f,3.9f,-14);p[3]=vec(-1.45f,3.9f,-14);
     fog_portal_add(p,forward,right,up,bx,by,rx,ry);

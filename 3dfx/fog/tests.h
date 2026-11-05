@@ -1,5 +1,6 @@
 #include "../blending/control-tests.h"
 #include "../textures/camera-tests.h"
+#include "../fog/firstperson-tests.h"
 static void fog_control_rect(float distance)
 {
     GrVertex q[4];int i;memset(q,0,sizeof(q));
@@ -106,6 +107,7 @@ static int run_tests(FILE *log,int soak)
 {
     int ok=1,i,count=soak==3?600:soak==2?6000:soak?1440:360,slow=0,inside=0,outside=0,portal=0;
     float max_ms=0,sum=0;unsigned short *a,*b;
+    if(firstperson_quick){test_frames=0;return firstperson_tests(log);}
 #ifdef DETAIL_DEMO
     /* Benchmark full coverage, rather than gaining speed from the wipe. */
     detail_compare=0;
@@ -120,7 +122,8 @@ static int run_tests(FILE *log,int soak)
     if(reflection_quick){test_frames=12;return reflection_controls(log) && reflection_scene_checks(log) && !finite_error;}
 #endif
     if(!soak) {
-        ok=fog_controls(log);
+        if(!firstperson_tests(log))ok=0;
+        if(!fog_controls(log))ok=0;
 #ifdef LIGHTMAP_DEMO
         if(!lightmap_controls(log))ok=0;
 #endif

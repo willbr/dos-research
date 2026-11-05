@@ -25,6 +25,10 @@
 static float yaw=-.6f,pitch=-.12f,zoom=1,target_yaw=-.6f,target_pitch=-.12f,target_zoom=1;
 static float yaw_speed,pitch_speed,zoom_speed,drag_yaw_speed,drag_pitch_speed,inertia_yaw,inertia_pitch;
 static int previous_buttons,mouse_present,wheel_present;
+#ifdef FOG_DEMO
+static int firstperson_mode;
+static void firstperson_release_guard(void);
+#endif
 static void fly_mode(int enabled);
 #ifdef BLEND_DEMO
 static void camera_home(void);
@@ -551,13 +555,19 @@ static void render(int fps,int paused)
     if(compare){color_quad(319,88,2,344,30,40,40);text(18,96,"PERSPECTIVE",1,245,231,184);text(338,96,"AFFINE",1,245,231,184);}
 #endif
     if(paused)text(290,416,"PAUSED",1,240,215,154);
+#if defined(FOG_DEMO) && !defined(PROJECTOR_DEMO)
+    if(firstperson_mode) {
+        text(21,452,"WASD MOVE MOUSE LOOK SHIFT FAST F TOUR F2 WALK F3 FLY",1,176,188,190);
+        text(21,466,firstperson_mode==2?"SPACE/CTRL UP/DOWN F4 MANUAL TAB PROFILER ESC EXIT":"F4 MANUAL TAB PROFILER ESC EXIT",1,116,140,148);
+    } else {
+#endif
 #ifdef PROJECTOR_DEMO
     /* Projector HUD includes the cached footer. */
 #elif defined(LIGHTMAP_DEMO)
-    text(21,452,"B LIGHTMAPS  H FOG  F JOURNEY  SPACE PAUSE  LMB LOOK  WHEEL DOLLY",1,176,188,190);
+    text(21,452,"F TOUR F2 WALK F3 FLY F4 MANUAL TAB PROFILER",1,176,188,190);
     text(21,466,"1/2/3 FOG CURVE  [ ] DENSITY  Q COLOR  TAB PROFILER  ESC EXIT",1,116,140,148);
 #elif defined(FOG_DEMO)
-    text(21,452,"F JOURNEY  SPACE PAUSE  LMB LOOK  WHEEL/RMB DOLLY  TAB PROFILER",1,176,188,190);
+    text(21,452,"F TOUR F2 WALK F3 FLY F4 MANUAL TAB PROFILER",1,176,188,190);
     text(21,466,"H FOG  1 LINEAR  2 EXP  3 EXP2  [ ] DENSITY  Q COLOR  ESC EXIT",1,116,140,148);
 #elif defined(BLEND_DEMO)
     text(21,452,"LMB LOOK  WHEEL/RMB DOLLY  ARROWS TURN  F NAVE TOUR  SPACE PAUSE",1,176,188,190);
@@ -569,6 +579,9 @@ static void render(int fps,int paused)
 #else
     text(21,466,"C COMPARE   P PERSPECTIVE/AFFINE   K CHECKER   TAB PROFILER   ESC EXIT",1,116,140,148);
 #endif
+#endif
+#if defined(FOG_DEMO) && !defined(PROJECTOR_DEMO)
+    }
 #endif
     profile_stage(P_HUD);profiler_panel();profile_stage(P_OVERLAY);
     while(grSstVRetraceOn()){}while(!grSstVRetraceOn()){}
@@ -604,6 +617,9 @@ int main(int argc,char **argv)
     GrHwConfiguration hw;int key,paused=0,fps=0,frames=0,sample=0,second,synced=0,ok=1;
     int test=argc>1 && !strcmp(argv[1],"/test"),soak=argc>1 && !strcmp(argv[1],"/soak");
     FILE *log=fopen(DEMO_LOG,"w");
+#ifdef FOG_DEMO
+    firstperson_quick=argc>1 && !strcmp(argv[1],"/fpstest");if(firstperson_quick)test=1;
+#endif
 #ifdef DETAIL_DEMO
     detail_quick=argc>1 && !strcmp(argv[1],"/graincheck");if(detail_quick)test=1;
 #endif
@@ -682,12 +698,18 @@ int main(int argc,char **argv)
 #endif
         ok=run_tests(log,soak);frames=test_frames;goto done;
     }
+#ifdef FOG_DEMO
+    firstperson_keyboard_init();
+#endif
     second=rtc_seconds();
     for(;;) {
         float dt=profiler.available && profiler.count?clamp(profiler.frame[(profiler.next+PROFILE_HISTORY-1)%PROFILE_HISTORY]/1000,.004f,.1f):1/60.0f;
         profile_begin();
         while(kbhit()) {
             key=getch();if(key==27)goto done;
+#ifdef FOG_DEMO
+            if(firstperson_key_consumed(key))continue;
+#endif
 #ifdef FOG_DEMO
             fog_key(key);
 #ifdef PROJECTOR_DEMO
@@ -736,21 +758,53 @@ int main(int argc,char **argv)
             if(key=='k'||key=='K')checker=!checker;
 #endif
             if(key==' ')paused=!paused;
-            if(key=='r'||key=='R'){fly_mode(0);reset_target();}
+#ifndef REFLECTION_DEMO
+            if(key=='r'||key=='R'){
+#ifdef FOG_DEMO
+                firstperson_set_mode(0);
+#endif
+                fly_mode(0);reset_target();}
+#endif
 #ifdef DETAIL_DEMO
             if(key=='+'||key=='=')detail_adjust(1);
             if(key=='-')detail_adjust(-1);
 #else
+#ifdef FOG_DEMO
+            if(!firstperson_mode) {
+#endif
             if(key=='+'||key=='='){fly_mode(0);target_zoom=clamp(target_zoom+.05f,.65f,1.3f);}
             if(key=='-'){fly_mode(0);target_zoom=clamp(target_zoom-.05f,.65f,1.3f);}
+#ifdef FOG_DEMO
+            }
+#endif
 #endif
             if(key==0||key==224) {
+#ifdef FOG_DEMO
+                key=getch();
+                if(key>=84 && key<=93)key-=25; /* Shift+function keys. */
+                if(key==60){if(firstperson_mode!=1)firstperson_set_mode(1);paused=0;continue;}
+                if(key==61){if(firstperson_mode!=2)firstperson_set_mode(2);paused=0;continue;}
+                if(key==62){firstperson_set_mode(0);paused=1;continue;}
+#ifdef DETAIL_DEMO
+                if(key==63){detail_enabled=!detail_enabled;continue;}
+#endif
+#ifdef SHADOW_DEMO
+                if(key==64){shadows_enabled=!shadows_enabled;continue;}
+#endif
+                if(firstperson_mode)continue;
+                fly_mode(0);inertia_yaw=inertia_pitch=0;
+                if(key==75)target_yaw+=.08f;if(key==77)target_yaw-=.08f;
+#else
                 fly_mode(0);inertia_yaw=inertia_pitch=0;key=getch();
                 if(key==75)target_yaw-=.08f;if(key==77)target_yaw+=.08f;
-                if(key==72)target_pitch=clamp(target_pitch-.05f,-.55f,.45f);if(key==80)target_pitch=clamp(target_pitch+.05f,-.55f,.45f);
+#endif
+                if(key==72)target_pitch=clamp(target_pitch-.05f,LOOK_PITCH_MIN,LOOK_PITCH_MAX);if(key==80)target_pitch=clamp(target_pitch+.05f,LOOK_PITCH_MIN,LOOK_PITCH_MAX);
             }
         }
         mouse_poll(dt,&paused);
+#ifdef FOG_DEMO
+        firstperson_look_keys(dt);
+#endif
 #ifndef BLEND_DEMO
         if(!flying && !paused)target_yaw+=.12f*dt;
 #endif
@@ -759,5 +813,8 @@ int main(int argc,char **argv)
         {int now=rtc_seconds(),elapsed=(now-second+60)%60;if(elapsed){if(synced)fps=sample/elapsed;synced=1;sample=0;second=now;}}
     }
 done:
+#ifdef FOG_DEMO
+    firstperson_keyboard_shutdown();
+#endif
     grGlideShutdown();if(log){fprintf(log,"%s: %s, orbit + drone camera, %d frames\n",ok&&!finite_error?"PASS":"FAIL",DEMO_NAME,frames);fclose(log);}return ok&&!finite_error?0:1;
 }

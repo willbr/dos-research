@@ -18,6 +18,10 @@ The shared compiler and Glide runtime setup is unchanged.
 | X | Warm beam / diagnostic projection grid |
 | B / H | Baked lightmaps / distance fog |
 | F | Automatic journey / manual look |
+| F2 / F3 / F4 | FPS walk / FPS fly / drag-based manual look |
+| WASD / Shift | Held movement / faster movement in FPS modes |
+| Space / Ctrl | Rise / descend in FPS fly |
+| F6 | Shadows while S is used for backward movement |
 | Space | Pause journey and lantern sweep |
 | Left drag / arrows | Smooth manual look |
 | Wheel / right drag | Local dolly |
@@ -25,6 +29,9 @@ The shared compiler and Glide runtime setup is unchanged.
 | Esc | Exit |
 
 ## Ground mask
+
+FPS modes use button-free mouse look. Walking has basic collisions; flying is
+noclip. See the [shared camera controls](../fog/README.md) for details.
 
 The CPU clips convex caster volumes below the point light, projects them
 onto each receiver plane, builds their convex silhouettes, and clips those

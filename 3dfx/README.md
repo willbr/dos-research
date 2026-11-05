@@ -7,6 +7,11 @@ limitations, and the next experiments to build.
 See [project notes](notes.md) for proposed sectorforth and sectorlisp ports
 with interactive Glide graphics.
 
+The nave/graveyard demos share **F2** FPS walking, **F3** noclip flying,
+**F4** drag-based manual look and **F** automatic tour. FPS modes use held
+**WASD**, mouse look and **Shift** for speed; flying adds **Space/Ctrl** for
+up/down. See [camera controls](fog/README.md) for collisions and feature keys.
+
 - [cube](cube/README.md): rotating rainbow cube using DOS Glide, with a live
   FPS counter and 60 Hz frame pacing. Launch with `cube/run.cmd` or
   `./cube/run.ps1`.

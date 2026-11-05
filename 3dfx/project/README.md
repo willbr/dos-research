@@ -18,12 +18,18 @@ Glide, using the shared vendored runtime and compiler setup.
 | B | Baked lightmaps on/off |
 | H | Distance fog on/off |
 | F | Journey / manual look |
+| F2 / F3 / F4 | FPS walk / FPS fly / drag-based manual look |
+| WASD / Shift | Held movement / faster movement in FPS modes |
+| Space / Ctrl | Rise / descend in FPS fly |
 | Space | Pause journey and lantern sweep |
 | Left drag / arrows | Smooth manual look |
 | Wheel / right drag | Local dolly |
 | 1 / 2 / 3, [ / ], Q | Fog curve, density and color |
 | Tab | Profiler, including a separate **PROJECT** row |
 | Esc | Exit |
+
+FPS modes use button-free look, collision-aware walking or noclip flight;
+see the [shared camera controls](../fog/README.md).
 
 Use **O** with the journey running to see the camera move independently of
 the fixed projector. **X** makes perspective and parallax easy to inspect;

@@ -14,7 +14,14 @@ runtimes and compiler setup described in [the parent README](../README.md).
 
 | Control | Action |
 | --- | --- |
-| F | Switch between the automatic journey and manual look |
+| F | Automatic journey / leave journey |
+| F2 | First-person walking |
+| F3 | First-person free flight (noclip) |
+| F4 | Return to drag-based manual look |
+| WASD | Held movement in first-person modes; A/D strafe |
+| Mouse | Look without holding a button in first-person modes |
+| Shift | Move twice as fast |
+| Space / Ctrl | Rise / descend in free flight |
 | Space | Pause the journey |
 | Left drag / arrows | Smooth manual look with inertia |
 | Wheel / right drag / +/- | Dolly around the current manual position |
@@ -27,8 +34,28 @@ runtimes and compiler setup described in [the parent README](../README.md).
 | Esc | Exit |
 
 Manual look keeps the current indoor or outdoor position when leaving the
-tour. Dolly is a local camera adjustment; use the automatic journey to
-traverse the doorway. The path stays clear of graves, trees and stonework.
+tour. Horizontal mouse movement and arrow turns follow camera-right rather
+than the orbit sign. Walking uses a 1.7-unit eye height, 3 units/second speed,
+basic wall/pillar/grave/trunk collision and wall sliding. It can traverse the
+doorway freely. Free flight follows the look direction at 7 units/second,
+with Space/Ctrl for vertical motion; it ignores geometry within a bounded world
+volume. Shift doubles either speed. Diagonal inputs are normalized and movement
+accelerates and brakes smoothly. Walking has no jump or gravity simulation;
+it settles onto the ground height when selected. If switching from noclip inside
+a solid footprint, it finds nearby clear ground or returns to the nave.
+
+WASD uses IRQ1 make/break states, chained to the BIOS, so held movement and
+release do not depend on typematic repeat. The handler is restored on exit.
+Ordinary BIOS hotkeys remain available. Mouse look in first-person modes has
+no release coasting; the drag-based manual mode retains flick inertia. Click
+inside DOSBox-X to capture the mouse; Ctrl+F10 releases it.
+
+In the shadows/detail descendants, WASD takes precedence over letter hotkeys:
+F6 toggles ground shadows, and F5 toggles the detail layer where present.
+F returns to the automatic tour. Space pauses only outside first-person modes.
+The active mode and relevant controls appear in the HUD. Free flight above the
+nave uses conservative exterior visibility rather than the indoor portal shortcut.
+The tour path stays clear of graves, trees and stonework.
 The blending demo's G/C/M/L/S switches remain available for glass, candles,
 sprite mist, light patterns and sorting. Sprite mist starts **off** here so
 it does not mask the native distance-fog experiment.

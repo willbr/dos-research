@@ -71,6 +71,7 @@ static Camera orbit_pose(void)
 static void fly_mode(int enabled)
 {
     int i;float closest=1e30f;
+    if(enabled){if(firstperson_mode)firstperson_release_guard();firstperson_mode=0;}
     if(enabled==flying)return;
     transition_from=current_camera;transition=0;
     if(enabled) {
@@ -83,15 +84,17 @@ static void fly_mode(int enabled)
         Vec d=sub(current_camera.look,current_camera.eye);float flat=(float)sqrt(d.x*d.x+d.z*d.z);
         manual_anchor=current_camera.eye;
         yaw=target_yaw=(float)atan2(d.x,d.z)-.6f;
-        pitch=target_pitch=clamp(-((float)atan2(d.y,flat)+.1f)/1.5f,-.55f,.45f);
+        pitch=target_pitch=clamp(-((float)atan2(d.y,flat)+.1f)/1.5f,LOOK_PITCH_MIN,LOOK_PITCH_MAX);
         zoom=target_zoom=1;
         yaw_speed=pitch_speed=zoom_speed=inertia_yaw=inertia_pitch=0;
     }
     flying=enabled;
 }
+#include "../fog/firstperson.h"
 static void update_camera(float dt,int paused)
 {
     Camera desired;float t;
+    if(firstperson_mode){firstperson_move(dt);current_camera=orbit_pose();transition_from=current_camera;transition=1;return;}
     if(flying && !paused)drone_seconds+=dt;
     desired=flying?drone_pose(drone_seconds):orbit_pose();
     transition=clamp(transition+dt/1.5f,0,1);t=transition*transition*(3-2*transition);

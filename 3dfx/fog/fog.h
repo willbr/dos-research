@@ -49,7 +49,7 @@ static void fog_hud(int fps)
 #else
     text(480,20,fog_enabled?"H FOG ON":"H FOG OFF",1,135,209,202);
 #endif
-    text(480,36,flying?"F JOURNEY":"F MANUAL LOOK",1,176,188,190);
+    text(480,36,firstperson_mode==1?"F2 FPS WALK":firstperson_mode==2?"F3 FPS FLY":flying?"F JOURNEY":"F4 MANUAL LOOK",1,176,188,190);
     if(fps>0)sprintf(line,"FPS %d",fps);else strcpy(line,"FPS --");text(480,53,line,1,176,157,122);
     sprintf(line,"%s  DENSITY %.3f  %s  /  %s",fog_curve==0?"LINEAR":fog_curve==1?"EXP":"EXP2",fog_density,
         fog_color==0?"BLUE HAZE":fog_color==1?"STONE MIST":"NIGHT",current_camera.eye.z < -14?"GRAVEYARD":"CANDLELIT NAVE");

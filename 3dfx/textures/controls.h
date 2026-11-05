@@ -1,5 +1,14 @@
 /* Orbit input and damped motion shared in design with the helmet demo. */
 static float clamp(float x,float low,float high) { return x<low?low:x>high?high:x; }
+#ifdef FOG_DEMO
+#define LOOK_YAW_SIGN (-1)
+#define LOOK_PITCH_MIN (-1.0f)
+#define LOOK_PITCH_MAX (.95f)
+#else
+#define LOOK_YAW_SIGN 1
+#define LOOK_PITCH_MIN (-.55f)
+#define LOOK_PITCH_MAX (.45f)
+#endif
 /* Exact critically damped spring for a fixed target during this time step.
    Position and velocity are continuous when keyboard/mouse targets change. */
 static void spring(float *value,float *speed,float target,float dt,float omega)
@@ -15,7 +24,7 @@ static void camera_step(float dt)
         float decay=(float)exp(-4.5f*dt),travel=(1-decay)/4.5f;
         float next_pitch=target_pitch+inertia_pitch*travel;
         target_yaw+=inertia_yaw*travel;
-        target_pitch=clamp(next_pitch,-.55f,.45f);
+        target_pitch=clamp(next_pitch,LOOK_PITCH_MIN,LOOK_PITCH_MAX);
         if(target_pitch!=next_pitch) inertia_pitch=0;
         inertia_yaw*=decay;
         inertia_pitch*=decay;
@@ -25,7 +34,7 @@ static void camera_step(float dt)
     spring(&yaw,&yaw_speed,target_yaw,dt,16);
     spring(&pitch,&pitch_speed,target_pitch,dt,16);
     spring(&zoom,&zoom_speed,target_zoom,dt,18);
-    pitch=clamp(pitch,-.55f,.45f);zoom=clamp(zoom,.65f,1.3f);
+    pitch=clamp(pitch,LOOK_PITCH_MIN,LOOK_PITCH_MAX);zoom=clamp(zoom,.65f,1.3f);
 }
 static void reset_target(void)
 {
@@ -44,9 +53,9 @@ static void mouse_apply(int dx,int dy,int buttons,int wheel,float dt,int *paused
             inertia_yaw=inertia_pitch=drag_yaw_speed=drag_pitch_speed=0;
             yaw_speed=pitch_speed=0;
         }
-        target_yaw+=dx*.007f;
-        target_pitch=clamp(target_pitch+dy*.005f,-.55f,.45f);
-        drag_yaw_speed+=(dx*.007f/dt-drag_yaw_speed)*blend;
+        target_yaw+=LOOK_YAW_SIGN*dx*.007f;
+        target_pitch=clamp(target_pitch+dy*.005f,LOOK_PITCH_MIN,LOOK_PITCH_MAX);
+        drag_yaw_speed+=(LOOK_YAW_SIGN*dx*.007f/dt-drag_yaw_speed)*blend;
         drag_pitch_speed+=(dy*.005f/dt-drag_pitch_speed)*blend;
         *paused=1;
     } else if(previous_buttons&1) {
@@ -73,6 +82,13 @@ static void mouse_init(void)
     memset(&r,0,sizeof(r));r.w.ax=8;r.w.dx=479;int386(0x33,&r,&r);
     memset(&r,0,sizeof(r));r.w.ax=0x0b;int386(0x33,&r,&r); /* discard old motion */
 }
+#ifdef FOG_DEMO
+static void firstperson_mouse(int dx,int dy,int buttons)
+{
+    target_yaw-=dx*.0035f;target_pitch=clamp(target_pitch+dy*.0025f,LOOK_PITCH_MIN,LOOK_PITCH_MAX);
+    inertia_yaw=inertia_pitch=drag_yaw_speed=drag_pitch_speed=0;previous_buttons=buttons;
+}
+#endif
 static void mouse_poll(float dt,int *paused)
 {
     union REGS r;
@@ -82,6 +98,12 @@ static void mouse_poll(float dt,int *paused)
     buttons=r.h.bl&7;wheel=wheel_present?(signed char)r.h.bh:0;
     memset(&r,0,sizeof(r));r.w.ax=0x0b;int386(0x33,&r,&r);
     dx=(short)r.w.cx;dy=(short)r.w.dx;
+#ifdef FOG_DEMO
+    if(firstperson_mode) {
+        /* FPS look follows every relative sample, with no release momentum. */
+        firstperson_mouse(dx,dy,buttons);return;
+    }
+#endif
     if((buttons&7) || wheel)fly_mode(0);
     mouse_apply(dx,dy,buttons,wheel,dt,paused);
 }
