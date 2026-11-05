@@ -111,6 +111,14 @@ static float vault_height(float x)
 #ifdef FOG_WORLD
 #include "../fog/outside.h"
 #endif
+/* Leave room for animated foliage when the full nave is seen through its door. */
+#ifdef FOLIAGE_DEMO
+#define NAVE_VAULT_STEPS 8
+#define NAVE_ARCADE_STEPS 6
+#else
+#define NAVE_VAULT_STEPS 12
+#define NAVE_ARCADE_STEPS 8
+#endif
 int build_cathedral(void)
 {
     int i,j,side;vertex_count=face_count=failed=glass_count=0;
@@ -130,14 +138,14 @@ int build_cathedral(void)
             cylinder(x,z,.22f,4.7f,.25f,STONE);
             box(x-.35f,4.5f,z-.35f,x+.35f,4.8f,z+.35f,TRIM);
         }
-        for(i=0;i<12;++i) {
-            float x0=-3.1f+i*(6.2f/12),x1=-3.1f+(i+1)*(6.2f/12);
+        for(i=0;i<NAVE_VAULT_STEPS;++i) {
+            float x0=-3.1f+i*(6.2f/NAVE_VAULT_STEPS),x1=-3.1f+(i+1)*(6.2f/NAVE_VAULT_STEPS);
             beam(vec(x0,vault_height(x0)-.05f,z),vec(x1,vault_height(x1)-.05f,z),.09f);
         }
     }
     /* Barrel-like pointed ceiling, longitudinal ribs and lower aisle roofs. */
-    for(i=0;i<12;++i) {
-        float x0=-3.1f+i*(6.2f/12),x1=-3.1f+(i+1)*(6.2f/12),y0=vault_height(x0),y1=vault_height(x1);
+    for(i=0;i<NAVE_VAULT_STEPS;++i) {
+        float x0=-3.1f+i*(6.2f/NAVE_VAULT_STEPS),x1=-3.1f+(i+1)*(6.2f/NAVE_VAULT_STEPS),y0=vault_height(x0),y1=vault_height(x1);
         quad(vec(x0,y0,-14),vec(x1,y1,-14),vec(x1,y1,14),vec(x0,y0,14),STONE,vec(0,-1,0));
     }
     for(side=-1;side<=1;side+=2) {
@@ -156,9 +164,9 @@ int build_cathedral(void)
         quad(vec(x,0,13.25f),vec(x,0,14),vec(x,4.55f,14),vec(x,4.55f,13.25f),STONE,normal);
         quad(vec(x,0,-14),vec(x,0,-13.75f),vec(x,4.55f,-13.75f),vec(x,4.55f,-14),STONE,normal);
         /* Pointed longitudinal arcades above the open side aisles. */
-        for(j=0;j<6;++j)for(i=0;i<8;++i) {
-            float z0=-12+j*4+i*.5f,z1=z0+.5f;
-            float u0=i/8.0f,u1=(i+1)/8.0f;
+        for(j=0;j<6;++j)for(i=0;i<NAVE_ARCADE_STEPS;++i) {
+            float z0=-12+j*4+i*(4.0f/NAVE_ARCADE_STEPS),z1=z0+4.0f/NAVE_ARCADE_STEPS;
+            float u0=i/(float)NAVE_ARCADE_STEPS,u1=(i+1)/(float)NAVE_ARCADE_STEPS;
             float y0=2.8f+1.9f*(float)pow(1-fabs(2*u0-1),.64f);
             float y1=2.8f+1.9f*(float)pow(1-fabs(2*u1-1),.64f);
             quad(vec(side*3.1f,y0,z0),vec(side*3.1f,y1,z1),vec(side*3.1f,5.1f,z1),vec(side*3.1f,5.1f,z0),STONE,normal);

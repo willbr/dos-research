@@ -54,6 +54,10 @@ down/up. See [camera controls](fog/README.md) for collisions and feature keys.
   close-up with a labeled split; **D** toggles detail and **V** toggles the split.
   **+/-** changes strength and **J/K** tiling. Launch with `detail/run.cmd`
   or `./detail/run.ps1`.
+- [foliage](foliage/README.md): alpha-tested tree canopies, grass and ivy,
+  traveling gusts, and loose leaves that flutter, settle and lift again.
+  **,/.** adjusts the leaf count from zero to 128; **M** sends a gust.
+  Launch with `foliage/run.cmd` or `./foliage/run.ps1`.
 - [sectorforth](sectorforth/README.md): 32-bit assembly Forth port with Glide
   words and an RGB triangle defined in Forth. Launch with `sectorforth/run.cmd`
   or `./sectorforth/run.ps1`.

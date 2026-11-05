@@ -1,0 +1,8 @@
+DOS4GW.EXE
+GLIDE2X.OVL
+*.LOG
+*.PPM
+*.MRK
+/preview*.png
+!FOLIAGE.EXE
+!run.cmd

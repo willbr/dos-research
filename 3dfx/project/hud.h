@@ -32,7 +32,9 @@ static void projector_hud_camera_help(void)
     static int last=-1;int state=firstperson_mode+4*flying;char line[64];
     const char *mode=firstperson_mode==1?"FPS WALK":firstperson_mode==2?"FPS FLY":flying?"TOUR":"MANUAL";
     if(state==last)return;last=state;
-#ifdef DETAIL_DEMO
+#ifdef FOLIAGE_DEMO
+    sprintf(line,"3DFX WIND / %s",mode);
+#elif defined(DETAIL_DEMO)
     sprintf(line,"3DFX STONE DETAIL / %s",mode);
 #elif defined(REFLECTION_DEMO)
     sprintf(line,"3DFX REFLECTION / %s",mode);
@@ -42,6 +44,11 @@ static void projector_hud_camera_help(void)
     sprintf(line,"3DFX LANTERN / %s",mode);
 #endif
     projector_hud_update(0,line);
+#ifdef FOLIAGE_DEMO
+    projector_hud_split(7,"G FOLIAGE C MODE Z WIND L LEAVES ,/. COUNT M GUST TAB PROFILER");
+    projector_hud_split(9,firstperson_mode?"WASD MOVE SHIFT FAST U WALK I FLY Q DOWN E UP N MANUAL F TOUR":"U WALK I FLY N MANUAL F TOUR LMB LOOK T DETAIL Y SHADOWS");
+    return;
+#endif
     if(firstperson_mode) {
         projector_hud_split(7,"WASD MOVE SHIFT FAST MOUSE LOOK U WALK I FLY F TOUR TAB PROFILER");
 #ifdef DETAIL_DEMO
@@ -71,7 +78,10 @@ static void projector_hud_refresh(int fps)
     projector_hud_update(2,projector_enabled?"P LANTERN ON":"P LANTERN OFF");
     projector_hud_update(3,projector_locked?"O FIXED IN WORLD":"O MOVING LANTERN");
     if(fps>0)sprintf(line,"FPS %d",fps);else strcpy(line,"FPS --");projector_hud_update(4,line);
-#ifdef DETAIL_DEMO
+#ifdef FOLIAGE_DEMO
+    sprintf(line,"%s  WIND %s LEAVES %s %d/128  %d AIR %d REST",foliage_mode==0?"ALPHA CUTOUT":foliage_mode==1?"ALPHA BLEND":"SOLID CARDS",wind_enabled?"ON":"OFF",leaves_enabled?"ON":"OFF",leaf_count,foliage_airborne,leaf_count-foliage_airborne);
+    projector_hud_update(11,"");projector_hud_update(12,"");
+#elif defined(DETAIL_DEMO)
     sprintf(line,"T DETAIL %s  STRENGTH %d  TILING %d  B LIGHTMAPS %s  H FOG %s / %s",detail_enabled?"ON":"OFF",(int)(detail_strength*100+.5f),detail_tiles,lightmaps_enabled?"ON":"OFF",fog_enabled?"ON":"OFF",current_camera.eye.z< -14?"GRAVEYARD":"NAVE");
     projector_hud_update(11,detail_compare?"BASE TEXTURE":"");
     projector_hud_update(12,detail_compare?(detail_enabled?"DETAIL GRAIN":"DETAIL OFF"):"");
@@ -92,7 +102,9 @@ static int projector_hud_load(FxU32 *next)
     bytes=grTexTextureMemRequired(GR_MIPMAPLEVELMASK_BOTH,&projector_hud_texture);
     if(*next+bytes>grTexMaxAddress(GR_TMU0)+1)return 0;
     projector_hud_address=*next;*next+=bytes;
-#ifdef DETAIL_DEMO
+#ifdef FOLIAGE_DEMO
+    projector_hud_update(0,"3DFX / WIND AND ALPHA CUTOUTS");projector_hud_update(1,"WINCHESTER / AUTUMN WIND");
+#elif defined(DETAIL_DEMO)
     projector_hud_update(0,"3DFX / NEAR MASONRY DETAIL");projector_hud_update(1,"WINCHESTER / STONE GRAIN");
     projector_hud_split(7,"D DETAIL V SPLIT -/+ STRENGTH J/K TILING P LANTERN TAB PROFILER");
     projector_hud_split(9,"B LIGHTMAPS H FOG F JOURNEY SPACE PAUSE LMB LOOK WHEEL DOLLY");

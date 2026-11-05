@@ -56,7 +56,12 @@ static FxU32 texture_bytes;
 static float focal=520,frustum_x=320.0f/520;
 #ifdef SHADOW_DEMO
 #ifdef DETAIL_DEMO
-static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait","Projector","Shadows","Detail texture"};
+static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait","Projector","Shadows",
+#ifdef FOLIAGE_DEMO
+"Detail/foliage"};
+#else
+"Detail texture"};
+#endif
 #elif defined(REFLECTION_DEMO)
 static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait","Projector","Shadows","Reflection"};
 #else
@@ -92,6 +97,9 @@ static float detail_strength=1;
 #ifdef REFLECTION_DEMO
 static int reflections_enabled=1;
 #endif
+#endif
+#ifdef FOLIAGE_DEMO
+#include "../foliage/wind.h"
 #endif
 #ifdef PROJECTOR_DEMO
 #include "../project/projector.h"
@@ -189,6 +197,9 @@ static int load_textures(void)
 #endif
 #ifdef DETAIL_DEMO
     if(!detail_load(&next,pixels)){free(rgb);free(font);free(pixels);return 0;}
+#endif
+#ifdef FOLIAGE_DEMO
+    if(!foliage_load(&next,pixels)){free(rgb);free(font);free(pixels);return 0;}
 #endif
     profiler_tex.smallLod=profiler_tex.largeLod=GR_LOD_256;profiler_tex.aspectRatio=GR_ASPECT_1x2;
     profiler_tex.format=GR_TEXFMT_RGB_565;profiler_tex.data=profiler_pixels;
@@ -472,6 +483,9 @@ static void scene(int pass)
 #ifdef REFLECTION_DEMO
 #include "../reflect/reflection.h"
 #endif
+#ifdef FOLIAGE_DEMO
+#include "../foliage/render.h"
+#endif
 static void render(int fps,int paused)
 {
     char line[80];GrVertex sky[4];int i;
@@ -497,6 +511,9 @@ static void render(int fps,int paused)
 #ifdef DETAIL_DEMO
     detail_reset();
 #endif
+#ifdef FOLIAGE_DEMO
+    foliage_update(paused);
+#endif
     drawn=clipped=0;prepare();profile_stage(P_TRANSFORM);
 #ifdef FOG_DEMO
     fog_apply(0);
@@ -518,7 +535,11 @@ static void render(int fps,int paused)
     projector_draw();profile_stage(P_PROJECTOR);
 #endif
 #ifdef DETAIL_DEMO
-    detail_draw();profile_stage(P_DETAIL);
+    detail_draw();
+#ifdef FOLIAGE_DEMO
+    foliage_draw();
+#endif
+    profile_stage(P_DETAIL);
 #endif
 #ifdef BLEND_DEMO
     blending_effects(paused);
@@ -621,6 +642,11 @@ int main(int argc,char **argv)
     firstperson_quick=argc>1 && !strcmp(argv[1],"/fpstest");if(firstperson_quick)test=1;
 #endif
 #ifdef DETAIL_DEMO
+#ifdef FOLIAGE_DEMO
+    foliage_quick=argc>1 && !strcmp(argv[1],"/foliagecheck")?1:argc>1 && !strcmp(argv[1],"/leafcontrol")?2:0;
+    if(foliage_quick)test=1;
+    if(argc>1 && !strcmp(argv[1],"/returnbench"))soak=5;
+#endif
     detail_quick=argc>1 && !strcmp(argv[1],"/graincheck");if(detail_quick)test=1;
 #endif
 #ifdef REFLECTION_DEMO
@@ -655,6 +681,9 @@ int main(int argc,char **argv)
 #ifdef REFLECTION_DEMO
     reflection_init();
 #endif
+#ifdef FOLIAGE_DEMO
+    foliage_init();detail_compare=0;detail_enabled=0;
+#endif
     prepare_constants();path_init();current_camera=orbit_pose();transition_from=current_camera;
 #ifdef BLEND_DEMO
     flying=1;transition=1;current_camera=drone_pose(0);transition_from=current_camera;
@@ -672,6 +701,12 @@ int main(int argc,char **argv)
         current_camera=drone_pose(drone_seconds);transition_from=current_camera;
     }
 #endif
+#endif
+#ifdef FOLIAGE_DEMO
+    if(!test && !soak) {
+        current_camera.eye=vec(-2,2.1f,-25);current_camera.look=vec(-16,4.5f,-41);
+        firstperson_set_mode(1);paused=0;
+    }
 #endif
     if(log){fprintf(log,"Mesh: %d vertices, %d faces\n",vertex_count,face_count);fflush(log);}
     grGlideInit();
@@ -719,6 +754,9 @@ int main(int argc,char **argv)
 #endif
 #ifdef SHADOW_DEMO
             if(key=='y'||key=='Y'){shadows_enabled=!shadows_enabled;continue;}
+#endif
+#ifdef FOLIAGE_DEMO
+            if(foliage_key(key))continue;
 #endif
             fog_key(key);
 #ifdef PROJECTOR_DEMO

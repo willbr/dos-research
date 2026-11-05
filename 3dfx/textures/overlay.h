@@ -93,7 +93,13 @@ static void panel_line(int x0,int y0,int x1,int y1,unsigned short color)
 #ifdef DETAIL_DEMO
 static void detail_profiler_template(void)
 {
-    static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW","DETAIL"};
+    static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW",
+#ifdef FOLIAGE_DEMO
+"FOLIAGE"
+#else
+"DETAIL"
+#endif
+};
     unsigned short muted=rgb565(131,164,169),gold=rgb565(200,167,104),background=rgb565(8,16,22);int i;
     for(i=0;i<128*256;++i)profiler_pixels[i]=background;
     panel_line(0,0,127,0,muted);panel_line(0,255,127,255,muted);panel_line(0,0,0,255,muted);panel_line(127,0,127,255,muted);
@@ -123,7 +129,13 @@ static void panel_graph(int y,int fps_graph)
 static void profiler_panel(void)
 {
 #ifdef DETAIL_DEMO
-    static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW","DETAIL"};
+    static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW",
+#ifdef FOLIAGE_DEMO
+"FOLIAGE"
+#else
+"DETAIL"
+#endif
+};
 #elif defined(REFLECTION_DEMO)
     static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW","REFLECT"};
 #elif defined(SHADOW_DEMO)

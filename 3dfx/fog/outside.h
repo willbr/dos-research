@@ -82,6 +82,7 @@ static void tree(float x,float z,float height,int seed)
 {
     int ring,i,start=vertex_count,first=face_count;float radius=height*.32f;
     cylinder(x,z,0,height*.72f,.22f,STONE);
+#ifndef FOLIAGE_DEMO
     for(ring=0;ring<3;++ring)for(i=0;i<8;++i) {
         float a=i*6.2831853f/8,b=(i+1)*6.2831853f/8;
         float y0=height*(.45f+ring*.19f),y1=y0+height*.19f;
@@ -92,6 +93,7 @@ static void tree(float x,float z,float height,int seed)
              vec(x+r1*next*(float)cos(b),y1,z+r1*next*(float)sin(b)),
              vec(x+r1*wobble*(float)cos(a),y1,z+r1*wobble*(float)sin(a)),GRASS,vec((float)cos((a+b)*.5f),.35f,(float)sin((a+b)*.5f)));
     }
+#endif
     for(i=start;i<vertex_count;++i) {
         vertices[i].r*=.56f;vertices[i].g*=.83f;vertices[i].b*=.68f;
     }

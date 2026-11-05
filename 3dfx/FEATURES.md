@@ -58,6 +58,7 @@ refresh pacing, but does not independently establish every setting's behavior.
 | [ ] | [`reflect`](reflect/README.md) / graveyard puddle | Planar reflections with CPU clipping, independent raster depth and alpha blending | Mirrored coarse scenery inside an eight-sided water portal, native foreground depth rejection, fog and water tint. R comparison, preserved scene depth, bounded reflection scene and a separate profiler row. No stencil buffer, offscreen target or extra TMU allocation; interactive review pending. |
 | [ ] | [`envmap`](envmap/README.md) / metallic diving helmet | CPU sphere-map coordinates and a second single-TMU reflection pass | Procedural room windows/skylight, material tints, E toggle and +/- strength. Native edge AA in both passes, shared-normal UV cache and 60 Hz Fast mode. Full-vector UV reference, monotonic-strength and depth controls implemented; interactive review pending. |
 | [ ] | [`detail`](detail/README.md) / nearby masonry | Detail textures with independent tiling and distance fade | ALPHA8 grain modulates lit stone, with a fog-color correction on the single TMU. D comparison, strength/tiling controls, conservative group rejection and close pier flybys. Fog/depth controls and exact collection comparisons implemented; interactive review pending. |
+| [ ] | [`foliage`](foliage/README.md) / windy graveyard | Alpha-tested cutouts, CPU wind and bounded leaf particles | Branch sprays, grass and ivy; compare depth-writing cutouts, sorted blending and solid cards. Traveling gusts bend plants and lift settled leaves. Adjustable 0-128 leaf count, direct walk/fly controls and profiler. Native OpenGL/software alpha/depth/fog checks pass. At 128 leaves, the 6,000-frame tour measures 59.94 Windows FPS, max 17.213 ms, zero over 18 ms (stone detail off); interactive review pending. |
 
 Entries without links are proposed folder names, not demos that already
 exist. Continue the anti-aliasing comparisons in `helmet`, then work down
@@ -119,7 +120,7 @@ Split these into individual demos as we reach them.
 | [ ] | Backface culling | Supported via `grCullMode`; winding depends on screen origin. | Toggle culling and origin on a labeled cube. |
 | [ ] | Clip rectangle | `grClipWindow` limits pixel writes; this is not hardware 3D frustum clipping. | Move triangles through a visible clip rectangle. |
 | [ ] | CPU near-plane clipping | Application responsibility. | Move a textured triangle across the camera's near plane without exploding coordinates. |
-| [ ] | Alpha testing | Supported threshold/comparison test, distinct from blending. | Cutout fence/foliage with clean depth writes. |
+| [ ] | Alpha testing | Supported threshold/comparison test, distinct from blending. | [`foliage`](foliage/README.md): branch sprays, grass, ivy and wind-blown leaves; cutout/blend/solid comparison with native depth controls. |
 | [ ] | Chroma key | Supported color-based rejection. | Sprite with a keyed background; compare with alpha testing. |
 | [ ] | Texture wrapping and clamping | Supported independently for S and T. | Coordinates outside the texture boundaries. |
 | [ ] | Texture sizes and aspect ratios | Power-of-two sizes, up to 256×256; supported rectangular ratios through 8:1 and 1:8. | Texture-size/aspect gallery and boundary cases. |

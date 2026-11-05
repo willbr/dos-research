@@ -68,6 +68,9 @@ static int journey_clear(Camera p)
 #ifdef DETAIL_DEMO
 #include "../detail/tests.h"
 #endif
+#ifdef FOLIAGE_DEMO
+#include "../foliage/tests.h"
+#endif
 static int submission_comparisons(FILE *log)
 {
     int pose,mode,ok=1;unsigned short *a,*b;
@@ -107,6 +110,10 @@ static int run_tests(FILE *log,int soak)
 {
     int ok=1,i,count=soak==3?600:soak==2?6000:soak?1440:360,slow=0,inside=0,outside=0,portal=0;
     float max_ms=0,sum=0;unsigned short *a,*b;
+#ifdef FOLIAGE_DEMO
+    if(soak==5)count=600;
+    if(foliage_quick){test_frames=0;return foliage_tests(log,foliage_quick==2);}
+#endif
     if(firstperson_quick){test_frames=0;return firstperson_tests(log);}
 #ifdef DETAIL_DEMO
     /* Benchmark full coverage, rather than gaining speed from the wipe. */
@@ -226,16 +233,32 @@ static int run_tests(FILE *log,int soak)
        first measured guest frame after it has synchronized to retrace. */
     if(soak){FILE *f=fopen("SOAKSTAR.MRK","w");if(f)fclose(f);else ok=0;}
 #endif
+#ifdef FOLIAGE_DEMO
+    foliage_benchmark=1;leaf_count=LEAF_MAX;
+#endif
     test_frames=count;flying=1;transition=1;fog_enabled=1;current_camera=drone_pose(0);render(0,0);render(0,0);profile_reset();profiler.measure=1;
 #ifndef SHADOW_DEMO
     if(soak){FILE *f=fopen("SOAKSTAR.MRK","w");if(f)fclose(f);else ok=0;}
 #endif
     for(i=0;i<count;++i) {
-        float ms,seconds=soak==3?94+i*(6.0f/count):i*(FLIGHT_SECONDS/count);profile_begin();current_camera=drone_pose(seconds);profile_stage(P_INPUT);
+        float ms,seconds=soak==3?94+i*(6.0f/count):i*(FLIGHT_SECONDS/count);profile_begin();
+#ifdef FOLIAGE_DEMO
+        if(soak==5)seconds=70+i*(8.0f/count);
+#endif
+        current_camera=drone_pose(seconds);profile_stage(P_INPUT);
 #ifdef PROJECTOR_DEMO
         projector_time=seconds;
 #endif
         if(i==count/2){profile_toggle();profiler_dirty=1;}
+#ifdef FOLIAGE_DEMO
+        if(soak==3) {
+            /* Close, moving outdoor view at the maximum particle count. */
+            float t=i*(6.0f/count);
+            current_camera.eye=vec(-2+t*.3f,2.1f,-25-t*.8f);
+            current_camera.look=vec(-17,4,-40-t*.5f);
+        }
+        foliage_step(1/60.0f);
+#endif
         render(profiler.average>0?(int)(1000/profiler.average+.5f):0,0);
 
         ms=profiler.frame[(profiler.next+PROFILE_HISTORY-1)%PROFILE_HISTORY];sum+=ms;if(ms>max_ms)max_ms=ms;
