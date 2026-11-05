@@ -68,7 +68,12 @@ static void draw_effect(EffectQuad *q)
         if(n<3)return;count=n;for(i=0;i<count;++i)a[i]=b[i];
     }
     for(i=0;i<count;++i){project(&a[i],&projected_quad[i],0,320);projected_quad[i].a=q->alpha;}
+#ifdef FOLIAGE_DEMO
+    /* These clipped cards remain convex and planar: share polygon setup. */
+    grDrawPolygonVertexList(count,projected_quad);blended_triangles+=count-2;drawn+=count-2;
+#else
     for(j=1;j<count-1;++j){grDrawTriangle(&projected_quad[0],&projected_quad[j],&projected_quad[j+1]);++blended_triangles;++drawn;}
+#endif
     if(mask)++blend_clipped;
 }
 static void blending_effects(int paused)

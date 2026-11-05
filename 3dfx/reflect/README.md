@@ -42,6 +42,8 @@ It selects a bounded, coarse reflection scene from the existing mesh, culls
 against the reflected camera, and clips polygons against the view frustum,
 water plane and the eight planes through the camera and puddle edges.
 Back-to-front polygon ordering resolves overlapping reflected surfaces.
+Low grave slabs are included; these thin single-plane surfaces are reflected
+double-sided so their undersides do not disappear at the waterline.
 The main scene's room apertures reject puddles hidden behind the nave walls.
 
 Texture interpolation and native distance fog use the mirrored geometry's
@@ -76,7 +78,7 @@ the entire 6,000-frame, 100-second tour, with the profiler visible for its secon
 half. Windows wall-clock throughput and guest frame times are reported
 separately; the Windows interval includes the two startup warmup frames.
 
-The final complete tour measured **59.95 Windows FPS**, a **17.214 ms** maximum guest
+Before the low-slab correction, the complete tour measured **59.95 Windows FPS**, a **17.214 ms** maximum guest
 frame and **zero frames over 18 ms**, including the new downward puddle views.
 These results describe the configured DOSBox-X OpenGL backend, rather than
 original-card throughput.

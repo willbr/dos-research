@@ -489,14 +489,17 @@ static void scene(int pass)
 #ifdef BLEND_DEMO
 #include "../blending/effects.h"
 #endif
+#ifdef WATER_DEMO
+static int reflection_plant_visible(Vec center,float radius);
+#endif
+#ifdef FOLIAGE_DEMO
+#include "../foliage/render.h"
+#endif
 #ifdef REFLECTION_DEMO
 #include "../reflect/reflection.h"
 #endif
 #ifdef WATER_DEMO
 #include "../water/ripples.h"
-#endif
-#ifdef FOLIAGE_DEMO
-#include "../foliage/render.h"
 #endif
 static void render(int fps,int paused)
 {
@@ -658,6 +661,7 @@ int main(int argc,char **argv)
 #ifdef WATER_DEMO
     water_quick=argc>1 && !strcmp(argv[1],"/watercheck")?1:argc>1 && !strcmp(argv[1],"/watercontrol")?2:0;
     if(water_quick)test=1;
+    if(argc>1 && !strcmp(argv[1],"/doorbench"))soak=6;
 #endif
     firstperson_quick=argc>1 && !strcmp(argv[1],"/fpstest");if(firstperson_quick)test=1;
 #endif

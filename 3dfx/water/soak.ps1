@@ -1,7 +1,7 @@
-param([switch]$FullTour,[switch]$Stress,[switch]$ReturnPath)
+param([switch]$FullTour,[switch]$Stress,[switch]$ReturnPath,[switch]$Doorway)
 $ErrorActionPreference = 'Stop'
-$frameCount = if ($FullTour) { 6000 } elseif ($Stress -or $ReturnPath) { 600 } else { 1440 }
-$config = if ($FullTour) { 'tour.conf' } elseif ($Stress) { 'stress.conf' } elseif ($ReturnPath) { 'return.conf' } else { 'soak.conf' }
+$frameCount = if ($FullTour) { 6000 } elseif ($Stress -or $ReturnPath -or $Doorway) { 600 } else { 1440 }
+$config = if ($FullTour) { 'tour.conf' } elseif ($Stress) { 'stress.conf' } elseif ($ReturnPath) { 'return.conf' } elseif ($Doorway) { 'door.conf' } else { 'soak.conf' }
 Remove-Item -LiteralPath "$PSScriptRoot/SOAKSTAR.MRK","$PSScriptRoot/SOAKEND.MRK" -ErrorAction SilentlyContinue
 Start-Process (Get-Command dosbox-x.exe).Source -WorkingDirectory $PSScriptRoot -ArgumentList "-conf $config" -WindowStyle Hidden
 $timer = [Diagnostics.Stopwatch]::StartNew()

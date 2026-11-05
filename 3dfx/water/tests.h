@@ -11,7 +11,8 @@ static int water_controls(FILE *log)
 {
     int mode,ok=reflection_controls(log);GrFog_t table[GR_FOG_TABLE_SIZE];
     for(mode=0;mode<7;++mode) {
-        int i,layers=mode==6?2:1,er=40,eg=60,eb=80;float alpha=mode==5?0:160,amount=0;
+        int i,layers=mode==6?2:1,er=40,eg=60,eb=80;float alpha=mode==5?0:160;
+        float expected[3]={40,60,80};
         control_clear();grFogMode(GR_FOG_DISABLE);grDepthMask(FXTRUE);
         grAlphaBlendFunction(GR_BLEND_ONE,GR_BLEND_ZERO,GR_BLEND_ONE,GR_BLEND_ZERO);
         control_rect(mode==1?0:40,mode==1?200:60,mode==1?0:80,255,mode==1?30000:10000,0);
@@ -19,14 +20,18 @@ static int water_controls(FILE *log)
         grFogTable(table);fog_enabled=mode==3 || mode==4;
         for(i=0;i<layers;++i) {
             water_state(i);grTexFilterMode(GR_TMU0,GR_TEXTUREFILTER_POINT_SAMPLED,GR_TEXTUREFILTER_POINT_SAMPLED);
-            water_control_probe(i,alpha,20000);amount+=water_probe[i]/255.0f*alpha/255.0f*(mode==3?0:mode==4?127/255.0f:1);
+            water_control_probe(i,alpha,20000);
+            {
+                int channel;float amount=water_probe[i]/255.0f*alpha/255.0f*(mode==3?0:mode==4?127/255.0f:1);
+                for(channel=0;channel<3;++channel)expected[channel]+=water_light[i][channel]*amount;
+            }
         }
         if(mode==2) {
             grFogMode(GR_FOG_DISABLE);local_color();grDepthBiasLevel(0);grDepthMask(FXTRUE);
             grAlphaTestFunction(GR_CMP_ALWAYS);grAlphaBlendFunction(GR_BLEND_ONE,GR_BLEND_ZERO,GR_BLEND_ONE,GR_BLEND_ZERO);
             control_rect(0,0,200,255,15000,0);
         }
-        er=(int)clamp(er+112*amount,0,255);eg=(int)clamp(eg+166*amount,0,255);eb=(int)clamp(eb+180*amount,0,255);
+        er=(int)clamp(expected[0],0,255);eg=(int)clamp(expected[1],0,255);eb=(int)clamp(expected[2],0,255);
         if(mode==1){er=eb=0;eg=200;}if(mode==2){er=eg=0;eb=200;}
         if(!control_sample(log,mode==0?"ripple adds texture-modulated highlight":mode==1?"foreground rejects ripple":mode==2?"ripple preserves scene depth":mode==3?"full fog removes ripple light":mode==4?"half fog attenuates ripple":mode==5?"zero ripple alpha":"two independent ripple textures",er,eg,eb))ok=0;
     }
@@ -92,6 +97,39 @@ static int water_scene_tests(FILE *log)
     if(log)fprintf(log,"Below-water camera safely rejects puddle: %s\n",ok?"PASS":"FAIL");
     foliage_benchmark=0;return ok && !finite_error;
 }
+static int water_reflection_checks(FILE *log)
+{
+    int pose,i,ok=1,grass=0;unsigned long slab_changes=0,plant_changes=0,outside=0,cull_errors=0;
+    foliage_benchmark=1;water_ripples=0;reflections_enabled=1;foliage_enabled=1;leaves_enabled=0;
+    firstperson_mode=0;flying=0;foliage_time=2;
+    for(pose=0;pose<5;++pose) {
+        unsigned short *a,*b;
+        current_camera.eye=pose==0?vec(-1,2.2f,-23):pose==1?vec(-3,1.7f,-24):pose==2?vec(-3,2,-33):pose==3?vec(0,1.9f,-9):vec(-8,1.7f,-26);
+        current_camera.look=vec(-6,.02f,-28.5f);
+        reflect_low_enabled=0;render(0,1);a=capture("LOWOFF.PPM");
+        reflect_low_enabled=1;render(0,1);b=capture(pose==0?"SLABS.PPM":"SLABALT.PPM");
+        if(!a || !b)ok=0;
+        else for(i=88*640;i<432*640;++i)if(a[i]!=b[i]) {
+            ++slab_changes;if(!reflection_pixel_inside(i%640+.5f,i/640+.5f,2))++outside;
+        }
+        free(a);free(b);
+        reflect_vegetation_enabled=0;render(0,1);a=capture("PLANTOFF.PPM");
+        reflect_vegetation_enabled=1;render(0,1);b=capture(pose==0?"PLANTS.PPM":pose==4?"REVIEW.PPM":"PLANTALT.PPM");grass+=reflect_grass_polygons;
+        if(!a || !b)ok=0;
+        else for(i=88*640;i<432*640;++i)if(a[i]!=b[i]) {
+            ++plant_changes;if(!reflection_pixel_inside(i%640+.5f,i/640+.5f,2))++outside;
+        }
+        free(a);
+        reflect_plant_culling=0;render(0,1);a=capture("PLANTREF.PPM");reflect_plant_culling=1;
+        if(!a || !b)ok=0;else cull_errors+=foliage_image_changes(a,b);
+        free(a);free(b);
+    }
+    if(cull_errors)ok=0;
+    if(log)fprintf(log,"Mirrored plant culling matches unculled image: %lu errors; %s\n",cull_errors,ok?"PASS":"FAIL");
+    if(slab_changes<10 || plant_changes<80 || !grass || outside)ok=0;
+    if(log)fprintf(log,"Reflection completeness: %lu slab pixels, %lu vegetation pixels, %d grass polygons, %lu outside puddle; %s\n",slab_changes,plant_changes,grass,outside,ok?"PASS":"FAIL");
+    foliage_benchmark=0;water_ripples=1;leaves_enabled=1;return ok;
+}
 static int water_tests(FILE *log,int controls_only)
 {
     int ok=water_controls(log);if(!foliage_controls(log))ok=0;
@@ -100,5 +138,6 @@ static int water_tests(FILE *log,int controls_only)
     if(!firstperson_tests(log))ok=0;
     if(!water_physics_tests(log))ok=0;
     if(!water_scene_tests(log))ok=0;
+    if(!water_reflection_checks(log))ok=0;
     return ok;
 }

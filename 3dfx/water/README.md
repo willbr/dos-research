@@ -36,16 +36,24 @@ assets; no reference photographs or maps are saved.
 ## Mechanism
 
 The reflection is the bounded, CPU-clipped planar reflection from `reflect`.
-It mirrors nearby static stones, trunks and the west facade into the eight-sided
-puddle, with raster depth evaluated on the water plane. Dynamic foliage is
-not re-rendered into the reflection.
+It mirrors nearby stones (including the low grave slabs), trunks and the west
+facade into the eight-sided puddle, with raster depth evaluated on the water
+plane. Thin slabs are double-sided in the reflection so their undersides remain
+visible. Animated grass and loose leaves use their current world geometry;
+tree crowns use camera-facing reflection proxies matching their overall extent.
+Static and animated surfaces share one back-to-front sort. Reflected plants
+are rejected against the puddle's view volume and visible room apertures before
+geometry clipping.
 
-Two 256x256 ALPHA8 textures contain different smooth wave ridges. Each draws
+A grazing-angle reflection approximation varies the water tint across the
+plane: shallow sight lines show stronger reflections than a downward view.
+Two 256x256 ALPHA8 textures provide broad, slow blue ripples and sparse finer
+specular-looking glints. The layers have different color and strength. Each draws
 in a separate additive pass on the single TMU. World-space UVs give the layers
 different tiling, rotation and scroll direction; only coordinates change each
 frame. Textures upload once at startup, adding 131,072 bytes for total TMU use
-of **1,761,280 bytes**. The ripple effect needs no framebuffer readback, texture re-upload or expanded
-Voodoo configuration.
+of **1,761,280 bytes**. The ripple effect needs no framebuffer readback,
+texture re-upload or expanded Voodoo configuration.
 
 Local gust strength feeds a damped water-roughness value: it builds quickly,
 then eases back toward calm. Roughness modulates ripple alpha and leaf bobbing.
@@ -79,22 +87,24 @@ texture-alpha highlights, foreground rejection, preserved depth, additive fog,
 zero alpha, both layers and foliage cutouts. Additional native tests check direct
 FPS controls, floating/ground contact, drift, stranding, gust rise/decay and bounds.
 Fixed-camera captures check clipping, still/zero-strength equality, repeatability,
-UV motion and visible floaters. Captures and logs are ignored.
+UV motion and visible floaters. Additional views independently compare
+slab and vegetation reflections from outside and through the nave doorway,
+with zero reflection pixels outside the puddle. Optimized
+plant culling matches an unculled reference image exactly. Captures and logs
+are ignored.
 
 `./soak.ps1 -Stress` measures 600 moving close-puddle frames at 128 leaves;
-`./soak.ps1 -ReturnPath` checks the expensive doorway approach;
+`./soak.ps1 -Doorway` checks the outward view through the nave doorway;
+`./soak.ps1 -ReturnPath` checks the returning approach;
 `./soak.ps1 -FullTour` measures the full 6,000-frame tour at 128 leaves.
 The profiler opens halfway through each run. The checks require at least
 59.5 Windows-clock FPS and no guest frames over 18 ms, for default alpha-tested
 foliage with optional stone detail off. Unrestricted free flight and the heavier
 blended-foliage comparison are outside that performance claim.
 
-Measured with DOSBox-X 2026.01.02 on this machine: the complete 6,000-frame tour
-at 128 leaves achieved **59.94 Windows-clock FPS**, maximum guest frame
-**17.214 ms**, **zero frames over 18 ms**. The 600-frame moving close-puddle
-stress run measured **59.69 Windows FPS**, max **17.202 ms**, zero over 18 ms;
-reflection plus ripple passes averaged approximately 1.7 ms in that view.
-Both runs display the profiler for their second half. Native OpenGL and software
-Voodoo pixel controls pass, as do floating, drift, stranding, wind response and
-scene comparison checks. Rebuilding the original foliage/reflection demos
-produces unchanged executables.
+With DOSBox-X 2026.01.02 on this machine, the complete 6,000-frame tour at
+128 leaves measures **59.96 Windows FPS**, max guest frame **17.215 ms**,
+**zero frames over 18 ms**, with the profiler shown for the second half.
+The dedicated doorway run also passes at 59.86 Windows FPS, max 17.205 ms,
+zero over 18 ms. Both native OpenGL and software Voodoo pixel controls pass;
+the optimized mirrored-plant culling matches its reference image exactly.

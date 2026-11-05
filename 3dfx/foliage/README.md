@@ -58,10 +58,12 @@ source-alpha blending. Solid-card mode exposes the textured rectangles.
 
 A baseline breeze and a 4.5-second gust envelope repeat every 14 seconds, with
 position-dependent delay so the gust crosses the graveyard from west to east.
-Tree crowns sway together, smaller sprays flutter, and grass bends near its
-base. Simulation and vertices run on the CPU; no programmable shaders are used.
+Tree crowns sway together, smaller sprays flutter, and grass bends from fixed
+roots. Two smaller crown sprays shrink away over distances of 20-30 units,
+leaving three at greater distances. Simulation and vertices run on the CPU; no programmable shaders are used.
 A 1,024-sample interpolated sine table and conservative tree/grass visibility
-checks reduce per-frame work. Static model bounds remain unchanged in other demos.
+checks reduce per-frame work. Cards use constant color/alpha combiners and
+shared polygon setup instead of redundant vertex color gradients. Static model bounds remain unchanged in other demos.
 
 The bounded leaf pool runs at a fixed 60 Hz, with drag, gravity, terminal fall
 speed and flutter. Leaves settle and remain at rest; a later strong gust can

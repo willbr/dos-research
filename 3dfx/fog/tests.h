@@ -118,6 +118,7 @@ static int run_tests(FILE *log,int soak)
     if(foliage_quick){test_frames=0;return foliage_tests(log,foliage_quick==2);}
 #endif
 #ifdef WATER_DEMO
+    if(soak==6)count=600;
     if(water_quick){test_frames=0;return water_tests(log,water_quick==2);}
 #endif
     if(firstperson_quick){test_frames=0;return firstperson_tests(log);}
@@ -250,6 +251,9 @@ static int run_tests(FILE *log,int soak)
         float ms,seconds=soak==3?94+i*(6.0f/count):i*(FLIGHT_SECONDS/count);profile_begin();
 #ifdef FOLIAGE_DEMO
         if(soak==5)seconds=70+i*(8.0f/count);
+#ifdef WATER_DEMO
+        if(soak==6)seconds=12+i*(6.0f/count);
+#endif
 #endif
         current_camera=drone_pose(seconds);profile_stage(P_INPUT);
 #ifdef PROJECTOR_DEMO
@@ -277,6 +281,7 @@ static int run_tests(FILE *log,int soak)
                 int j,slot=(profiler.next+PROFILE_HISTORY-1)%PROFILE_HISTORY;
                 fprintf(log,"Slow frame %d, position %.2f %.2f %.2f; stages",i,current_camera.eye.x,current_camera.eye.y,current_camera.eye.z);
                 for(j=0;j<P_STAGES;++j)fprintf(log," %.3f",profiler.stage[slot][j]);fprintf(log,"\n");
+
             }
         }
     }
