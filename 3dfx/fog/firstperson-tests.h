@@ -28,6 +28,16 @@ static int firstperson_tests(FILE *log)
     firstperson_test_pose(vec(0,1.7f,0),vec(0,1.7f,8),1);before=orbit_pose();
     firstperson_mouse(20,0,0);yaw=target_yaw;after=orbit_pose();
     if(dot(unit(sub(after.look,after.eye)),right)<=0 || inertia_yaw!=0)ok=0;
+    for(i=1;i<=2;++i) {
+        float sample_yaw,sample_pitch;
+        firstperson_test_pose(vec(0,1.7f,0),vec(0,1.7f,8),i);
+        firstperson_mouse(20,10,0);sample_yaw=target_yaw;sample_pitch=target_pitch;
+        camera_step(1/60.0f);
+        if(fabs(yaw-sample_yaw)>.000001f || fabs(pitch-sample_pitch)>.000001f || yaw_speed!=0 || pitch_speed!=0)ok=0;
+        firstperson_mouse(0,0,0);camera_step(1/60.0f);
+        if(fabs(yaw-sample_yaw)>.000001f || fabs(pitch-sample_pitch)>.000001f)ok=0;
+    }
+    if(log)fprintf(log,"FPS look applies full mouse sample this frame with no residual drift: %s\n",ok?"PASS":"FAIL");
     if(log)fprintf(log,"Mouse-right turns view right in drag and FPS look: %s\n",ok?"PASS":"FAIL");
     firstperson_test_pose(vec(0,1.7f,0),vec(0,1.7f,8),1);firstperson_scan(17);firstperson_test_step(30,1/60.0f);walk_distance=manual_anchor.z;
     firstperson_scan(0x91);firstperson_test_step(60,1/60.0f);if(fabs(firstperson_velocity.z)>.001f)ok=0;

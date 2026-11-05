@@ -31,8 +31,16 @@ static void camera_step(float dt)
         if(fabs(inertia_yaw)<.001f) inertia_yaw=0;
         if(fabs(inertia_pitch)<.001f) inertia_pitch=0;
     }
-    spring(&yaw,&yaw_speed,target_yaw,dt,16);
-    spring(&pitch,&pitch_speed,target_pitch,dt,16);
+#ifdef FOG_DEMO
+    if(firstperson_mode) {
+        /* Apply this frame's mouse/arrow sample directly in FPS modes. */
+        yaw=target_yaw;pitch=target_pitch;yaw_speed=pitch_speed=0;
+    } else
+#endif
+    {
+        spring(&yaw,&yaw_speed,target_yaw,dt,16);
+        spring(&pitch,&pitch_speed,target_pitch,dt,16);
+    }
     spring(&zoom,&zoom_speed,target_zoom,dt,18);
     pitch=clamp(pitch,LOOK_PITCH_MIN,LOOK_PITCH_MAX);zoom=clamp(zoom,.65f,1.3f);
 }

@@ -47,7 +47,8 @@ a solid footprint, it finds nearby clear ground or returns to the nave.
 WASD uses IRQ1 make/break states, chained to the BIOS, so held movement and
 release do not depend on typematic repeat. The handler is restored on exit.
 Ordinary BIOS hotkeys remain available. Mouse look in first-person modes has
-no release coasting; the drag-based manual mode retains flick inertia. Click
+no smoothing or release coasting: each frame applies its full mouse sample.
+The drag-based manual mode retains its smooth spring and flick inertia. Click
 inside DOSBox-X to capture the mouse; Ctrl+F10 releases it.
 
 In the shadows/detail descendants, WASD takes precedence over letter hotkeys:
