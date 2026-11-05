@@ -58,6 +58,11 @@ down/up. See [camera controls](fog/README.md) for collisions and feature keys.
   NCC-slot controls. **E** errors, **Z** zoom, **V** NCC slots, **T** image.
   Uses software Voodoo for correct NCC switching; OpenGL diagnostics are included.
   Launch with `texture-compression/run.cmd` or `./texture-compression/run.ps1`.
+- [palette-lava](palette-lava/README.md): lava and a second indexed image animate
+  through a shared palette while an RGB565 reference stays frozen. Partial/full
+  upload comparisons, range controls, live strip and byte counters. **Space**
+  pause, **N** step, **C** full/partial, **G** range.
+  Launch with `palette-lava/run.cmd` or `./palette-lava/run.ps1`.
 - [fog](fog/README.md): continuous journey from the nave through its doorway
   into a graveyard with headstones and trees; native linear, exponential and
   exponential-squared distance fog. Launch with `fog/run.cmd` or `./fog/run.ps1`.
