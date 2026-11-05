@@ -90,6 +90,19 @@ static void panel_line(int x0,int y0,int x1,int y1,unsigned short color)
         e2=2*err;if(e2>=dy){err+=dy;x0+=sx;}if(e2<=dx){err+=dx;y0+=sy;}
     }
 }
+#ifdef DETAIL_DEMO
+static void detail_profiler_template(void)
+{
+    static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW","DETAIL"};
+    unsigned short muted=rgb565(131,164,169),gold=rgb565(200,167,104),background=rgb565(8,16,22);int i;
+    for(i=0;i<128*256;++i)profiler_pixels[i]=background;
+    panel_line(0,0,127,0,muted);panel_line(0,255,127,255,muted);panel_line(0,0,0,255,muted);panel_line(127,0,127,255,muted);
+    panel_text(4,5,"FRAME PROFILER",gold);panel_text(4,16,"EMU MS / TAB CLOSE",muted);
+    if(profiler.available)for(i=0;i<P_STAGES;++i)panel_text(4,42+i*8,labels[i],muted);
+    panel_text(4,148,"FPS 0-90 / 60",muted);panel_text(4,245,"16.7 MS = 60 FPS",gold);
+    memcpy(profiler_template,profiler_pixels,sizeof(profiler_template));
+}
+#endif
 static void panel_graph(int y,int fps_graph)
 {
     int i,n=panel_snapshot.count,first=(panel_snapshot.next-n+PROFILE_HISTORY)%PROFILE_HISTORY,px=4,py=y+29;
@@ -109,7 +122,9 @@ static void panel_graph(int y,int fps_graph)
 }
 static void profiler_panel(void)
 {
-#ifdef REFLECTION_DEMO
+#ifdef DETAIL_DEMO
+    static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW","DETAIL"};
+#elif defined(REFLECTION_DEMO)
     static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW","REFLECT"};
 #elif defined(SHADOW_DEMO)
     static const char *labels[P_STAGES]={"INPUT","DARK","XFORM","OPAQUE","BLEND","LIGHTMAP","HUD","PROF","WAIT","PROJECT","SHADOW"};
@@ -139,12 +154,16 @@ static void profiler_panel(void)
         if(phase<=4) {
             unsigned short clear_color=rgb565(8,16,22);
             int start=(phase-1)*8192;
+#ifdef DETAIL_DEMO
+            memcpy(profiler_pixels+start,profiler_template+start,8192*sizeof(unsigned short));
+#else
             for(i=start;i<start+8192;i+=8) {
                 profiler_pixels[i]=clear_color;profiler_pixels[i+1]=clear_color;
                 profiler_pixels[i+2]=clear_color;profiler_pixels[i+3]=clear_color;
                 profiler_pixels[i+4]=clear_color;profiler_pixels[i+5]=clear_color;
                 profiler_pixels[i+6]=clear_color;profiler_pixels[i+7]=clear_color;
             }
+#endif
             ++profiler_build;goto profiler_publish;
         }
         phase=phase==5?1:phase<=8?phase-4:phase==9?4:phase-5;
@@ -177,9 +196,11 @@ static void profiler_panel(void)
                 profiler_pixels[i+6]=background_color;profiler_pixels[i+7]=background_color;
             }
 #endif
+#ifndef DETAIL_DEMO
             panel_line(0,0,127,0,muted);panel_line(0,255,127,255,muted);
             panel_line(0,0,0,255,muted);panel_line(127,0,127,255,muted);
             panel_text(4,5,"FRAME PROFILER",gold);panel_text(4,16,"EMU MS / TAB CLOSE",muted);
+#endif
             if(!panel_snapshot.available) {
                 panel_text(4,40,"TIMER UNAVAILABLE",ink);panel_text(4,52,"USE SUPPLIED CONF",muted);
             } else if(panel_snapshot.average>0) {
@@ -201,7 +222,10 @@ static void profiler_panel(void)
             for(i=first;i<end && i<P_STAGES;++i) {
                 int y=42+i*row_step,width=panel_snapshot.average>0?(int)(panel_snapshot.mean[i]/panel_snapshot.average*116):0;
                 int value=(int)(panel_snapshot.mean[i]*100+.5f);
-                panel_text(4,y,labels[i],muted);sprintf(line,"%2d.%02d",value/100,value%100);panel_text(80,y,line,ink);
+#ifndef DETAIL_DEMO
+                panel_text(4,y,labels[i],muted);
+#endif
+                sprintf(line,"%2d.%02d",value/100,value%100);panel_text(80,y,line,ink);
                 for(j=0;j<width && j<116;++j) panel_pixel(4+j,y+bar_step,i==P_PRESENT?muted:gold);
             }
             if(phase==4
@@ -211,16 +235,22 @@ static void profiler_panel(void)
             ) {
                 int p=(int)(panel_snapshot.p95*10+.5f),m=(int)(panel_snapshot.max*10+.5f);
                 sprintf(line,"P95 %d.%d MAX %d.%d",p/10,p%10,m/10,m%10);
-#ifdef REFLECTION_DEMO
+#if defined(REFLECTION_DEMO) || defined(DETAIL_DEMO)
                 panel_text(4,139,line,ink);
 #else
                 panel_text(4,135,line,ink);
 #endif
             }
         } else if(phase==5 && panel_snapshot.available) {
-            panel_text(4,148,"FPS 0-90 / 60",muted);panel_graph(159,1);
+#ifndef DETAIL_DEMO
+            panel_text(4,148,"FPS 0-90 / 60",muted);
+#endif
+            panel_graph(159,1);
         } else if(phase==6 && panel_snapshot.available) {
-            panel_graph(207,0);panel_text(4,245,"16.7 MS = 60 FPS",gold);
+            panel_graph(207,0);
+#ifndef DETAIL_DEMO
+            panel_text(4,245,"16.7 MS = 60 FPS",gold);
+#endif
         }
         ++profiler_build;
         if(profiler_build==

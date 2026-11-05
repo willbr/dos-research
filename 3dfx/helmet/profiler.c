@@ -99,6 +99,9 @@ void profile_log(void *file)
 #ifdef ENVIRONMENT_DEMO
         ,"Environment"
 #endif
+#ifdef DETAIL_DEMO
+        ,"Detail texture"
+#endif
     };
     FILE *f=(FILE *)file;int i;
     if(!f) return;

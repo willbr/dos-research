@@ -14,6 +14,9 @@ enum { P_INPUT,P_BACKGROUND,P_TRANSFORM,P_OPAQUE,P_AA,P_SPECULAR,P_HUD,P_OVERLAY
 #ifdef ENVIRONMENT_DEMO
     P_ENVIRONMENT,
 #endif
+#ifdef DETAIL_DEMO
+    P_DETAIL,
+#endif
     P_STAGES };
 typedef struct {
     int available,show,measure,count,next,active;

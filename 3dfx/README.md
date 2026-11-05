@@ -44,6 +44,10 @@ with interactive Glide graphics.
 - [reflect](reflect/README.md): a still-water graveyard puddle with mirrored
   geometry, native depth occlusion and alpha water tint. **R** compares the
   reflection with plain water. Launch with `reflect/run.cmd` or `./reflect/run.ps1`.
+- [detail](detail/README.md): nearby stone grain over the lightmapped nave and
+  graveyard, with fog-correct compositing and distance fade. **D** compares it;
+  **+/-** changes strength and **J/K** tiling. Launch with `detail/run.cmd`
+  or `./detail/run.ps1`.
 - [sectorforth](sectorforth/README.md): 32-bit assembly Forth port with Glide
   words and an RGB triangle defined in Forth. Launch with `sectorforth/run.cmd`
   or `./sectorforth/run.ps1`.

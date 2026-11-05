@@ -40,6 +40,9 @@ static void camera_home(void);
 static GrTexInfo tex[8],profiler_tex;
 static FxU32 address[8],profiler_address[2];
 static unsigned short profiler_pixels[128*256];
+#ifdef DETAIL_DEMO
+static unsigned short profiler_template[128*256];
+#endif
 static unsigned char panel_glyph[96][7];
 static FrameProfiler panel_snapshot;
 static int profiler_dirty=1,profiler_front,profiler_upload,profiler_row,profiler_build;
@@ -48,7 +51,9 @@ static int affine,compare,checker,finite_error,drawn,clipped,test_frames;
 static FxU32 texture_bytes;
 static float focal=520,frustum_x=320.0f/520;
 #ifdef SHADOW_DEMO
-#ifdef REFLECTION_DEMO
+#ifdef DETAIL_DEMO
+static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait","Projector","Shadows","Detail texture"};
+#elif defined(REFLECTION_DEMO)
 static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait","Projector","Shadows","Reflection"};
 #else
 static const char *stage_names[P_STAGES]={"Input","Backdrop","Transform/cull","Opaque","Blending","Lightmaps","HUD","Profiler","Present/wait","Projector","Shadows"};
@@ -76,6 +81,10 @@ static void local_color(void)
 #endif
 #ifdef SHADOW_DEMO
 static int shadows_enabled=1;
+#ifdef DETAIL_DEMO
+static int detail_enabled=1,detail_tiles=4;
+static float detail_strength=.7f;
+#endif
 #ifdef REFLECTION_DEMO
 static int reflections_enabled=1;
 #endif
@@ -88,6 +97,9 @@ static int reflections_enabled=1;
 #endif
 #ifdef LIGHTMAP_DEMO
 #include "../lightmap/lightmap.h"
+#endif
+#ifdef DETAIL_DEMO
+#include "../detail/grain.h"
 #endif
 #ifdef MIPMAP_DEMO
 #include "../mipmaps/mipmap.h"
@@ -171,6 +183,9 @@ static int load_textures(void)
     if(!projector_hud_load(&next)) {free(rgb);free(font);free(pixels);return 0;}
     if(!projector_load(&next,pixels)){free(rgb);free(font);free(pixels);return 0;}
 #endif
+#ifdef DETAIL_DEMO
+    if(!detail_load(&next,pixels)){free(rgb);free(font);free(pixels);return 0;}
+#endif
     profiler_tex.smallLod=profiler_tex.largeLod=GR_LOD_256;profiler_tex.aspectRatio=GR_ASPECT_1x2;
     profiler_tex.format=GR_TEXFMT_RGB_565;profiler_tex.data=profiler_pixels;
     for(t=0;t<2;++t) {
@@ -222,6 +237,9 @@ static void project(ViewVertex *s,GrVertex *v,int affine_mode,float center)
 #ifdef FOG_DEMO
 #include "../fog/transform.h"
 static int quad_vertices[MAX_FACES][4];
+#ifdef SHADOW_DEMO
+static int quad_extra[MAX_FACES];
+#endif
 static unsigned char quad_kind[MAX_FACES];
 static int quad_enabled=1;
 #endif
@@ -247,7 +265,15 @@ static void prepare(void)
         Face *f=&faces[i];
 #ifdef FOG_DEMO
         if(i==fog_groups[group].first) {
-            int end=fog_groups[group].last,visible_group=fog_group_visible(group,forward,right,up,bx,by,rx,ry);++group;
+            int end=fog_groups[group].last,visible_group=fog_group_visible(group,forward,right,up,bx,by,rx,ry);
+#ifdef DETAIL_DEMO
+            detail_group_active[group]=0;
+            if(detail_record_enabled && visible_group) {
+                FogGroup *g=&fog_groups[group];float x=g->center.x-ex,y=g->center.y-ey,z=g->center.z-ez;
+                detail_group_active[group]=x*forward.x+y*forward.y+z*forward.z-g->radius<=detail_range;
+            }
+#endif
+            ++group;
             if(!visible_group){i=end-1;continue;}
         }
 #ifdef SHADOW_DEMO
@@ -266,7 +292,7 @@ static void prepare(void)
             MARK_ACTIVE(f->v[0]);MARK_ACTIVE(f->v[1]);MARK_ACTIVE(f->v[2]);
 #ifdef SHADOW_DEMO
             if(quad_enabled && quad_kind[i]==1) {
-                int corner;for(corner=0;corner<4;++corner)MARK_ACTIVE(quad_vertices[i][corner]);
+                MARK_ACTIVE(quad_extra[i]);
             }
 #endif
 #else
@@ -361,6 +387,9 @@ static void clipped_triangle(Face *f,int pass)
         lightmap_record(f,&q[0],&q[j],&q[j+1]);
 #endif
     }
+#ifdef DETAIL_DEMO
+    DETAIL_RECORD(f,q,NULL,count);
+#endif
     ++clipped;
 }
 static void scene(int pass)
@@ -423,6 +452,9 @@ static void scene(int pass)
             if(a|b|c)clipped_triangle(f,pass);
             else {
                 grDrawTriangle(&projected[pass][f->v[0]],&projected[pass][f->v[1]],&projected[pass][f->v[2]]);++drawn;
+#ifdef DETAIL_DEMO
+                DETAIL_RECORD(f,projected[pass],f->v,3);
+#endif
 #ifdef LIGHTMAP_DEMO
                 lightmap_record(f,&projected[pass][f->v[0]],&projected[pass][f->v[1]],&projected[pass][f->v[2]]);
 #endif
@@ -458,6 +490,9 @@ static void render(int fps,int paused)
 #ifdef PROJECTOR_DEMO
     projector_prepare(paused);
 #endif
+#ifdef DETAIL_DEMO
+    detail_reset();
+#endif
     drawn=clipped=0;prepare();profile_stage(P_TRANSFORM);
 #ifdef FOG_DEMO
     fog_apply(0);
@@ -477,6 +512,9 @@ static void render(int fps,int paused)
 #endif
 #ifdef PROJECTOR_DEMO
     projector_draw();profile_stage(P_PROJECTOR);
+#endif
+#ifdef DETAIL_DEMO
+    detail_draw();profile_stage(P_DETAIL);
 #endif
 #ifdef BLEND_DEMO
     blending_effects(paused);
@@ -566,6 +604,9 @@ int main(int argc,char **argv)
     GrHwConfiguration hw;int key,paused=0,fps=0,frames=0,sample=0,second,synced=0,ok=1;
     int test=argc>1 && !strcmp(argv[1],"/test"),soak=argc>1 && !strcmp(argv[1],"/soak");
     FILE *log=fopen(DEMO_LOG,"w");
+#ifdef DETAIL_DEMO
+    detail_quick=argc>1 && !strcmp(argv[1],"/graincheck");if(detail_quick)test=1;
+#endif
 #ifdef REFLECTION_DEMO
     reflection_quick=argc>1 && !strcmp(argv[1],"/water");if(reflection_quick)test=1;
 #endif
@@ -591,6 +632,9 @@ int main(int argc,char **argv)
 #ifdef PROJECTOR_DEMO
     projector_mesh_init();
 #endif
+#ifdef DETAIL_DEMO
+    detail_mesh_init();
+#endif
 #ifdef REFLECTION_DEMO
     reflection_init();
 #endif
@@ -614,6 +658,9 @@ int main(int argc,char **argv)
     grCullMode(GR_CULL_DISABLE);grDitherMode(GR_DITHER_4x4);
     if(!load_textures()){grGlideShutdown();puts("Cannot load material textures / texture memory exhausted");if(log)fclose(log);return 1;}
     profile_init();mouse_init();
+#ifdef DETAIL_DEMO
+    detail_profiler_template();
+#endif
 #ifdef FOG_DEMO
     mist_enabled=0;fog_update();
 #ifdef LIGHTMAP_DEMO
@@ -638,6 +685,11 @@ int main(int argc,char **argv)
 #ifdef PROJECTOR_DEMO
 #ifdef SHADOW_DEMO
             if(key=='s'||key=='S')shadows_enabled=!shadows_enabled;
+#ifdef DETAIL_DEMO
+            if(key=='d'||key=='D')detail_enabled=!detail_enabled;
+            if(key=='j'||key=='J')detail_tiles=(int)clamp(detail_tiles-1,1,8);
+            if(key=='k'||key=='K')detail_tiles=(int)clamp(detail_tiles+1,1,8);
+#endif
 #ifdef REFLECTION_DEMO
             if(key=='r'||key=='R')reflections_enabled=!reflections_enabled;
 #endif
@@ -676,8 +728,13 @@ int main(int argc,char **argv)
 #endif
             if(key==' ')paused=!paused;
             if(key=='r'||key=='R'){fly_mode(0);reset_target();}
+#ifdef DETAIL_DEMO
+            if(key=='+'||key=='=')detail_adjust(1);
+            if(key=='-')detail_adjust(-1);
+#else
             if(key=='+'||key=='='){fly_mode(0);target_zoom=clamp(target_zoom+.05f,.65f,1.3f);}
             if(key=='-'){fly_mode(0);target_zoom=clamp(target_zoom-.05f,.65f,1.3f);}
+#endif
             if(key==0||key==224) {
                 fly_mode(0);inertia_yaw=inertia_pitch=0;key=getch();
                 if(key==75)target_yaw-=.08f;if(key==77)target_yaw+=.08f;

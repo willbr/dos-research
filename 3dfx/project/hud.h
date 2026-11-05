@@ -28,7 +28,9 @@ static void projector_hud_refresh(int fps)
     projector_hud_update(2,projector_enabled?"P LANTERN ON":"P LANTERN OFF");
     projector_hud_update(3,projector_locked?"O FIXED IN WORLD":"O MOVING LANTERN");
     if(fps>0)sprintf(line,"FPS %d",fps);else strcpy(line,"FPS --");projector_hud_update(4,line);
-#ifdef REFLECTION_DEMO
+#ifdef DETAIL_DEMO
+    sprintf(line,"D DETAIL %s  STRENGTH %d  TILING %d  B LIGHTMAPS %s  H FOG %s / %s",detail_enabled?"ON":"OFF",(int)(detail_strength*100+.5f),detail_tiles,lightmaps_enabled?"ON":"OFF",fog_enabled?"ON":"OFF",current_camera.eye.z< -14?"GRAVEYARD":"NAVE");
+#elif defined(REFLECTION_DEMO)
     sprintf(line,"R REFLECTION %s  S SHADOWS %s  B LIGHTMAPS %s  H FOG %s / %s",reflections_enabled?"ON":"OFF",shadows_enabled?"ON":"OFF",lightmaps_enabled?"ON":"OFF",fog_enabled?"ON":"OFF",current_camera.eye.z< -14?"GRAVEYARD":"NAVE");
 #elif defined(SHADOW_DEMO)
     sprintf(line,"S SHADOWS %s  %s  B LIGHTMAPS %s  H FOG %s  /  %s",shadows_enabled?"ON":"OFF",projector_grid?"X GRID":"WARM BEAM",lightmaps_enabled?"ON":"OFF",fog_enabled?"ON":"OFF",current_camera.eye.z< -14?"GRAVEYARD":"NAVE");
@@ -45,7 +47,11 @@ static int projector_hud_load(FxU32 *next)
     bytes=grTexTextureMemRequired(GR_MIPMAPLEVELMASK_BOTH,&projector_hud_texture);
     if(*next+bytes>grTexMaxAddress(GR_TMU0)+1)return 0;
     projector_hud_address=*next;*next+=bytes;
-#ifdef REFLECTION_DEMO
+#ifdef DETAIL_DEMO
+    projector_hud_update(0,"3DFX / NEAR MASONRY DETAIL");projector_hud_update(1,"WINCHESTER / STONE GRAIN");
+    projector_hud_split(7,"D DETAIL -/+ STRENGTH J/K TILING P LANTERN S SHADOWS TAB PROFILER");
+    projector_hud_split(9,"B LIGHTMAPS H FOG F JOURNEY SPACE PAUSE LMB LOOK WHEEL DOLLY");
+#elif defined(REFLECTION_DEMO)
     projector_hud_update(0,"3DFX / PLANAR REFLECTIONS");projector_hud_update(1,"WINCHESTER / STILL WATER");
     projector_hud_split(7,"R REFLECTION  S SHADOWS  P LANTERN  O HOLD  X GRID  TAB PROFILER");
     projector_hud_split(9,"B LIGHTMAPS H FOG F JOURNEY SPACE PAUSE LMB LOOK WHEEL DOLLY");

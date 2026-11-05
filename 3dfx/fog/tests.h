@@ -64,6 +64,9 @@ static int journey_clear(Camera p)
 #ifdef REFLECTION_DEMO
 #include "../reflect/tests.h"
 #endif
+#ifdef DETAIL_DEMO
+#include "../detail/tests.h"
+#endif
 static int submission_comparisons(FILE *log)
 {
     int pose,mode,ok=1;unsigned short *a,*b;
@@ -100,6 +103,9 @@ static int run_tests(FILE *log,int soak)
 {
     int ok=1,i,count=soak==3?600:soak==2?6000:soak?1440:360,slow=0,inside=0,outside=0,portal=0;
     float max_ms=0,sum=0;unsigned short *a,*b;
+#ifdef DETAIL_DEMO
+    if(detail_quick){test_frames=28;return detail_controls(log) && detail_scene_checks(log) && !finite_error;}
+#endif
 #ifdef REFLECTION_DEMO
     if(reflection_quick){test_frames=12;return reflection_controls(log) && reflection_scene_checks(log) && !finite_error;}
 #endif
@@ -114,6 +120,9 @@ static int run_tests(FILE *log,int soak)
 #ifdef SHADOW_DEMO
         if(!shadow_controls(log))ok=0;
 #endif
+#ifdef DETAIL_DEMO
+        if(!detail_controls(log))ok=0;
+#endif
 #ifdef REFLECTION_DEMO
         if(!reflection_controls(log))ok=0;
 #endif
@@ -124,6 +133,9 @@ static int run_tests(FILE *log,int soak)
             test_frames+=7;
 #ifdef SHADOW_DEMO
             test_frames+=4;
+#ifdef DETAIL_DEMO
+            test_frames+=8;
+#endif
 #ifdef REFLECTION_DEMO
             test_frames+=4;
 #endif
@@ -142,6 +154,9 @@ static int run_tests(FILE *log,int soak)
 #endif
 #ifdef SHADOW_DEMO
         if(!shadow_scene_checks(log))ok=0;
+#endif
+#ifdef DETAIL_DEMO
+        if(!detail_scene_checks(log))ok=0;
 #endif
 #ifdef REFLECTION_DEMO
         if(!reflection_scene_checks(log))ok=0;
@@ -226,6 +241,9 @@ static int run_tests(FILE *log,int soak)
 #endif
 #ifdef SHADOW_DEMO
     if(log)fprintf(log,"Shadow volumes %d; final frame: %d polygons, %d triangles, piers %d graves %d\n",shadow_caster_count,shadow_polygons,shadow_triangles,shadow_pier_hits,shadow_grave_hits);
+#endif
+#ifdef DETAIL_DEMO
+    if(log)fprintf(log,"Detail final frame: %d cached, %d polygons, %d triangles\n",detail_count,detail_polygons,detail_triangles);
 #endif
 #ifdef REFLECTION_DEMO
     if(log)fprintf(log,"Reflection mesh %d surfaces; final frame: %d candidates, %d polygons, %d triangles\n",reflect_count,reflect_visible,reflect_polygons,reflect_triangles);

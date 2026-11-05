@@ -17,6 +17,9 @@ static void quad_init(void)
         else if(b->v[2]==a->v[1]){q[1]=extra;q[2]=a->v[1];q[3]=a->v[2];}
         else continue;
         for(j=0;j<4;++j)quad_vertices[i][j]=q[j];
+#ifdef SHADOW_DEMO
+        quad_extra[i]=extra;
+#endif
         quad_kind[i]=1;quad_kind[i+1]=2;++i;
     }
 }
@@ -27,12 +30,17 @@ static void quad_draw(Face *face,int *ids)
     if(common)return;
     if(!mask) {
         grDrawPolygon(4,ids,projected[0]);drawn+=2;
+#ifdef DETAIL_DEMO
+        DETAIL_RECORD(face,projected[0],ids,4);
+#endif
 #ifdef PROJECTOR_DEMO
         projector_record_polygon(face,projected[0],ids,4);projector_in_quad=1;
 #endif
 #ifdef LIGHTMAP_DEMO
-        lightmap_record(face,&projected[0][ids[0]],&projected[0][ids[1]],&projected[0][ids[2]]);
-        lightmap_record(face,&projected[0][ids[0]],&projected[0][ids[2]],&projected[0][ids[3]]);
+        if(lightmaps_enabled && lightmap_face[face-faces]) {
+            lightmap_record(face,&projected[0][ids[0]],&projected[0][ids[1]],&projected[0][ids[2]]);
+            lightmap_record(face,&projected[0][ids[0]],&projected[0][ids[2]],&projected[0][ids[3]]);
+        }
 #endif
 #ifdef PROJECTOR_DEMO
         projector_in_quad=0;
@@ -51,11 +59,14 @@ static void quad_draw(Face *face,int *ids)
     }
     for(i=0;i<count;++i)project(&a[i],&q[i],0,320);
     grDrawPolygonVertexList(count,q);drawn+=count-2;++clipped;
+#ifdef DETAIL_DEMO
+    DETAIL_RECORD(face,q,NULL,count);
+#endif
 #ifdef PROJECTOR_DEMO
     projector_record_polygon(face,q,NULL,count);projector_in_quad=1;
 #endif
 #ifdef LIGHTMAP_DEMO
-    for(j=1;j<count-1;++j)lightmap_record(face,&q[0],&q[j],&q[j+1]);
+    if(lightmaps_enabled && lightmap_face[face-faces])for(j=1;j<count-1;++j)lightmap_record(face,&q[0],&q[j],&q[j+1]);
 #endif
 #ifdef PROJECTOR_DEMO
     projector_in_quad=0;

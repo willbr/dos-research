@@ -2,7 +2,11 @@ typedef struct { Vec eye,look; } Camera;
 typedef struct { Vec eye,look; } Shot;
 #define PATH_KEYS 16
 static const Shot shots[PATH_KEYS]={
+#ifdef DETAIL_DEMO
+ {{1.5f,1.9f,6},{3.1f,1.8f,4}}, {{1.5f,1.9f,-2},{3.1f,1.8f,-4}},
+#else
  {{0,1.9f,6},{0,2,-14}}, {{0,1.9f,-2},{0,2,-18}},
+#endif
  {{0,1.9f,-10},{0,2,-23}}, {{0,1.9f,-16},{0,2,-30}},
 #ifdef REFLECTION_DEMO
  {{0,2.2f,-24},{-5.8f,.2f,-28}}, {{-3,2.8f,-33},{-10,3,-43}},
