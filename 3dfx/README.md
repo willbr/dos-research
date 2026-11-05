@@ -41,6 +41,10 @@ down/up. See [camera controls](fog/README.md) for collisions and feature keys.
 - [blending](blending/README.md): candlelit nave with stained glass, additive
   flames/halos and colored floor patterns, translucent mist, and a sorting
   comparison. Launch with `blending/run.cmd` or `./blending/run.ps1`.
+- [depth](depth/README.md): intersecting panels and precision fixtures comparing
+  native Z/W buffers, depth comparisons and writes. **H** test, **W** writes,
+  **D** order, **P** precision, **N** fitted Z range.
+  Launch with `depth/run.cmd` or `./depth/run.ps1`.
 - [fog](fog/README.md): continuous journey from the nave through its doorway
   into a graveyard with headstones and trees; native linear, exponential and
   exponential-squared distance fog. Launch with `fog/run.cmd` or `./fog/run.ps1`.
