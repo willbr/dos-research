@@ -1,9 +1,17 @@
-# 3dfx project ideas
+# 3dfx project notes
 
-These are future experiments, not implementations. Both would use our
+The interpreter ideas below describe future experiments. Both would use our
 standard Voodoo 1 target: 4 MB, one TMU, DOSBox-X, and the vendored Glide 2.43
 SDK/runtime. The original interpreters are starting points; preserving the
 512-byte boot-sector size is not a requirement for these ports.
+
+## Keyboard preference: avoid function keys
+
+The user's keyboard puts F1-F12 behind an Fn button. Do not use function keys
+or Fn combinations as required or default controls. Prefer ordinary letter
+keys, number keys and mouse controls for camera modes, movement and feature
+toggles. Apply this preference across the project's demos when adding or
+revising controls.
 
 ## Port sectorforth and add Glide words
 
